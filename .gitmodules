@@ -1,0 +1,3 @@
+[submodule "MimIR"]
+	path = MimIR
+	url = https://github.com/AnyDSL/MimIR.git
