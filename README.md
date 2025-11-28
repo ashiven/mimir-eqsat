@@ -1,2 +1,3 @@
 # mimir-egg
-implementing equality saturation for mimir
+
+Implementing equality saturation for MimIR
