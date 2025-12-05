@@ -1,0 +1,3 @@
+plugin core;
+
+lam extern a(x: Idx 23) = %core.icmp.e (x, x);

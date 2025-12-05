@@ -1,0 +1,28 @@
+.mim/plugin compile;
+.mim/plugin opt;
+.mim/plugin core;
+.mim/plugin mem;
+.mim/plugin affine;
+.import autodiff;
+.import clos;
+.mim/plugin direct;
+.import matrix;
+.mim/plugin math;
+.import refly;
+.import regex;
+.import examples/loop.mim;
+con extern main _19576::[_19577::[mem_19578: %mem.M, argc_19587: I32, %mem.Ptr (%mem.Ptr (I8, 0), 0)], return_19598: Cn [%mem.M, I32]]@(ff) = {
+    con loop_19583 _19584::[mem_19585: %mem.M, i_19586: I32, acc_19596: I32]@(ff) = {
+        con body_19600 m_19601: %mem.M@(ff) = {
+            let inc_19608: I32 = %core.wrap.add i32 0 (1I32, i_19586);
+            let acc_19610: I32 = %core.wrap.add i32 0 (i_19586, acc_19596);
+            loop_19583 (m_19601, inc_19608, acc_19610)
+        };
+        con exit_19594 m_19595: %mem.M@(ff) = {
+            return_19598 (m_19595, acc_19596)
+        };
+        let cond_19592: Bool = %core.icmp.XygLe i32 (i_19586, _19577#1₃);
+        (exit_19594, body_19600)#cond_19592 mem_19585
+    };
+    loop_19583 (_19577#0₃, 0I32, 0I32)
+};
