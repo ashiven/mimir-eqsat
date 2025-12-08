@@ -1,0 +1,26 @@
+digraph {
+    ordering=out;
+    splines=false;
+    node [shape=box,style=filled];
+    _19293[style="filled,diagonals"label=<f_19293<br/>Lam>,fillcolor="0.34375 0.5 0.75",rank=min,tooltip="<b>expr:</b> f&#13;&#10;<b>type:</b> Cn [«2; Nat», Cn Nat]&#13;&#10;<b>name:</b> f&#13;&#10;<b>gid:</b> 19293&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x28&#13;&#10;<b>local_muts:</b> {19293/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>users:</b> {{}}&#13;&#10;<b>loc:</b> examples/core/nat.mim:3:1-3:58"];
+    _18492[label=<cond_18492<br/>ff
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> ff&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> cond&#13;&#10;<b>gid:</b> 18492&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/opt.mim:34:30-34:46"];
+    _19293 -> _18492[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19298[label=<_19298<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _19298&#13;&#10;<b>type:</b> ⊥:(★)&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 19298&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19294/0}&#13;&#10;<b>free_vars:</b> {19294/0}&#13;&#10;<b>loc:</b> examples/core/nat.mim:3:30-3:58"];
+    _19297[label=<return_19297<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> return_19297&#13;&#10;<b>type:</b> Cn Nat&#13;&#10;<b>name:</b> return&#13;&#10;<b>gid:</b> 19297&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19294/0}&#13;&#10;<b>free_vars:</b> {19294/0}&#13;&#10;<b>loc:</b> examples/core/nat.mim:3:1-3:58"];
+    _19294[label=<_19294<br/>Var>,fillcolor="0.0625 0.5 0.75",tooltip="<b>expr:</b> _19294&#13;&#10;<b>type:</b> [«2; Nat», Cn Nat]&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 19294&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19294/0}&#13;&#10;<b>free_vars:</b> {19294/0}&#13;&#10;<b>loc:</b> examples/core/nat.mim:3:1-3:58"];
+    _19294 -> _19293[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19297 -> _19294[taillabel="0",];
+    _18493[label=<cond_18493<br/>tt
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> tt&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> cond&#13;&#10;<b>gid:</b> 18493&#13;&#10;<b>flags:</b> 0x1&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/opt.mim:41:9-41:27"];
+    _19297 -> _18493[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19298 -> _19297[taillabel="0",];
+    _19296[label=<b_19296<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> _19295#tt&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> b&#13;&#10;<b>gid:</b> 19296&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19294/0}&#13;&#10;<b>free_vars:</b> {19294/0}&#13;&#10;<b>loc:</b> examples/core/nat.mim:3:13-3:21"];
+    _19295[label=<_19295<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> _19295&#13;&#10;<b>type:</b> «2; Nat»&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 19295&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19294/0}&#13;&#10;<b>free_vars:</b> {19294/0}&#13;&#10;<b>loc:</b> examples/core/nat.mim:3:1-3:58"];
+    _19295 -> _19294[taillabel="0",];
+    _19295 -> _18492[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19296 -> _19295[taillabel="0",];
+    _19296 -> _18493[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19298 -> _19296[taillabel="1",];
+    _19293 -> _19298[taillabel="1",];
+}
