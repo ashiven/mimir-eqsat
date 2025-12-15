@@ -31,7 +31,21 @@ In the following I will describe in more detail how I am planning to achieve the
 
 ### Encoding from MimIR to s-Expr
 
+My first challenge will be to find an encoding that allows arbitrary MimIR programs to be accurately represented in the form of s-Expressions to allow egg to construct an egraph from them.
+
+My idea here is to expand the existing MimIR compiler backends with another backend whose purpose will be to output a program in the form of an s-Expression. To achieve this I have been studying the existing backends in the compiler, specifically the dot backend, along with the way that programs are internally represented. My understanding thus far is that programs are internally represented inside of the **World** class where the program is represented as a set of interconnected **Def**initions where each of them represents an operator or primitive that can have a type and depend on other **Def**initions.
+
+The way that the dot backend constructs a graph from a given program is by recursing over its definitions starting from the root definition until all definitions have been written to a dot file, including the types and annexes based on user-provided flags. Since the goal will be to decode the program back into that internal representation from an s-Expression representing a rewritten program, a requirement for the encoding will be to preserve all of the information necessary to ensure a correctly constructed, equivalent MimIR program. It is therefore likely that this encoding will have to include a representation of both types and annexes as well.
+
 ### Encoding Mim rewrite rules into egg rewrite rules
+
+The next challenge will be to translate a variety of rules defined in different formats into the uniform rule format expected by egg.
+There are two types of rewrite rules that I could make out in the MimIR ecosystem; the first variety are rewrites defined as part of the normalizers bundled with a plugin, the second variety are rewrite rules defined directly inside of Mim. I might be able to utilize parts of the encoding system from the previous task in order to translate arbitrary rewrite rules defined in Mim but this will likely prove more difficult for the manual rewrites defined in C++.
+
+- rules in Mim are just definitions (see include/mim/rule.h)
+- translate C++ rewrites to mim rewrites?
+- only utilize parts of existing rewrite rules to demonstrate and in the case study?
+- possible to translate all existing rewrite rules or too much work?
 
 ### Performing rewrites in egg
 
