@@ -1,0 +1,1 @@
+fun f(a, b: Nat): Nat = return  (%core.nat.add  (b, 0));

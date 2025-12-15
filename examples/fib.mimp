@@ -1,0 +1,32 @@
+.mim/plugin compile;
+.mim/plugin opt;
+.mim/plugin core;
+.mim/plugin mem;
+.mim/plugin affine;
+.import autodiff;
+.import clos;
+.mim/plugin direct;
+.import matrix;
+.mim/plugin math;
+.import refly;
+.import regex;
+.import examples/fib.mim;
+con extern fib _23963::[n_23964: Nat, return_23975: Cn Nat]@(ff) = {
+    con head_23962 _23968::[i_23969: Nat, a_23974: Nat, b_23980: Nat]@(_23967) = {
+        con t_23977 []@(ff) = {
+            let _23979: Nat = %core.nat.add (1, i_23969);
+            let _23982: Nat = %core.nat.add (a_23974, b_23980);
+            head_23962 (_23979, b_23980, _23982)
+        };
+        con f_23973 []@(ff) = {
+            return_23975 a_23974
+        };
+        let _23967: Bool = %core.pe.is_closed Nat n_23964;
+        let cond_23971: Bool = %core.ncmp.gLe (i_23969, n_23964);
+        (f_23973, t_23977)#cond_23971 ()
+    };
+    head_23962 (0, 0, 1)
+};
+con extern main _23952::[[I32, %mem.Ptr (%mem.Ptr (I8, 0), 0)], return_23953: Cn I32]@(ff) = {
+    return_23953 144I32
+};

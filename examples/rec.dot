@@ -1,0 +1,20 @@
+digraph {
+    ordering=out;
+    splines=false;
+    node [shape=box,style=filled];
+    _19417[style="filled,diagonals"label=<f_19417<br/>Lam>,fillcolor="0.34375 0.5 0.75",rank=min,tooltip="<b>expr:</b> f&#13;&#10;<b>type:</b> Cn [[], Cn Bool]&#13;&#10;<b>name:</b> f&#13;&#10;<b>gid:</b> 19417&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x28&#13;&#10;<b>local_muts:</b> {19417/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>users:</b> {{}}&#13;&#10;<b>loc:</b> examples/rec.mim:7:1-7:41"];
+    _18616[label=<cond_18616<br/>ff
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> ff&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> cond&#13;&#10;<b>gid:</b> 18616&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/opt.mim:34:30-34:46"];
+    _19417 -> _18616[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19420[label=<_19420<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _19420&#13;&#10;<b>type:</b> ⊥:(★)&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 19420&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19418/0}&#13;&#10;<b>free_vars:</b> {19418/0}&#13;&#10;<b>loc:</b> examples/rec.mim:7:24-7:41"];
+    _19419[label=<return_19419<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> return_19419&#13;&#10;<b>type:</b> Cn Bool&#13;&#10;<b>name:</b> return&#13;&#10;<b>gid:</b> 19419&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19418/0}&#13;&#10;<b>free_vars:</b> {19418/0}&#13;&#10;<b>loc:</b> examples/rec.mim:7:1-7:41"];
+    _19418[label=<_19418<br/>Var>,fillcolor="0.0625 0.5 0.75",tooltip="<b>expr:</b> _19418&#13;&#10;<b>type:</b> [[], Cn Bool]&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 19418&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {19418/0}&#13;&#10;<b>free_vars:</b> {19418/0}&#13;&#10;<b>loc:</b> examples/rec.mim:7:1-7:41"];
+    _19418 -> _19417[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19419 -> _19418[taillabel="0",];
+    _18617[label=<cond_18617<br/>tt
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> tt&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> cond&#13;&#10;<b>gid:</b> 18617&#13;&#10;<b>flags:</b> 0x1&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/opt.mim:41:9-41:27"];
+    _19419 -> _18617[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19420 -> _19419[taillabel="0",];
+    _19420 -> _18617[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _19417 -> _19420[taillabel="1",];
+}

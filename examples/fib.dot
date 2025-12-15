@@ -1,0 +1,118 @@
+digraph {
+    ordering=out;
+    splines=false;
+    node [shape=box,style=filled];
+    _23950[style="filled,diagonals"label=<main_23950<br/>Lam>,fillcolor="0.34375 0.5 0.75",rank=min,tooltip="<b>expr:</b> main&#13;&#10;<b>type:</b> Cn [[I32, %mem.Ptr (%mem.Ptr (I8, 0), 0)], Cn I32]&#13;&#10;<b>name:</b> main&#13;&#10;<b>gid:</b> 23950&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x28&#13;&#10;<b>local_muts:</b> {23950/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>users:</b> {{}}&#13;&#10;<b>loc:</b> examples/fib.mim:25:1-30:7"];
+    _23142[label=<cond_23142<br/>ff
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> ff&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> cond&#13;&#10;<b>gid:</b> 23142&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/opt.mim:34:30-34:46"];
+    _23950 -> _23142[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23954[label=<_23954<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23954&#13;&#10;<b>type:</b> ⊥:(★)&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23954&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23952/0}&#13;&#10;<b>free_vars:</b> {23952/0}&#13;&#10;<b>loc:</b> examples/fib.mim:29:31-29:58"];
+    _23953[label=<return_23953<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> return_23953&#13;&#10;<b>type:</b> Cn I32&#13;&#10;<b>name:</b> return&#13;&#10;<b>gid:</b> 23953&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23952/0}&#13;&#10;<b>free_vars:</b> {23952/0}&#13;&#10;<b>loc:</b> examples/fib.mim:25:1-30:7"];
+    _23952[label=<_23952<br/>Var>,fillcolor="0.0625 0.5 0.75",tooltip="<b>expr:</b> _23952&#13;&#10;<b>type:</b> [[I32, %mem.Ptr (%mem.Ptr (I8, 0), 0)], Cn I32]&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23952&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23952/0}&#13;&#10;<b>free_vars:</b> {23952/0}&#13;&#10;<b>loc:</b> examples/fib.mim:25:1-30:7"];
+    _23952 -> _23950[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23953 -> _23952[taillabel="0",];
+    _23143[label=<cond_23143<br/>tt
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> tt&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> cond&#13;&#10;<b>gid:</b> 23143&#13;&#10;<b>flags:</b> 0x1&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/opt.mim:41:9-41:27"];
+    _23953 -> _23143[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23954 -> _23953[taillabel="0",];
+    _23951[label=<_23951<br/>144I32
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> 144I32&#13;&#10;<b>type:</b> I32&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23951&#13;&#10;<b>flags:</b> 0x90&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> examples/fib.mim:29:39-29:57"];
+    _23954 -> _23951[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23950 -> _23954[taillabel="1",];
+    _23958[style="filled,diagonals"label=<fib_23958<br/>Lam>,fillcolor="0.34375 0.5 0.75",rank=min,tooltip="<b>expr:</b> fib&#13;&#10;<b>type:</b> Cn [Nat, Cn Nat]&#13;&#10;<b>name:</b> fib&#13;&#10;<b>gid:</b> 23958&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x2e&#13;&#10;<b>local_muts:</b> {23958/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>users:</b> {{}}&#13;&#10;<b>loc:</b> examples/fib.mim:18:1-23:7"];
+    _23958 -> _23142[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23989[label=<_23989<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23989&#13;&#10;<b>type:</b> ⊥:(★)&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23989&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23962/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {23963/0}&#13;&#10;<b>loc:</b> &lt;unknown location&gt;"];
+    _23962[style="filled,diagonals"label=<head_23962<br/>Lam>,fillcolor="0.34375 0.5 0.75",tooltip="<b>expr:</b> head_23962&#13;&#10;<b>type:</b> Cn «3; Nat»&#13;&#10;<b>name:</b> head&#13;&#10;<b>gid:</b> 23962&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x2e&#13;&#10;<b>local_muts:</b> {23962/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {23963/0}&#13;&#10;<b>users:</b> {{23958/0, 23977/0}}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23967[label=<_23967<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23967&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23967&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23429/0}&#13;&#10;<b>local_vars:</b> {23963/0}&#13;&#10;<b>free_vars:</b> {23963/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:9"];
+    _23966[label=<_23966<br/>App>,fillcolor="0.375 0.5 0.75",rank=min,tooltip="<b>expr:</b> %core.pe.is_closed Nat&#13;&#10;<b>type:</b> Π Nat → Bool&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23966&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23429/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> examples/fib.mim:6:35-6:54"];
+    _23432[label=<%core.pe.is_closed_23432<br/>Axm>,fillcolor="0.03125 0.5 0.75",rank=min,tooltip="<b>expr:</b> %core.pe.is_closed&#13;&#10;<b>type:</b> Π T_23430: ★ → Π T_23430 → Bool&#13;&#10;<b>name:</b> %core.pe.is_closed&#13;&#10;<b>gid:</b> 23432&#13;&#10;<b>flags:</b> 0x1104c60000001102&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23429/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/core.mim:9:1-262"];
+    _23966 -> _23432[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23132[label=<_23132<br/>Nat>,fillcolor="0.9375 0.5 0.75",rank=min,tooltip="<b>expr:</b> Nat&#13;&#10;<b>type:</b> ★&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23132&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/matrix.mim:127:13-127:20"];
+    _23966 -> _23132[taillabel="1",];
+    _23967 -> _23966[taillabel="0",];
+    _23964[label=<n_23964<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> n_23964&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> n&#13;&#10;<b>gid:</b> 23964&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23963/0}&#13;&#10;<b>free_vars:</b> {23963/0}&#13;&#10;<b>loc:</b> examples/fib.mim:18:1-23:7"];
+    _23963[label=<_23963<br/>Var>,fillcolor="0.0625 0.5 0.75",tooltip="<b>expr:</b> _23963&#13;&#10;<b>type:</b> [Nat, Cn Nat]&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23963&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23963/0}&#13;&#10;<b>free_vars:</b> {23963/0}&#13;&#10;<b>loc:</b> examples/fib.mim:18:1-23:7"];
+    _23963 -> _23958[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23964 -> _23963[taillabel="0",];
+    _23964 -> _23142[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23967 -> _23964[taillabel="1",];
+    _23962 -> _23967[taillabel="0",];
+    _23988[label=<_23988<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23988&#13;&#10;<b>type:</b> ⊥:(★)&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23988&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23973/0, 23977/0}&#13;&#10;<b>local_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23987[label=<_23987<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> (f_23973, t_23977)#cond_23971&#13;&#10;<b>type:</b> Cn []&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23987&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23973/0, 23977/0}&#13;&#10;<b>local_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23986[label=<_23986<br/>Tuple>,fillcolor="0.4375 0.5 0.75",tooltip="<b>expr:</b> (f_23973, t_23977)&#13;&#10;<b>type:</b> «2; Cn []»&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23986&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23973/0, 23977/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23973[style="filled,diagonals"label=<f_23973<br/>Lam>,fillcolor="0.34375 0.5 0.75",tooltip="<b>expr:</b> f_23973&#13;&#10;<b>type:</b> Cn []&#13;&#10;<b>name:</b> f&#13;&#10;<b>gid:</b> 23973&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x2e&#13;&#10;<b>local_muts:</b> {23973/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>users:</b> {{23962/0}}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23973 -> _23142[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23976[label=<_23976<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23976&#13;&#10;<b>type:</b> ⊥:(★)&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23976&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:22:31-22:38"];
+    _23975[label=<return_23975<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> return_23975&#13;&#10;<b>type:</b> Cn Nat&#13;&#10;<b>name:</b> return&#13;&#10;<b>gid:</b> 23975&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23963/0}&#13;&#10;<b>free_vars:</b> {23963/0}&#13;&#10;<b>loc:</b> examples/fib.mim:18:1-23:7"];
+    _23975 -> _23963[taillabel="0",];
+    _23975 -> _23143[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23976 -> _23975[taillabel="0",];
+    _23974[label=<a_23974<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> a_23974&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> a&#13;&#10;<b>gid:</b> 23974&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:22:18-22:27"];
+    _23968[label=<_23968<br/>Var>,fillcolor="0.0625 0.5 0.75",tooltip="<b>expr:</b> _23968&#13;&#10;<b>type:</b> «3; Nat»&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23968&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> &lt;unknown location&gt;"];
+    _23968 -> _23962[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23974 -> _23968[taillabel="0",];
+    _23149[label=<_23149<br/>1₃
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> 1₃&#13;&#10;<b>type:</b> Idx 3&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23149&#13;&#10;<b>flags:</b> 0x1&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/mem.mim:39:37-39:60"];
+    _23974 -> _23149[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23976 -> _23974[taillabel="1",];
+    _23973 -> _23976[taillabel="1",];
+    _23986 -> _23973[taillabel="0",];
+    _23977[style="filled,diagonals"label=<t_23977<br/>Lam>,fillcolor="0.34375 0.5 0.75",tooltip="<b>expr:</b> t_23977&#13;&#10;<b>type:</b> Cn []&#13;&#10;<b>name:</b> t&#13;&#10;<b>gid:</b> 23977&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x2e&#13;&#10;<b>local_muts:</b> {23977/0}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>users:</b> {{23962/0}}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23977 -> _23142[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23984[label=<_23984<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23984&#13;&#10;<b>type:</b> ⊥:(★)&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23984&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {23962/0}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23984 -> _23962[taillabel="0",];
+    _23983[label=<_23983<br/>Tuple>,fillcolor="0.4375 0.5 0.75",tooltip="<b>expr:</b> (_23979, b_23980, _23982)&#13;&#10;<b>type:</b> «3; Nat»&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23983&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> &lt;unknown location&gt;"];
+    _23979[label=<_23979<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23979&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23979&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23251[label=<%core.nat.add_23251<br/>Axm>,fillcolor="0.03125 0.5 0.75",rank=min,tooltip="<b>expr:</b> %core.nat.add&#13;&#10;<b>type:</b> Π «2; Nat» → Nat&#13;&#10;<b>name:</b> %core.nat.add&#13;&#10;<b>gid:</b> 23251&#13;&#10;<b>flags:</b> 0x1104c60000000000&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/core.mim:9:1-262"];
+    _23979 -> _23251[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23978[label=<_23978<br/>Tuple>,fillcolor="0.4375 0.5 0.75",tooltip="<b>expr:</b> (1, i_23969)&#13;&#10;<b>type:</b> «2; Nat»&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23978&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23137[label=<%core.mode.uS_23137<br/>1
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> 1&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> %core.mode.uS&#13;&#10;<b>gid:</b> 23137&#13;&#10;<b>flags:</b> 0x1&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/core.mim:54:5-54:17"];
+    _23978 -> _23137[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23969[label=<i_23969<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> i_23969&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> i&#13;&#10;<b>gid:</b> 23969&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23969 -> _23968[taillabel="0",];
+    _23153[label=<_23153<br/>0₃
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> 0₃&#13;&#10;<b>type:</b> Idx 3&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23153&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/mem.mim:39:37-39:60"];
+    _23969 -> _23153[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23978 -> _23969[taillabel="1",];
+    _23979 -> _23978[taillabel="1",];
+    _23983 -> _23979[taillabel="0",];
+    _23980[label=<b_23980<br/>Extract>,fillcolor="0.46875 0.5 0.75",tooltip="<b>expr:</b> b_23980&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> b&#13;&#10;<b>gid:</b> 23980&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23980 -> _23968[taillabel="0",];
+    _23161[label=<_23161<br/>2₃
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> 2₃&#13;&#10;<b>type:</b> Idx 3&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23161&#13;&#10;<b>flags:</b> 0x2&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/mem.mim:39:37-39:60"];
+    _23980 -> _23161[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23983 -> _23980[taillabel="1",];
+    _23982[label=<_23982<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> _23982&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23982&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23982 -> _23251[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23981[label=<acc_23981<br/>Tuple>,fillcolor="0.4375 0.5 0.75",tooltip="<b>expr:</b> (a_23974, b_23980)&#13;&#10;<b>type:</b> «2; Nat»&#13;&#10;<b>name:</b> acc&#13;&#10;<b>gid:</b> 23981&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23968/0}&#13;&#10;<b>free_vars:</b> {23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23981 -> _23974[taillabel="0",];
+    _23981 -> _23980[taillabel="1",];
+    _23982 -> _23981[taillabel="1",];
+    _23983 -> _23982[taillabel="2",];
+    _23984 -> _23983[taillabel="1",];
+    _23977 -> _23984[taillabel="1",];
+    _23986 -> _23977[taillabel="1",];
+    _23987 -> _23986[taillabel="0",];
+    _23971[label=<cond_23971<br/>App>,fillcolor="0.375 0.5 0.75",tooltip="<b>expr:</b> cond_23971&#13;&#10;<b>type:</b> Bool&#13;&#10;<b>name:</b> cond&#13;&#10;<b>gid:</b> 23971&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23257[label=<%core.ncmp.gLe_23257<br/>Axm>,fillcolor="0.03125 0.5 0.75",rank=min,tooltip="<b>expr:</b> %core.ncmp.gLe&#13;&#10;<b>type:</b> Π «2; Nat» → Bool&#13;&#10;<b>name:</b> %core.ncmp.gLe&#13;&#10;<b>gid:</b> 23257&#13;&#10;<b>flags:</b> 0x1104c60000000102&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/core.mim:9:1-262"];
+    _23971 -> _23257[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23970[label=<_23970<br/>Tuple>,fillcolor="0.4375 0.5 0.75",tooltip="<b>expr:</b> (i_23969, n_23964)&#13;&#10;<b>type:</b> «2; Nat»&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23970&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>free_vars:</b> {23963/0, 23968/0}&#13;&#10;<b>loc:</b> examples/fib.mim:19:5-19:19"];
+    _23970 -> _23969[taillabel="0",];
+    _23970 -> _23964[taillabel="1",];
+    _23971 -> _23970[taillabel="1",];
+    _23987 -> _23971[taillabel="1",];
+    _23988 -> _23987[taillabel="0",];
+    _23131[label=<_23131<br/>Tuple>,fillcolor="0.4375 0.5 0.75",rank=min,tooltip="<b>expr:</b> ()&#13;&#10;<b>type:</b> []&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23131&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> &lt;unknown location&gt;"];
+    _23988 -> _23131[taillabel="1",];
+    _23962 -> _23988[taillabel="1",];
+    _23989 -> _23962[taillabel="0",];
+    _23960[label=<_23960<br/>Tuple>,fillcolor="0.4375 0.5 0.75",rank=min,tooltip="<b>expr:</b> (0, 0, 1)&#13;&#10;<b>type:</b> «3; Nat»&#13;&#10;<b>name:</b> &#13;&#10;<b>gid:</b> 23960&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> &lt;unknown location&gt;"];
+    _23136[label=<%core.mode.us_23136<br/>0
+>,fillcolor="0 0.5 0.75",rank=min,tooltip="<b>expr:</b> 0&#13;&#10;<b>type:</b> Nat&#13;&#10;<b>name:</b> %core.mode.us&#13;&#10;<b>gid:</b> 23136&#13;&#10;<b>flags:</b> 0x0&#13;&#10;<b>mark:</b> 0x0&#13;&#10;<b>local_muts:</b> {}&#13;&#10;<b>local_vars:</b> {}&#13;&#10;<b>free_vars:</b> {}&#13;&#10;<b>loc:</b> /mnt/c/Users/janni/OneDrive/Dokumente/Projects/Rust/mimir-egg/MimIR/build/lib/mim/core.mim:53:5-53:17"];
+    _23960 -> _23136[taillabel="0",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23960 -> _23136[taillabel="1",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23960 -> _23137[taillabel="2",fontcolor="#00000000",color="#00000000",constraint=false];
+    _23989 -> _23960[taillabel="1",];
+    _23958 -> _23989[taillabel="1",];
+}
