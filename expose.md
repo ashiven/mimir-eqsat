@@ -50,10 +50,13 @@ I am also considering to manually translate a portion of existing C++ normalizer
 
 After having converted both MimIR programs and rewrite rules into the appropriate formats, it should then become possible to perform rewrites via the provided equality saturation engine and library functions for finding an optimal rewrite sequence. My plan here is to first extract a most optimal equivalent program via a term-size cost function and maybe later look towards more sophisticated cost functions that utilize integer linear programming.
 
-The part that will be more challenging here will be to find a way to integrate the entire process of parsing Mim compiler generated s-Expressions in egg, performing rewrites, and then emitting another s-Expression to be decoded by the s-Expression backend of the Mim compiler, into the existing Mim compiler pipeline. To achieve this, I will try to implement a compile pass and integrate it into the compiler using the **PassMan** interface. I will need to perform some more research on how that will work exactly.
+The part that will be more challenging here will be to find a way to integrate the entire process of parsing Mim compiler generated s-Expressions in egg, performing rewrites, and then emitting another s-Expression to be decoded by the s-Expression backend of the Mim compiler, into the existing Mim compiler pipeline. To achieve this, I will try to implement a compile pass and integrate it into the compiler using the **PassMan** interface. I will need to perform some more research on how passes can be written and registered and also on how to integrate the egg library in this process.
 
 ### Decoding from s-Expr to MimIR
 
-The last step after having encoded and rewritten MimIR programs in egg is to decode the emitted s-Expression back into a format that correctly represents the program for the Mim compiler.
+The last step after having encoded and rewritten MimIR programs in egg is to decode the emitted s-Expression back into a format that correctly represents the program for the Mim compiler. As mentioned, I aim to achieve this goal by implementing an s-Expression backend in the Mim compiler that is capable of both encoding programs to s-Expressions and decoding s-Expressions back into programs. Here I am once again required to study the Mim compiler in more detail to decide whether the encoding and decoding should be inbetween the AST and s-Expressions or inbetween the program Definitions and s-Expressions.
 
 ## Case Study
+
+- case study with some implementation on top of MimIR like RISE
+- performing rewrites for that implementation in egg instead of via plugin normalizers and backends
