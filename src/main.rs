@@ -1,6 +1,8 @@
 use egg::*;
+use std::error::Error;
+use std::fs;
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     define_language! {
         enum Mim {
             "%core.nat.add" = CoreAdd([Id; 2]),
@@ -8,9 +10,23 @@ fn main() {
 
             "app" = App([Id; 2]),
             "lam" = Lam([Id; 2]),
+            // con (name, argtuple, body)
+            "con" = Con([Id; 3]),
+
+            // var (name, type)
+            "var" = Var([Id; 2]),
+            // lit (value, type)
+            "lit" = Lit([Id; 2]),
 
             "tuple" = Tuple(Box<[Id]>),
-            "#" = Extract([Id; 2]),
+            "extract" = Extract([Id; 2]),
+            "ins" = Ins([Id; 3]),
+
+            // TYPES
+            "sigma" = Sigma(Box<[Id]>),
+            "arr" = Arr([Id; 2]),
+            "cn" = Cn(Id),
+            "idx" = Idx(Id),
 
             Nat(i32), Ident(String),
         }
@@ -24,25 +40,14 @@ fn main() {
         //rw!("mul-1"; "(* ?x 1)" => "?x"),
     ];
 
-    // args = (tuple (tuple a b) return)
-    let nat_mim = "(lam args (app (# 1 args) (# 1 (# 0 args))))";
+    let example = fs::read_to_string("./examples/example.sexpr")?;
     let mut egraph: EGraph<Mim, ()> = Default::default();
-    egraph.add_expr(&nat_mim.parse().unwrap());
-    egraph.dot().to_png("./examples/core/nat_eg.png").unwrap();
+    egraph.add_expr(&example.parse().unwrap());
+    egraph.dot().to_png("./examples/example.png").unwrap();
 
-    // loop_lam need reference to previously defined loop lambda
-    // let_inc = 1 + i
-    // let_acc = i + acc
-    let _loop_mim = "(lam args (app \
-    (lam loop_args (app (# (app %core.icmp.ul (tuple (# 1 loop_args) (# 1 (# 0 args)))) \
-    (tuple (lam exit_args (app (# 1 args) (tuple exit_args (# 2 loop_args)))) \
-    (lam body_args (app loop_lam? (tuple body_args let_inc? let_acc?))) \
-    (tuple (# 0 (# 0 args)) 0 0))";
-
-    // let start = "(+ 0 (* 1 a))".parse().unwrap();
-    // let runner = Runner::default().with_expr(&start).run(rules);
+    // let runner = Runner::default().with_expr(&example).run(rules);
     // let extractor = Extractor::new(&runner.egraph, AstSize);
     // let (best_cost, best_expr) = extractor.find_best(runner.roots[0]);
-    // assert_eq!(best_expr, "a".parse().unwrap());
-    // assert_eq!(best_cost, 1);
+
+    Ok(())
 }
