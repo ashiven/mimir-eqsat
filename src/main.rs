@@ -2,12 +2,24 @@ use egg::*;
 use std::error::Error;
 use std::fs;
 
+// TODO: I want this to turn into a function that I can import from a mimir plugin
+// via an extern import which then takes an sexpr and simply returns the rewritten sexpr
+//
+// so something like:
+//
+//  fn equality_saturate(sexpr) -> sexpr
+//
+//
+// for the sake of keeping the project well structured, rewrite rules will
+// be divided into the same directory structure that exists in the mimir compiler
+// plugin infrastructure, so we get something like:
+// > > eqsat.rs
+// > > rules/core.rs
+// > > rules/math.rs
+// > > rules/compile.rs
 fn main() -> Result<(), Box<dyn Error>> {
     define_language! {
         enum Mim {
-            "%core.nat.add" = CoreAdd([Id; 2]),
-            "%core.icmp.ul" = CoreUL(Id),
-
             "app" = App([Id; 2]),
             "lam" = Lam([Id; 2]),
             // con (name, argtuple, body)
@@ -15,8 +27,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
             // var (name, type)
             "var" = Var([Id; 2]),
-            // lit (value, type)
-            "lit" = Lit([Id; 2]),
+            // lit (value, <type>)
+            "lit" = Lit(Box<[Id]>),
 
             "tuple" = Tuple(Box<[Id]>),
             "extract" = Extract([Id; 2]),
@@ -32,22 +44,35 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    let _rules: &[Rewrite<SymbolLang, ()>] = &[
-        //rw!("commute-add"; "(+ ?x ?y)" => "(+ ?y ?x)"),
-        //rw!("commute-mul"; "(* ?x ?y)" => "(* ?y ?x)"),
-        //rw!("add-0"; "(+ ?x 0)" => "?x"),
-        //rw!("mul-0"; "(* ?x 0)" => "0"),
-        //rw!("mul-1"; "(* ?x 1)" => "?x"),
-    ];
+    let rules: &[Rewrite<Mim, ()>] =
+        &[rewrite!("add-0"; "(app %core.nat.add (tuple (lit 0) ?x))" => "?x")];
 
-    let example = fs::read_to_string("./examples/example.sexpr")?;
-    let mut egraph: EGraph<Mim, ()> = Default::default();
-    egraph.add_expr(&example.parse().unwrap());
-    egraph.dot().to_png("./examples/example.png").unwrap();
+    let example = fs::read_to_string("./examples/core/nat.sexpr")?;
+    let runner = Runner::default()
+        .with_expr(&example.parse().unwrap())
+        .run(rules);
 
-    // let runner = Runner::default().with_expr(&example).run(rules);
-    // let extractor = Extractor::new(&runner.egraph, AstSize);
-    // let (best_cost, best_expr) = extractor.find_best(runner.roots[0]);
+    // Egraph before equality saturation
+    // runner
+    //     .egraph
+    //     .dot()
+    //     .to_png("./examples/core/natpre.png")
+    //     .unwrap();
+
+    // runner.run(rules);
+
+    // Egraph after equality saturation
+    runner
+        .egraph
+        .dot()
+        .to_png("./examples/core/natpost.png")
+        .unwrap();
+
+    let extractor = Extractor::new(&runner.egraph, AstSize);
+    let (best_cost, best_expr) = extractor.find_best(runner.roots[0]);
+
+    println!("The best cost is: {}", best_cost);
+    println!("Post rewrite: {}", best_expr);
 
     Ok(())
 }
