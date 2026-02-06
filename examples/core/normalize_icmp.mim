@@ -1,0 +1,5 @@
+plugin core;
+
+con extern icmp_lit(return: Cn Bool) =
+    return (%core.icmp.e (%core.icmp.uge (tt, ff), %core.icmp.ug (tt, ff)));
+
