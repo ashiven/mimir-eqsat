@@ -1,7 +1,6 @@
-use crate::rules::Mim;
-use egg::*;
+use crate::rules::*;
 
-pub fn rules() -> Vec<Rewrite<Mim, ()>> {
+pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
     let mut rules = Vec::new();
 
     // rules.push(add0());

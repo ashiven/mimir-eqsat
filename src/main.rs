@@ -1,4 +1,4 @@
-use crate::rules::{Mim, rules};
+use crate::rules::*;
 use egg::*;
 use std::error::Error;
 use std::fs;
@@ -19,10 +19,10 @@ mod rules;
 * > > rules/compile.rs
 */
 fn main() -> Result<(), Box<dyn Error>> {
-    let rules: &[Rewrite<Mim, ()>] = &rules();
+    let rules: &[Rewrite<Mim, MimAnalysis>] = &rules();
 
     let example = fs::read_to_string("./examples/core/nat.sexpr")?;
-    let runner = Runner::default()
+    let runner = Runner::<Mim, MimAnalysis, ()>::default()
         .with_expr(&example.parse().unwrap())
         .run(rules);
 
