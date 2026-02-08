@@ -1,0 +1,48 @@
+
+
+(con add_lit_nat
+    (tuple
+        (var return
+            (cn Nat)
+        )
+    )
+    (app     
+        return    
+        (app         
+            %core.nat.add        
+            (tuple
+                (lit 0) 
+                (lit 6)
+            )
+        )
+    )
+)
+
+(con add0
+    (tuple
+        (var i
+            I8
+        )
+        (var return
+            (cn I8)
+        )
+    )
+    (app     
+        return    
+        i
+    )
+)
+
+(con add_lit
+    (tuple
+        (var return
+            (cn I8)
+        )
+    )
+    (app     
+        return    
+        (lit 6 I8)
+    )
+)
+
+

@@ -59,7 +59,6 @@ impl Analysis<Mim> for MimAnalysis {
                     && let Some(Num(n1)) = c(&l1[0])
                     && let Some(Num(n2)) = c(&l2[0])
                 {
-                    // TODO: This needs to be made into a literal (maybe inside of modify?)
                     return Some(Num(n1 + n2));
                 }
                 None
@@ -68,14 +67,11 @@ impl Analysis<Mim> for MimAnalysis {
         }
     }
 
-    // checks if there is a constant associated with an eclass, and if
-    // it is, creates a new enode in the egraph for that constant and merges
-    // it with the eclass it is associated with
     fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
         if let Some(c) = egraph[id].data.clone() {
             let const_id = egraph.add(c);
-            // let new_lit = egraph.add(Lit(Box::new([const_id])))
-            egraph.union(id, const_id);
+            let lit_id = egraph.add(Lit(Box::new([const_id])));
+            egraph.union(id, lit_id);
         }
     }
 }
