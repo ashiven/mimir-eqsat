@@ -1,4 +1,5 @@
 use crate::Mim::*;
+use crate::core::*;
 use crate::*;
 
 pub mod core;
@@ -46,25 +47,11 @@ impl Analysis<Mim> for MimAnalysis {
     }
 
     fn make(egraph: &mut EGraph<Mim, Self>, enode: &Mim) -> Self::Data {
-        let c = |id: &Id| egraph[*id].data.clone();
-
-        match enode {
-            App([callee, arg]) => {
-                if let Some(Symbol(s)) = c(callee)
-                    && s == "%core.nat.add"
-                    && let Some(Tuple(t)) = c(arg)
-                    && let [t1, t2] = &*t
-                    && let Some(Lit(l1)) = c(t1)
-                    && let Some(Lit(l2)) = c(t2)
-                    && let Some(Num(n1)) = c(&l1[0])
-                    && let Some(Num(n2)) = c(&l2[0])
-                {
-                    return Some(Num(n1 + n2));
-                }
-                None
-            }
-            _ => None,
+        if let Some(folded) = fold_core_add(egraph, enode) {
+            return Some(folded);
         }
+
+        None
     }
 
     fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {

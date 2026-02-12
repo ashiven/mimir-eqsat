@@ -22,3 +22,21 @@ fn commute_add() -> Rewrite<Mim, MimAnalysis> {
 
     Rewrite::new("commute_add", pat, outpat).unwrap()
 }
+
+pub fn fold_core_add(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
+    let c = |id: &Id| egraph[*id].data.clone();
+    if let App([callee, arg]) = enode
+        && let Some(Symbol(s)) = c(callee)
+        && s == "%core.nat.add"
+        && let Some(Tuple(t)) = c(arg)
+        && let [t1, t2] = &*t
+        && let Some(Lit(l1)) = c(t1)
+        && let Some(Lit(l2)) = c(t2)
+        && let Some(Num(n1)) = c(&l1[0])
+        && let Some(Num(n2)) = c(&l2[0])
+    {
+        return Some(Num(n1 + n2));
+    }
+
+    None
+}
