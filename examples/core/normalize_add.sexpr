@@ -9,8 +9,8 @@
         (app         
             %core.nat.sub        
             (tuple
-                (lit 6) 
-                (lit 0)
+                (lit 4) 
+                (lit 4)
             )
         )
     )

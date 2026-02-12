@@ -47,6 +47,12 @@ impl Analysis<Mim> for MimAnalysis {
     }
 
     fn make(egraph: &mut EGraph<Mim, Self>, enode: &Mim) -> Self::Data {
+        match enode {
+            Symbol(s) => return Some(Symbol(s.clone())),
+            Num(n) => return Some(Num(*n)),
+            _ => (),
+        }
+
         if let Some(folded) = fold_core(egraph, enode) {
             return Some(folded);
         }
@@ -54,13 +60,14 @@ impl Analysis<Mim> for MimAnalysis {
         None
     }
 
-    fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
-        if let Some(c) = egraph[id].data.clone() {
-            let const_id = egraph.add(c);
-            let lit_id = egraph.add(Lit(Box::new([const_id])));
-            egraph.union(id, lit_id);
-        }
-    }
+    // TODO: constant folding is currently broken (uncomment after it is fixed)
+    // fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
+    //     if let Some(c) = egraph[id].data.clone() {
+    //         let const_id = egraph.add(c);
+    //         let lit_id = egraph.add(Lit(Box::new([const_id])));
+    //         egraph.union(id, lit_id);
+    //     }
+    // }
 }
 
 pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
