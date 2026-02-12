@@ -34,12 +34,16 @@ define_language! {
 
 #[derive(Default)]
 pub struct MimAnalysis;
+#[derive(Debug)]
+pub struct AnalysisData {
+    constant: Option<Mim>,
+}
 impl Analysis<Mim> for MimAnalysis {
-    type Data = Option<Mim>;
+    type Data = AnalysisData;
 
     fn merge(&mut self, a: &mut Self::Data, b: Self::Data) -> DidMerge {
-        if a.is_none() && b.is_some() {
-            *a = b;
+        if a.constant.is_none() && b.constant.is_some() {
+            a.constant = b.constant;
             DidMerge(true, false)
         } else {
             DidMerge(false, false)
@@ -47,22 +51,14 @@ impl Analysis<Mim> for MimAnalysis {
     }
 
     fn make(egraph: &mut EGraph<Mim, Self>, enode: &Mim) -> Self::Data {
-        match enode {
-            Symbol(s) => return Some(Symbol(s.clone())),
-            Num(n) => return Some(Num(*n)),
-            _ => (),
+        AnalysisData {
+            constant: fold(egraph, enode),
         }
-
-        if let Some(folded) = fold_core(egraph, enode) {
-            return Some(folded);
-        }
-
-        None
     }
 
     // TODO: constant folding is currently broken (uncomment after it is fixed)
     // fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
-    //     if let Some(c) = egraph[id].data.clone() {
+    //     if let Some(c) = egraph[id].data.constant.clone() {
     //         let const_id = egraph.add(c);
     //         let lit_id = egraph.add(Lit(Box::new([const_id])));
     //         egraph.union(id, lit_id);
@@ -70,9 +66,23 @@ impl Analysis<Mim> for MimAnalysis {
     // }
 }
 
+fn fold(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
+    match enode {
+        Symbol(s) => return Some(Symbol(s.clone())),
+        Num(n) => return Some(Num(*n)),
+        _ => (),
+    }
+
+    if let Some(folded) = fold_core(egraph, enode) {
+        return Some(folded);
+    }
+
+    None
+}
+
 // Can be used to create conditional rewrite rules like (foo ?a) => (bar ?a) if is_const(var("?a"))
 fn _is_const(v: egg::Var) -> impl Fn(&mut EGraph<Mim, MimAnalysis>, Id, &Subst) -> bool {
-    move |eg, _, subst| eg[subst[v]].data.is_some()
+    move |eg, _, subst| eg[subst[v]].data.constant.is_some()
 }
 
 pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {

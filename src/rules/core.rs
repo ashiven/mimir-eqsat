@@ -82,7 +82,7 @@ pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<M
 }
 
 fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
-    let c = |id: &Id| egraph[*id].data.clone();
+    let c = |id: &Id| egraph[*id].data.constant.clone();
     // TODO: we are not entering the below branch because c(arg) and c(t1), c(t2) will return
     // nothing since no data has been associated with eclasses containing tuple enodes
     // and literal enodes
