@@ -47,7 +47,7 @@ impl Analysis<Mim> for MimAnalysis {
     }
 
     fn make(egraph: &mut EGraph<Mim, Self>, enode: &Mim) -> Self::Data {
-        if let Some(folded) = fold_core_add(egraph, enode) {
+        if let Some(folded) = fold_core(egraph, enode) {
             return Some(folded);
         }
 

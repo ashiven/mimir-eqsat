@@ -1,5 +1,3 @@
-
-
 (con add_lit_nat
     (tuple
         (var return
@@ -9,39 +7,12 @@
     (app     
         return    
         (app         
-            %core.nat.add        
+            %core.nat.sub        
             (tuple
-                (lit 0) 
-                (lit 6)
+                (lit 6) 
+                (lit 0)
             )
         )
-    )
-)
-
-(con add0
-    (tuple
-        (var i
-            I8
-        )
-        (var return
-            (cn I8)
-        )
-    )
-    (app     
-        return    
-        i
-    )
-)
-
-(con add_lit
-    (tuple
-        (var return
-            (cn I8)
-        )
-    )
-    (app     
-        return    
-        (lit 6 I8)
     )
 )
 
