@@ -1,9 +1,7 @@
 use crate::rules::*;
 
 pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
-    let mut rules = Vec::new();
-
-    // rules.push(add0());
+    let rules = vec![];
 
     rules
 }

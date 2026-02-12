@@ -70,6 +70,11 @@ impl Analysis<Mim> for MimAnalysis {
     // }
 }
 
+// Can be used to create conditional rewrite rules like (foo ?a) => (bar ?a) if is_const(var("?a"))
+fn _is_const(v: egg::Var) -> impl Fn(&mut EGraph<Mim, MimAnalysis>, Id, &Subst) -> bool {
+    move |eg, _, subst| eg[subst[v]].data.is_some()
+}
+
 pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
     let mut rules = Vec::new();
 

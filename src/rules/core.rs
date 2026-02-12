@@ -71,15 +71,6 @@ fn commute_mul() -> Rewrite<Mim, MimAnalysis> {
     Rewrite::new("commute_mul", pat, outpat).unwrap()
 }
 
-// TODO: fold_core should be further split up into:
-// fold_nat
-//  -> fold_nat_lit
-//  -> fold_nat_zero
-// fold_icmp
-//  -> fold_
-//  -> fold_
-//
-// etc.
 pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
     if let Some(folded) = fold_nat(egraph, enode) {
         return Some(folded);
@@ -133,6 +124,6 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
 /    return res;
 */
 // TODO: implement
-fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
+fn fold_icmp(_egraph: &mut EGraph<Mim, MimAnalysis>, _enode: &Mim) -> Option<Mim> {
     None
 }
