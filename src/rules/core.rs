@@ -30,6 +30,14 @@ pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
         wrap_commute_mul(),
         wrap_shl_val0(),
         wrap_shl_amount0(),
+        div_sdiv0(),
+        div_sdiv1(),
+        div_udiv0(),
+        div_udiv1(),
+        div_srem0(),
+        div_srem1(),
+        div_urem0(),
+        div_urem1(),
     ];
 
     rules
@@ -296,10 +304,115 @@ fn wrap_shl_amount0() -> Rewrite<Mim, MimAnalysis> {
 }
 
 /* core.div */
-/* core.conv */
-/* core.bitcast */
-/* core.trait */
-/* core.pe */
+
+fn div_sdiv0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.sdiv (tuple ?mem (lit 0 ?type) ?a))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem (lit 0 ?type))".parse().unwrap();
+
+    Rewrite::new("div_sdiv0", pat, outpat).unwrap()
+}
+
+fn div_udiv0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.udiv (tuple ?mem (lit 0 ?type) ?a))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem (lit 0 ?type))".parse().unwrap();
+
+    Rewrite::new("div_udiv0", pat, outpat).unwrap()
+}
+
+fn div_srem0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.srem (tuple ?mem (lit 0 ?type) ?a))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem (lit 0 ?type))".parse().unwrap();
+
+    Rewrite::new("div_srem0", pat, outpat).unwrap()
+}
+
+fn div_urem0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.urem (tuple ?mem (lit 0 ?type) ?a))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem (lit 0 ?type))".parse().unwrap();
+
+    Rewrite::new("div_urem0", pat, outpat).unwrap()
+}
+
+fn div_sdiv1() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.sdiv (tuple ?mem ?a (lit 1 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem ?a)".parse().unwrap();
+
+    Rewrite::new("div_sdiv1", pat, outpat).unwrap()
+}
+
+fn div_udiv1() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.udiv (tuple ?mem ?a (lit 1 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem (lit 1 ?type))".parse().unwrap();
+
+    Rewrite::new("div_udiv1", pat, outpat).unwrap()
+}
+
+fn div_srem1() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.srem (tuple ?mem ?a (lit 1 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem (lit 0 ?type))".parse().unwrap();
+
+    Rewrite::new("div_srem1", pat, outpat).unwrap()
+}
+
+fn div_urem1() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.div.urem (tuple ?mem ?a (lit 1 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(tuple ?mem (lit 0 ?type))".parse().unwrap();
+
+    Rewrite::new("div_urem1", pat, outpat).unwrap()
+}
+
+// TODO: figure out how to get ?type for the output literal
+// fn div_sdiv_equal() -> Rewrite<Mim, MimAnalysis> {
+//     let pat: Pattern<Mim> = "(app %core.div.sdiv (tuple ?mem (lit 0 ?type) ?a))"
+//         .parse()
+//         .unwrap();
+//     let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+//
+//     Rewrite::new("div_sdiv0", pat, outpat).unwrap()
+// }
+//
+// fn div_udiv_equal() -> Rewrite<Mim, MimAnalysis> {
+//     let pat: Pattern<Mim> = "(app %core.div.udiv (tuple ?mem (lit 0 ?type) ?a))"
+//         .parse()
+//         .unwrap();
+//     let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+//
+//     Rewrite::new("div_udiv0", pat, outpat).unwrap()
+// }
+//
+// fn div_srem_equal() -> Rewrite<Mim, MimAnalysis> {
+//     let pat: Pattern<Mim> = "(app %core.div.srem (tuple ?mem (lit 0 ?type) ?a))"
+//         .parse()
+//         .unwrap();
+//     let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+//
+//     Rewrite::new("div_srem0", pat, outpat).unwrap()
+// }
+//
+// fn div_urem_equal() -> Rewrite<Mim, MimAnalysis> {
+//     let pat: Pattern<Mim> = "(app %core.div.urem (tuple ?mem (lit 0 ?type) ?a))"
+//         .parse()
+//         .unwrap();
+//     let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+//
+//     Rewrite::new("div_urem0", pat, outpat).unwrap()
+// }
 
 /* constant folding */
 
