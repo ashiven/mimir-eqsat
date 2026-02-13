@@ -42,6 +42,8 @@ impl Analysis<Mim> for MimAnalysis {
     type Data = AnalysisData;
 
     fn merge(&mut self, a: &mut Self::Data, b: Self::Data) -> DidMerge {
+        // TODO: this is nonsense since constant data as we have it right now
+        // can be a symbol like %core.nat.add or it can be a number like 3
         if a.constant.is_none() && b.constant.is_some() {
             a.constant = b.constant;
             DidMerge(true, false)
@@ -67,6 +69,13 @@ impl Analysis<Mim> for MimAnalysis {
 }
 
 fn fold(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
+    // TODO: I probably want cases for Tuple and for Lit here to associate their eclasses
+    // with constants from terminals such as Num and Symbol
+    // what we are doing now:
+    //  - if we match a Symbol enode, we associate the eclass it belongs to with
+    //    the string contained in the symbol
+    //  - if we match a number enode, we associate the eclass it belongs to with
+    //    the number contained in the symbol
     match enode {
         Symbol(s) => return Some(Symbol(s.clone())),
         Num(n) => return Some(Num(*n)),

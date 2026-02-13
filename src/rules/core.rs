@@ -10,10 +10,24 @@ pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
         mul0(),
         mul1(),
         commute_mul(),
+        icmp_equal(),
+        icmp_not_equal(),
+        icmp_true(),
+        icmp_false(),
+        ncmp_equal(),
+        ncmp_not_equal(),
+        ncmp_true(),
+        ncmp_false(),
+        shr_arith_amount0(),
+        shr_arith_val0(),
+        shr_logical_amount0(),
+        shr_logical_val0(),
     ];
 
     rules
 }
+
+/* core.nat */
 
 fn add0() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.add (tuple (lit 0) ?e))".parse().unwrap();
@@ -69,6 +83,108 @@ fn commute_mul() -> Rewrite<Mim, MimAnalysis> {
     let outpat: Pattern<Mim> = "(app %core.nat.mul (tuple ?b ?a))".parse().unwrap();
 
     Rewrite::new("commute_mul", pat, outpat).unwrap()
+}
+
+/* core.icmp */
+
+fn icmp_equal() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.icmp.e (tuple ?a ?a))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+
+    Rewrite::new("icmp_equal", pat, outpat).unwrap()
+}
+
+fn icmp_not_equal() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.icmp.ne (tuple ?a ?a))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+
+    Rewrite::new("icmp_not_equal", pat, outpat).unwrap()
+}
+
+fn icmp_true() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.icmp.t (tuple ?a ?b))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+
+    Rewrite::new("icmp_true", pat, outpat).unwrap()
+}
+
+fn icmp_false() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.icmp.f (tuple ?a ?b))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+
+    Rewrite::new("icmp_false", pat, outpat).unwrap()
+}
+
+/* core.ncmp */
+
+fn ncmp_equal() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.ncmp.e (tuple ?a ?a))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+
+    Rewrite::new("ncmp_equal", pat, outpat).unwrap()
+}
+
+fn ncmp_not_equal() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.ncmp.ne (tuple ?a ?a))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+
+    Rewrite::new("ncmp_not_equal", pat, outpat).unwrap()
+}
+
+fn ncmp_true() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.ncmp.t (tuple ?a ?b))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+
+    Rewrite::new("ncmp_true", pat, outpat).unwrap()
+}
+
+fn ncmp_false() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.ncmp.f (tuple ?a ?b))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+
+    Rewrite::new("ncmp_false", pat, outpat).unwrap()
+}
+
+// TODO:
+/* core.bit1 */
+/* core.bit2 */
+
+/* core.shr */
+
+fn shr_arith_val0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.shr.a (tuple (lit 0 ?type) ?a))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+
+    Rewrite::new("shr_arith_val0", pat, outpat).unwrap()
+}
+
+fn shr_arith_amount0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.shr.a (tuple ?a (lit 0 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?a".parse().unwrap();
+
+    Rewrite::new("shr_arith_amount0", pat, outpat).unwrap()
+}
+
+fn shr_logical_val0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.shr.l (tuple (lit 0 ?type) ?a))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+
+    Rewrite::new("shr_logical_val0", pat, outpat).unwrap()
+}
+
+fn shr_logical_amount0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %core.shr.l (tuple ?a (lit 0 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?a".parse().unwrap();
+
+    Rewrite::new("shr_logical_amount0", pat, outpat).unwrap()
 }
 
 pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
