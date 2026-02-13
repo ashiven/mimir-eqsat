@@ -2,14 +2,14 @@ use crate::rules::*;
 
 pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
     let rules = vec![
-        add0(),
-        add_same(),
-        commute_add(),
-        sub0(),
-        sub_same(),
-        mul0(),
-        mul1(),
-        commute_mul(),
+        nat_add0(),
+        nat_add_same(),
+        nat_commute_add(),
+        nat_sub0(),
+        nat_sub_same(),
+        nat_mul0(),
+        nat_mul1(),
+        nat_commute_mul(),
         icmp_equal(),
         icmp_not_equal(),
         icmp_true(),
@@ -22,6 +22,14 @@ pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
         shr_arith_val0(),
         shr_logical_amount0(),
         shr_logical_val0(),
+        wrap_add0(),
+        wrap_commute_add(),
+        wrap_sub0(),
+        wrap_mul0(),
+        wrap_mul1(),
+        wrap_commute_mul(),
+        wrap_shl_val0(),
+        wrap_shl_amount0(),
     ];
 
     rules
@@ -29,60 +37,60 @@ pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
 
 /* core.nat */
 
-fn add0() -> Rewrite<Mim, MimAnalysis> {
+fn nat_add0() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.add (tuple (lit 0) ?e))".parse().unwrap();
     let outpat: Pattern<Mim> = "?e".parse().unwrap();
 
-    Rewrite::new("add0", pat, outpat).unwrap()
+    Rewrite::new("nat_add0", pat, outpat).unwrap()
 }
 
-fn add_same() -> Rewrite<Mim, MimAnalysis> {
+fn nat_add_same() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.add (tuple ?a ?a))".parse().unwrap();
     let outpat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 2) ?a))".parse().unwrap();
 
-    Rewrite::new("add_same", pat, outpat).unwrap()
+    Rewrite::new("nat_add_same", pat, outpat).unwrap()
 }
 
-fn commute_add() -> Rewrite<Mim, MimAnalysis> {
+fn nat_commute_add() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.add (tuple ?a ?b))".parse().unwrap();
     let outpat: Pattern<Mim> = "(app %core.nat.add (tuple ?b ?a))".parse().unwrap();
 
-    Rewrite::new("commute_add", pat, outpat).unwrap()
+    Rewrite::new("nat_commute_add", pat, outpat).unwrap()
 }
 
-fn sub0() -> Rewrite<Mim, MimAnalysis> {
+fn nat_sub0() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.sub (tuple ?e (lit 0)))".parse().unwrap();
     let outpat: Pattern<Mim> = "?e".parse().unwrap();
 
-    Rewrite::new("sub0", pat, outpat).unwrap()
+    Rewrite::new("nat_sub0", pat, outpat).unwrap()
 }
 
-fn sub_same() -> Rewrite<Mim, MimAnalysis> {
+fn nat_sub_same() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.sub (tuple ?a ?a))".parse().unwrap();
     let outpat: Pattern<Mim> = "(lit 0)".parse().unwrap();
 
-    Rewrite::new("sub_same", pat, outpat).unwrap()
+    Rewrite::new("nat_sub_same", pat, outpat).unwrap()
 }
 
-fn mul0() -> Rewrite<Mim, MimAnalysis> {
+fn nat_mul0() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 0) ?e))".parse().unwrap();
     let outpat: Pattern<Mim> = "(lit 0)".parse().unwrap();
 
-    Rewrite::new("mul0", pat, outpat).unwrap()
+    Rewrite::new("nat_mul0", pat, outpat).unwrap()
 }
 
-fn mul1() -> Rewrite<Mim, MimAnalysis> {
+fn nat_mul1() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 1) ?e))".parse().unwrap();
     let outpat: Pattern<Mim> = "?e".parse().unwrap();
 
-    Rewrite::new("mul1", pat, outpat).unwrap()
+    Rewrite::new("nat_mul1", pat, outpat).unwrap()
 }
 
-fn commute_mul() -> Rewrite<Mim, MimAnalysis> {
+fn nat_commute_mul() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.mul (tuple ?a ?b))".parse().unwrap();
     let outpat: Pattern<Mim> = "(app %core.nat.mul (tuple ?b ?a))".parse().unwrap();
 
-    Rewrite::new("commute_mul", pat, outpat).unwrap()
+    Rewrite::new("nat_commute_mul", pat, outpat).unwrap()
 }
 
 /* core.icmp */
@@ -186,6 +194,114 @@ fn shr_logical_amount0() -> Rewrite<Mim, MimAnalysis> {
 
     Rewrite::new("shr_logical_amount0", pat, outpat).unwrap()
 }
+
+// TODO: finish today and then look into constant folding some more (math.rs and prop.rs)
+
+/* core.wrap */
+
+fn wrap_add0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.add ?mode) (tuple ?a (lit 0 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?a".parse().unwrap();
+
+    Rewrite::new("wrap_add0", pat, outpat).unwrap()
+}
+
+// TODO: how to get the type for (lit 2 ?type)
+// fn wrap_add_equal() -> Rewrite<Mim, MimAnalysis> {
+//     let pat: Pattern<Mim> = "(app (app %core.wrap.add ?mode) (tuple ?a ?a))"
+//         .parse()
+//         .unwrap();
+//     let outpat: Pattern<Mim> = "(app (app %core.wrap.mul ?mode) (tuple ?a (lit 2 ?type))".parse().unwrap();
+//
+//     Rewrite::new("wrap_add_equal", pat, outpat).unwrap()
+// }
+
+fn wrap_commute_add() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.add ?mode) (tuple ?a ?b))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(app (app %core.wrap.add ?mode) (tuple ?b ?a))"
+        .parse()
+        .unwrap();
+
+    Rewrite::new("wrap_commute_add", pat, outpat).unwrap()
+}
+
+fn wrap_sub0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.sub ?mode) (tuple ?a (lit 0 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?a".parse().unwrap();
+
+    Rewrite::new("wrap_sub0", pat, outpat).unwrap()
+}
+
+// TODO: how to get the type for (lit 0 ?type)
+// fn wrap_sub_equal() -> Rewrite<Mim, MimAnalysis> {
+//     let pat: Pattern<Mim> = "(app (app %core.wrap.sub ?mode) (tuple ?a ?a))"
+//         .parse()
+//         .unwrap();
+//     let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+//
+//     Rewrite::new("wrap_sub_equal", pat, outpat).unwrap()
+// }
+
+fn wrap_mul0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.mul ?mode) (tuple ?a (lit 0 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+
+    Rewrite::new("wrap_mul0", pat, outpat).unwrap()
+}
+
+fn wrap_mul1() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.mul ?mode) (tuple ?a (lit 1 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?a".parse().unwrap();
+
+    Rewrite::new("wrap_mul1", pat, outpat).unwrap()
+}
+
+fn wrap_commute_mul() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.mul ?mode) (tuple ?a ?b))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(app (app %core.wrap.mul ?mode) (tuple ?b ?a))"
+        .parse()
+        .unwrap();
+
+    Rewrite::new("wrap_commute_mul", pat, outpat).unwrap()
+}
+
+fn wrap_shl_val0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.shl ?mode) (tuple (lit 0 ?type) ?a))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(lit 0 ?type)".parse().unwrap();
+
+    Rewrite::new("wrap_shl_val0", pat, outpat).unwrap()
+}
+
+fn wrap_shl_amount0() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app (app %core.wrap.shl ?mode) (tuple ?a (lit 0 ?type)))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?a".parse().unwrap();
+
+    Rewrite::new("wrap_shl_amount0", pat, outpat).unwrap()
+}
+
+/* core.div */
+/* core.conv */
+/* core.bitcast */
+/* core.trait */
+/* core.pe */
+
+/* constant folding */
 
 pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
     if let Some(folded) = fold_nat(egraph, enode) {
