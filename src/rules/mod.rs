@@ -68,13 +68,7 @@ impl Analysis<Mim> for MimAnalysis {
     }
 
     fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
-        // Singleton eclasses that contaian only a number
-        // should be skipped because otherwise we end up unioning
-        // a newly added literal with the number itself, leading to
-        // an eclass containing both the literal and the number
-        if find_node!(egraph, &id, Num(n) => n).is_none()
-            && let Some(c) = egraph[id].data.constant.clone()
-        {
+        if let Some(c) = egraph[id].data.constant.clone() {
             let const_id = egraph.add(c);
             let lit_id = egraph.add(Lit(Box::new([const_id])));
             egraph.union(id, lit_id);

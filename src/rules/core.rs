@@ -417,9 +417,13 @@ fn div_urem1() -> Rewrite<Mim, MimAnalysis> {
 /* constant folding */
 
 pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
-    if let Num(n) = enode {
+    if let Lit(l) = enode
+        && let Some(n) = find_node!(egraph, &l[0], Num(n) => n)
+    {
         return Some(Num(*n));
-    } else if let Some(folded) = fold_nat(egraph, enode) {
+    }
+
+    if let Some(folded) = fold_nat(egraph, enode) {
         return Some(folded);
     } else if let Some(folded) = fold_icmp(egraph, enode) {
         return Some(folded);
@@ -435,13 +439,12 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
         && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
         && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
         && let [t1, t2] = &**t
-        && let Some(l1) = find_node!(egraph, t1, Lit(l1) => l1)
-        && let Some(l2) = find_node!(egraph, t2, Lit(l2) => l2)
-        && let Some(Num(n1)) = c(&l1[0])
-        && let Some(Num(n2)) = c(&l2[0])
+        && let Some(Num(n1)) = c(t1)
+        && let Some(Num(n2)) = c(t2)
     {
         match s.as_str() {
             "%core.nat.add" => return Some(Num(n1 + n2)),
+            // TODO: this can lead to negative numbers (cap at zero?)
             "%core.nat.sub" => return Some(Num(n1 - n2)),
             "%core.nat.mul" => return Some(Num(n1 * n2)),
             _ => return None,
@@ -450,6 +453,13 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
 
     None
 }
+
+// TODO: implement:
+//  - fold_icmp
+//  - fold_ncmp
+//  - fold_shr
+//  - fold_wrap
+//  - fold_div
 
 /*
 * cases 3 and 4 (xyGle and xygLe) implement less than and greater than
@@ -468,7 +478,6 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
 /    res |= ((id & icmp::xyglE) != icmp::f) && u == v; // is u equal to v
 /    return res;
 */
-// TODO: implement
 fn fold_icmp(_egraph: &mut EGraph<Mim, MimAnalysis>, _enode: &Mim) -> Option<Mim> {
     None
 }
