@@ -414,25 +414,60 @@ fn div_urem1() -> Rewrite<Mim, MimAnalysis> {
 //     Rewrite::new("div_urem0", pat, outpat).unwrap()
 // }
 
+/* helpers */
+
+fn idx_size(type_: &Mim) -> i32 {
+    if let Symbol(s) = type_ {
+        match s.as_str() {
+            "Bool" => return 1,
+            "I1" => return 1,
+            "I8" => return 8,
+            "I16" => return 16,
+            "I32" => return 32,
+            "I64" => return 64,
+            _ => panic!("expected idx type"),
+        };
+    } else if let Idx(_s) = type_ {
+        // TODO:
+        return 0;
+    }
+    panic!("expected idx type");
+}
+
+fn bool_lit(tt: bool) -> Option<Const> {
+    let ret_val = if tt { "tt" } else { "ff" }.to_string();
+    Some(Const {
+        val: Some(Symbol(ret_val)),
+        type_: None,
+    })
+}
+
+fn nat_lit(nat: i32) -> Option<Const> {
+    Some(Const {
+        val: Some(Num(nat)),
+        type_: None,
+    })
+}
+
 /* constant folding */
 
 pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
     if let Lit(l) = enode
-        && let Some(n) = find_node!(egraph, &l[0], Num(n) => n)
+        && let Some(v) = egraph[l[0]].nodes.first()
     {
         // We have a typed literal like (lit 4 I8)
         if l.len() == 2
             && let Some(t) = egraph[l[1]].nodes.first()
         {
             return Some(Const {
-                val: Some(Num(*n)),
+                val: Some(v.clone()),
                 type_: Some(t.clone()),
             });
         }
 
         // We have an untyped literal like (lit 5)
         return Some(Const {
-            val: Some(Num(*n)),
+            val: Some(v.clone()),
             type_: None,
         });
     }
@@ -457,25 +492,59 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const>
         && let Some(Num(n2)) = c(t2)?.val
     {
         match s.as_str() {
-            "%core.nat.add" => {
-                return Some(Const {
-                    val: Some(Num(n1 + n2)),
-                    type_: None,
-                });
-            }
+            "%core.nat.add" => return nat_lit(n1 + n2),
             // TODO: this can lead to negative numbers (cap at zero?)
-            "%core.nat.sub" => {
-                return Some(Const {
-                    val: Some(Num(n1 - n2)),
-                    type_: None,
-                });
-            }
-            "%core.nat.mul" => {
-                return Some(Const {
-                    val: Some(Num(n1 * n2)),
-                    type_: None,
-                });
-            }
+            "%core.nat.sub" => return nat_lit(n1 - n2),
+            "%core.nat.mul" => return nat_lit(n1 * n2),
+            _ => (),
+        }
+    }
+
+    None
+}
+
+// TODO: gather more info about how idx literals are printed
+// to ensure that the conditional and the plusminus stuff is going to work
+fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
+    let c = |id: &Id| egraph[*id].data.constant.clone();
+
+    if let App([callee, arg]) = enode
+        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
+        && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
+        && let [t1, t2] = &**t
+        && let Some(Num(n1)) = c(t1)?.val
+        && let Some(i1) = c(t1)?.type_
+        && let Some(Num(n2)) = c(t2)?.val
+        && let Some(i2) = c(t2)?.type_
+    {
+        // TODO: the above conditional is true for any application
+        // of a symbol to a tuple of two typed literals so we can't
+        // just assume that these types will be idx types
+        let size1 = idx_size(&i1);
+        let size2 = idx_size(&i2);
+        if size1 != size2 {
+            panic!("icmp: idx size mismatch")
+        };
+
+        let plusminus = (n1 >> (size1 - 1)) == 0 && (n2 >> (size2 - 1)) == 1;
+        let minusplus = (n1 >> (size1 - 1)) == 1 && (n2 >> (size2 - 1)) == 0;
+
+        match s.as_str() {
+            "%core.icmp.Xygle" => {
+                return bool_lit(plusminus);
+            } // x positive, y negative
+            "%core.icmp.xYgle" => {
+                return bool_lit(minusplus);
+            } // x negative, y positive
+            "%core.icmp.xyGle" => {
+                return bool_lit(n1 > n2 && !minusplus);
+            } // greater, same sign
+            "%core.icmp.xygLe" => {
+                return bool_lit(n1 < n2 && !plusminus);
+            } // less, same sign
+            "%core.icmp.xyglE" => {
+                return bool_lit(n1 == n2);
+            } // equal (alias %core.icmp.e)
             _ => (),
         }
     }
@@ -484,48 +553,7 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const>
 }
 
 // TODO: implement:
-//  - fold_icmp
 //  - fold_ncmp
 //  - fold_shr
 //  - fold_wrap
 //  - fold_div
-
-/*
-* cases 3 and 4 (xyGle and xygLe) implement less than and greater than
-* when integers are not represented as two's complement binary where u > v
-* could actually be true if u represents a negative number and v a positive one (xFF and x01)
-*
-* i suppose if integers are represented as two's complement then the cases 1 and 2 should be used
-*
-/    bool res = false;
-/    auto plusminus  = !(u >> UT(w - 1)) &&  (v >> UT(w - 1));   // u pos and v neg
-/    auto minusplus  =  (u >> UT(w - 1)) && !(v >> UT(w - 1));   // u neg and v pos
-/    res |= ((id & icmp::Xygle) != icmp::f) && plusminus;  // is u pos and v neg ?
-/    res |= ((id & icmp::xYgle) != icmp::f) && minusplus;  // is u neg and v pos ?
-/    res |= ((id & icmp::xyGle) != icmp::f) && u > v && !minusplus;  // is u greater than v
-/    res |= ((id & icmp::xygLe) != icmp::f) && u < v && !plusminus;  // is u less than v
-/    res |= ((id & icmp::xyglE) != icmp::f) && u == v; // is u equal to v
-/    return res;
-*/
-fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
-    let c = |id: &Id| egraph[*id].data.constant.clone();
-
-    if let App([callee, arg]) = enode
-        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
-        && let Some(t) = find_node!(egraph, callee, Tuple(t) => t)
-        && let [t1, t2] = &**t
-        && let Some(Num(n1)) = c(t1)?.val
-        && let Some(Num(n2)) = c(t2)?.val
-    {
-        match s.as_str() {
-            "%core.icmp.Xygle" => (), // x positive, y negative
-            "%core.icmp.xYgle" => (), // x negative, y positive
-            "%core.icmp.xyGle" => (), // greater, same sign
-            "%core.icmp.xygLe" => (), // less, same sign
-            "%core.icmp.xyglE" => (), // equal (alias %core.icmp.e)
-            _ => (),
-        }
-    }
-
-    None
-}
