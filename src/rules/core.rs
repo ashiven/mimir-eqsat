@@ -1,4 +1,5 @@
 use crate::rules::*;
+use std::cmp::max;
 
 pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
     let rules = vec![
@@ -434,19 +435,17 @@ fn idx_size(type_: &Mim) -> i32 {
     panic!("expected idx type");
 }
 
-fn bool_lit(tt: bool) -> Option<Const> {
-    let ret_val = if tt { "tt" } else { "ff" }.to_string();
-    Some(Const {
-        val: Some(Symbol(ret_val)),
-        type_: None,
-    })
+fn new_const(val: Option<Mim>, type_: Option<Mim>) -> Option<Const> {
+    Some(Const { val, type_ })
 }
 
-fn nat_lit(nat: i32) -> Option<Const> {
-    Some(Const {
-        val: Some(Num(nat)),
-        type_: None,
-    })
+fn bool_lit(tt: bool) -> Option<Const> {
+    let ret_val = if tt { "tt" } else { "ff" }.to_string();
+    new_const(Some(Symbol(ret_val)), None)
+}
+
+fn nat_lit(n: i32) -> Option<Const> {
+    new_const(Some(Num(n)), None)
 }
 
 /* constant folding */
@@ -455,26 +454,21 @@ pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<C
     if let Lit(l) = enode
         && let Some(v) = egraph[l[0]].nodes.first()
     {
-        // We have a typed literal like (lit 4 I8)
+        // Case 1: typed literal e.g. (lit 4 I8)
         if l.len() == 2
             && let Some(t) = egraph[l[1]].nodes.first()
         {
-            return Some(Const {
-                val: Some(v.clone()),
-                type_: Some(t.clone()),
-            });
+            return new_const(Some(v.clone()), Some(t.clone()));
         }
-
-        // We have an untyped literal like (lit 5)
-        return Some(Const {
-            val: Some(v.clone()),
-            type_: None,
-        });
+        // Case 2: untyped literal e.g. (lit 5)
+        return new_const(Some(v.clone()), None);
     }
 
     if let Some(folded) = fold_nat(egraph, enode) {
         return Some(folded);
     } else if let Some(folded) = fold_icmp(egraph, enode) {
+        return Some(folded);
+    } else if let Some(folded) = fold_ncmp(egraph, enode) {
         return Some(folded);
     }
 
@@ -493,8 +487,7 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const>
     {
         match s.as_str() {
             "%core.nat.add" => return nat_lit(n1 + n2),
-            // TODO: this can lead to negative numbers (cap at zero?)
-            "%core.nat.sub" => return nat_lit(n1 - n2),
+            "%core.nat.sub" => return nat_lit(max(n1 - n2, 0)),
             "%core.nat.mul" => return nat_lit(n1 * n2),
             _ => (),
         }
@@ -530,21 +523,35 @@ fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const
         let minusplus = (n1 >> (size1 - 1)) == 1 && (n2 >> (size2 - 1)) == 0;
 
         match s.as_str() {
-            "%core.icmp.Xygle" => {
-                return bool_lit(plusminus);
-            } // x positive, y negative
-            "%core.icmp.xYgle" => {
-                return bool_lit(minusplus);
-            } // x negative, y positive
-            "%core.icmp.xyGle" => {
-                return bool_lit(n1 > n2 && !minusplus);
-            } // greater, same sign
-            "%core.icmp.xygLe" => {
-                return bool_lit(n1 < n2 && !plusminus);
-            } // less, same sign
-            "%core.icmp.xyglE" => {
-                return bool_lit(n1 == n2);
-            } // equal (alias %core.icmp.e)
+            "%core.icmp.Xygle" => return bool_lit(plusminus),
+            "%core.icmp.xYgle" => return bool_lit(minusplus),
+            "%core.icmp.xyGle" => return bool_lit(n1 > n2 && !minusplus),
+            "%core.icmp.xygLe" => return bool_lit(n1 < n2 && !plusminus),
+            "%core.icmp.xyglE" => return bool_lit(n1 == n2),
+            _ => (),
+        }
+    }
+
+    None
+}
+
+fn fold_ncmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
+    let c = |id: &Id| egraph[*id].data.constant.clone();
+
+    if let App([callee, arg]) = enode
+        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
+        && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
+        && let [t1, t2] = &**t
+        && let Some(Num(n1)) = c(t1)?.val
+        && let Some(Num(n2)) = c(t2)?.val
+    {
+        match s.as_str() {
+            "%core.ncmp.e" => return bool_lit(n1 == n2),
+            "%core.ncmp.ne" => return bool_lit(n1 != n2),
+            "%core.ncmp.l" => return bool_lit(n1 <= n2),
+            "%core.ncmp.le" => return bool_lit(n1 < n2),
+            "%core.ncmp.g" => return bool_lit(n1 > n2),
+            "%core.ncmp.ge" => return bool_lit(n1 >= n2),
             _ => (),
         }
     }
@@ -553,7 +560,6 @@ fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const
 }
 
 // TODO: implement:
-//  - fold_ncmp
 //  - fold_shr
 //  - fold_wrap
 //  - fold_div
