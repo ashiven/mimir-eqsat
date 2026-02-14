@@ -417,7 +417,9 @@ fn div_urem1() -> Rewrite<Mim, MimAnalysis> {
 /* constant folding */
 
 pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
-    if let Some(folded) = fold_nat(egraph, enode) {
+    if let Num(n) = enode {
+        return Some(Num(*n));
+    } else if let Some(folded) = fold_nat(egraph, enode) {
         return Some(folded);
     } else if let Some(folded) = fold_icmp(egraph, enode) {
         return Some(folded);
@@ -428,15 +430,13 @@ pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<M
 
 fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
     let c = |id: &Id| egraph[*id].data.constant.clone();
-    // TODO: we are not entering the below branch because c(arg) and c(t1), c(t2) will return
-    // nothing since no data has been associated with eclasses containing tuple enodes
-    // and literal enodes
+
     if let App([callee, arg]) = enode
-        && let Some(Symbol(s)) = c(callee)
-        && let Some(Tuple(t)) = c(arg)
-        && let [t1, t2] = &*t
-        && let Some(Lit(l1)) = c(t1)
-        && let Some(Lit(l2)) = c(t2)
+        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
+        && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
+        && let [t1, t2] = &**t
+        && let Some(l1) = find_node!(egraph, t1, Lit(l1) => l1)
+        && let Some(l2) = find_node!(egraph, t2, Lit(l2) => l2)
         && let Some(Num(n1)) = c(&l1[0])
         && let Some(Num(n2)) = c(&l2[0])
     {

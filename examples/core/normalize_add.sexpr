@@ -7,9 +7,9 @@
     (app     
         return    
         (app         
-            %core.nat.sub        
+            %core.nat.add        
             (tuple
-                (lit 4) 
+                (lit 3) 
                 (lit 4)
             )
         )

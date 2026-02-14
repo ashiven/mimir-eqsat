@@ -32,18 +32,27 @@ define_language! {
     }
 }
 
+#[macro_export]
+macro_rules! find_node {
+    ($egraph:expr, $id:expr, $pat:pat => $val:expr) => {
+        $egraph[*$id]
+            .nodes
+            .iter()
+            .find_map(|node| if let $pat = node { Some($val) } else { None })
+    };
+}
+
 #[derive(Default)]
 pub struct MimAnalysis;
 #[derive(Debug)]
 pub struct AnalysisData {
     constant: Option<Mim>,
 }
+
 impl Analysis<Mim> for MimAnalysis {
     type Data = AnalysisData;
 
     fn merge(&mut self, a: &mut Self::Data, b: Self::Data) -> DidMerge {
-        // TODO: this is nonsense since constant data as we have it right now
-        // can be a symbol like %core.nat.add or it can be a number like 3
         if a.constant.is_none() && b.constant.is_some() {
             a.constant = b.constant;
             DidMerge(true, false)
@@ -58,30 +67,22 @@ impl Analysis<Mim> for MimAnalysis {
         }
     }
 
-    // TODO: constant folding is currently broken (uncomment after it is fixed)
-    // fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
-    //     if let Some(c) = egraph[id].data.constant.clone() {
-    //         let const_id = egraph.add(c);
-    //         let lit_id = egraph.add(Lit(Box::new([const_id])));
-    //         egraph.union(id, lit_id);
-    //     }
-    // }
+    fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
+        // Singleton eclasses that contaian only a number
+        // should be skipped because otherwise we end up unioning
+        // a newly added literal with the number itself, leading to
+        // an eclass containing both the literal and the number
+        if find_node!(egraph, &id, Num(n) => n).is_none()
+            && let Some(c) = egraph[id].data.constant.clone()
+        {
+            let const_id = egraph.add(c);
+            let lit_id = egraph.add(Lit(Box::new([const_id])));
+            egraph.union(id, lit_id);
+        }
+    }
 }
 
 fn fold(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
-    // TODO: I probably want cases for Tuple and for Lit here to associate their eclasses
-    // with constants from terminals such as Num and Symbol
-    // what we are doing now:
-    //  - if we match a Symbol enode, we associate the eclass it belongs to with
-    //    the string contained in the symbol
-    //  - if we match a number enode, we associate the eclass it belongs to with
-    //    the number contained in the symbol
-    match enode {
-        Symbol(s) => return Some(Symbol(s.clone())),
-        Num(n) => return Some(Num(*n)),
-        _ => (),
-    }
-
     if let Some(folded) = fold_core(egraph, enode) {
         return Some(folded);
     }
