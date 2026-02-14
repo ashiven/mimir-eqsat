@@ -46,7 +46,13 @@ macro_rules! find_node {
 pub struct MimAnalysis;
 #[derive(Debug)]
 pub struct AnalysisData {
-    constant: Option<Mim>,
+    constant: Option<Const>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Const {
+    val: Option<Mim>,
+    type_: Option<Mim>,
 }
 
 impl Analysis<Mim> for MimAnalysis {
@@ -68,7 +74,11 @@ impl Analysis<Mim> for MimAnalysis {
     }
 
     fn modify(egraph: &mut EGraph<Mim, Self>, id: Id) {
-        if let Some(c) = egraph[id].data.constant.clone() {
+        if let Some(Const {
+            val: Some(c),
+            type_: _t,
+        }) = egraph[id].data.constant.clone()
+        {
             let const_id = egraph.add(c);
             let lit_id = egraph.add(Lit(Box::new([const_id])));
             egraph.union(id, lit_id);
@@ -76,7 +86,7 @@ impl Analysis<Mim> for MimAnalysis {
     }
 }
 
-fn fold(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
+fn fold(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
     if let Some(folded) = fold_core(egraph, enode) {
         return Some(folded);
     }

@@ -416,11 +416,25 @@ fn div_urem1() -> Rewrite<Mim, MimAnalysis> {
 
 /* constant folding */
 
-pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
+pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
     if let Lit(l) = enode
         && let Some(n) = find_node!(egraph, &l[0], Num(n) => n)
     {
-        return Some(Num(*n));
+        // We have a typed literal like (lit 4 I8)
+        if l.len() == 2
+            && let Some(t) = egraph[l[1]].nodes.first()
+        {
+            return Some(Const {
+                val: Some(Num(*n)),
+                type_: Some(t.clone()),
+            });
+        }
+
+        // We have an untyped literal like (lit 5)
+        return Some(Const {
+            val: Some(Num(*n)),
+            type_: None,
+        });
     }
 
     if let Some(folded) = fold_nat(egraph, enode) {
@@ -432,22 +446,37 @@ pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<M
     None
 }
 
-fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
+fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
     let c = |id: &Id| egraph[*id].data.constant.clone();
 
     if let App([callee, arg]) = enode
         && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
         && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
         && let [t1, t2] = &**t
-        && let Some(Num(n1)) = c(t1)
-        && let Some(Num(n2)) = c(t2)
+        && let Some(Num(n1)) = c(t1)?.val
+        && let Some(Num(n2)) = c(t2)?.val
     {
         match s.as_str() {
-            "%core.nat.add" => return Some(Num(n1 + n2)),
+            "%core.nat.add" => {
+                return Some(Const {
+                    val: Some(Num(n1 + n2)),
+                    type_: None,
+                });
+            }
             // TODO: this can lead to negative numbers (cap at zero?)
-            "%core.nat.sub" => return Some(Num(n1 - n2)),
-            "%core.nat.mul" => return Some(Num(n1 * n2)),
-            _ => return None,
+            "%core.nat.sub" => {
+                return Some(Const {
+                    val: Some(Num(n1 - n2)),
+                    type_: None,
+                });
+            }
+            "%core.nat.mul" => {
+                return Some(Const {
+                    val: Some(Num(n1 * n2)),
+                    type_: None,
+                });
+            }
+            _ => (),
         }
     }
 
@@ -478,6 +507,25 @@ fn fold_nat(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Mim> {
 /    res |= ((id & icmp::xyglE) != icmp::f) && u == v; // is u equal to v
 /    return res;
 */
-fn fold_icmp(_egraph: &mut EGraph<Mim, MimAnalysis>, _enode: &Mim) -> Option<Mim> {
+fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
+    let c = |id: &Id| egraph[*id].data.constant.clone();
+
+    if let App([callee, arg]) = enode
+        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
+        && let Some(t) = find_node!(egraph, callee, Tuple(t) => t)
+        && let [t1, t2] = &**t
+        && let Some(Num(n1)) = c(t1)?.val
+        && let Some(Num(n2)) = c(t2)?.val
+    {
+        match s.as_str() {
+            "%core.icmp.Xygle" => (), // x positive, y negative
+            "%core.icmp.xYgle" => (), // x negative, y positive
+            "%core.icmp.xyGle" => (), // greater, same sign
+            "%core.icmp.xygLe" => (), // less, same sign
+            "%core.icmp.xyglE" => (), // equal (alias %core.icmp.e)
+            _ => (),
+        }
+    }
+
     None
 }
