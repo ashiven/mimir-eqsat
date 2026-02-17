@@ -2,24 +2,20 @@ use crate::Mim::*;
 use crate::rules::*;
 use egg::*;
 use ffi::MimNode;
-use std::fs;
 
 mod rules;
 
-// TODO: take sexpr as string argument
-pub fn equality_saturate() -> Vec<MimNode> {
+pub fn equality_saturate(sexpr: &str) -> Vec<MimNode> {
     let rules: &[Rewrite<Mim, MimAnalysis>] = &rules();
 
     // TODO: if we have a series of sexpr's like multiple lambdas in a row,
     // only the first lambda is parsed into an egraph here.
     // gotta find a way that all of them are added to the egraph.
-    let example =
-        fs::read_to_string("./examples/core/normalize_add.sexpr").expect("Failed to read file.");
-
     let runner = Runner::<Mim, MimAnalysis, ()>::default()
-        .with_expr(&example.parse().unwrap())
+        .with_expr(&sexpr.parse().unwrap())
         .run(rules);
 
+    // TODO: this is useful now to see the egraph but should be removed later
     runner
         .egraph
         .dot()
@@ -29,6 +25,7 @@ pub fn equality_saturate() -> Vec<MimNode> {
     let extractor = Extractor::new(&runner.egraph, AstSize);
     let (best_cost, best_expr) = extractor.find_best(runner.roots[0]);
 
+    // TODO: remove after development
     println!("The best cost is: {}", best_cost);
     println!("Post rewrite: {}", best_expr);
 
@@ -37,6 +34,8 @@ pub fn equality_saturate() -> Vec<MimNode> {
 
 #[cxx::bridge]
 pub mod ffi {
+
+    #[derive(Debug)]
     struct MimNode {
         variant: u32,
         children: Vec<u32>,
@@ -45,7 +44,7 @@ pub mod ffi {
     }
 
     extern "Rust" {
-        fn equality_saturate() -> Vec<MimNode>;
+        fn equality_saturate(sexpr: &str) -> Vec<MimNode>;
     }
 }
 

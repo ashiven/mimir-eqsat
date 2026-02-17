@@ -5,7 +5,7 @@ version = "0.1.0"
 
 [lib]
 name = "eqsat"
-crate-type = ["staticlib"]
+crate-type = ["rlib", "staticlib"]
 
 [dependencies]
 egg = "0.11.0"

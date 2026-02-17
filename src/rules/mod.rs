@@ -4,6 +4,8 @@ use crate::*;
 pub mod core;
 pub mod math;
 
+// TODO: define the rest of Mim (also add to rexpr_to_vec afterwards)
+// and modify accordingly once extern and eval filter added to lambdas in sexpr
 define_language! {
     pub enum Mim {
         "lam" = Lam([Id; 2]),
