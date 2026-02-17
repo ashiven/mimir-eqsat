@@ -49,31 +49,43 @@ pub mod ffi {
     }
 }
 
+fn new_mim(variant: u32, children: &[Id], num: i32, symbol: String) -> MimNode {
+    let mut converted_ids = Vec::new();
+    for id in children {
+        converted_ids.push(usize::from(*id) as u32);
+    }
+
+    MimNode {
+        variant,
+        children: converted_ids,
+        num,
+        symbol,
+    }
+}
+
 fn rexpr_to_vec(rexpr: RecExpr<Mim>) -> Vec<MimNode> {
     let mut nodes = Vec::new();
 
     for node in rexpr.as_ref() {
         match node {
-            Num(n) => nodes.push(MimNode {
-                variant: 0,
-                children: vec![],
-                num: *n,
-                symbol: String::new(),
-            }),
-            Symbol(s) => nodes.push(MimNode {
-                variant: 1,
-                children: vec![],
-                num: 0,
-                symbol: s.clone(),
-            }),
-            App([callee, arg]) => nodes.push(MimNode {
-                variant: 2,
-                children: vec![usize::from(*callee) as u32, usize::from(*arg) as u32],
-                num: 0,
-                symbol: String::new(),
-            }),
-            // TODO: other variants + correct variant order
-            _ => (),
+            Lam(children) => nodes.push(new_mim(0, children, 0, String::new())),
+            Con(children) => nodes.push(new_mim(1, children, 0, String::new())),
+            App(children) => nodes.push(new_mim(2, children, 0, String::new())),
+
+            Mim::Var(children) => nodes.push(new_mim(3, children, 0, String::new())),
+            Lit(children) => nodes.push(new_mim(4, children, 0, String::new())),
+
+            Tuple(children) => nodes.push(new_mim(5, children, 0, String::new())),
+            Extract(children) => nodes.push(new_mim(6, children, 0, String::new())),
+            Ins(children) => nodes.push(new_mim(7, children, 0, String::new())),
+
+            Sigma(children) => nodes.push(new_mim(8, children, 0, String::new())),
+            Arr(children) => nodes.push(new_mim(9, children, 0, String::new())),
+            Cn(child) => nodes.push(new_mim(10, &[*child], 0, String::new())),
+            Idx(child) => nodes.push(new_mim(11, &[*child], 0, String::new())),
+
+            Num(n) => nodes.push(new_mim(12, &[], *n, String::new())),
+            Symbol(s) => nodes.push(new_mim(13, &[], 0, s.clone())),
         }
     }
 

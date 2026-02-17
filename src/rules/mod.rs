@@ -6,15 +6,11 @@ pub mod math;
 
 define_language! {
     pub enum Mim {
-        // app (callee, arg)
-        "app" = App([Id; 2]),
         "lam" = Lam([Id; 2]),
-        // con (name, argtuple, body)
         "con" = Con([Id; 3]),
+        "app" = App([Id; 2]),
 
-        // var (name, type)
         "var" = Var([Id; 2]),
-        // lit (value, <type>)
         "lit" = Lit(Box<[Id]>),
 
         "tuple" = Tuple(Box<[Id]>),
