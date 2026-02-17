@@ -470,6 +470,12 @@ pub fn fold_core(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<C
         return Some(folded);
     } else if let Some(folded) = fold_ncmp(egraph, enode) {
         return Some(folded);
+    } else if let Some(folded) = fold_shr(egraph, enode) {
+        return Some(folded);
+    } else if let Some(folded) = fold_wrap(egraph, enode) {
+        return Some(folded);
+    } else if let Some(folded) = fold_div(egraph, enode) {
+        return Some(folded);
     }
 
     None
@@ -559,7 +565,76 @@ fn fold_ncmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const
     None
 }
 
-// TODO: implement:
-//  - fold_shr
-//  - fold_wrap
-//  - fold_div
+fn fold_shr(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
+    let c = |id: &Id| egraph[*id].data.constant.clone();
+
+    if let App([callee, arg]) = enode
+        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
+        && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
+        && let [t1, t2] = &**t
+        && let Some(Num(n1)) = c(t1)?.val
+        && let Some(Num(n2)) = c(t2)?.val
+    {
+        // TODO: check if shift amount exceeds width
+        // and differentiate between signed and unsigned
+        match s.as_str() {
+            "%core.shr.a" => return nat_lit(n1 >> n2),
+            "%core.shr.l" => return nat_lit(n1 >> n2),
+            _ => (),
+        }
+    }
+
+    None
+}
+
+fn fold_wrap(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
+    let c = |id: &Id| egraph[*id].data.constant.clone();
+
+    // (app (app %core.wrap.(add,sub,mul,shl) [mode: Nat]) <<2; Idx s>>)
+    if let App([callee, arg]) = enode
+        && let Some([name, mode]) = find_node!(egraph, callee, App([name, mode]) => [name, mode])
+        && let Some(s) = find_node!(egraph, name, Symbol(s) => s)
+        && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
+        && let [t1, t2] = &**t
+        && let Some(Num(_m)) = c(mode)?.val
+        && let Some(Num(n1)) = c(t1)?.val
+        && let Some(Num(n2)) = c(t2)?.val
+    {
+        // TODO: utilize mode and implement wrapping
+        match s.as_str() {
+            "%core.wrap.add" => return nat_lit(n1 + n2),
+            "%core.wrap.sub" => return nat_lit(max(n1 - n2, 0)),
+            "%core.wrap.mul" => return nat_lit(n1 * n2),
+            "%core.wrap.shl" => return nat_lit(n1 << n2),
+            _ => (),
+        }
+    }
+
+    None
+}
+
+fn fold_div(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
+    let c = |id: &Id| egraph[*id].data.constant.clone();
+
+    // (app %core.div.(udiv,sdiv,urem,srem) [%mem.M 0, <<2; Idx s>>])
+    if let App([callee, arg]) = enode
+        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
+        && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
+        && let [_t1, t2] = &**t
+        && let Some(vals) = find_node!(egraph, t2, Tuple(vals) => vals)
+        && let [v1, v2] = &**vals
+        && let Some(Num(n1)) = c(v1)?.val
+        && let Some(Num(n2)) = c(v2)?.val
+    {
+        // TODO: signed vs unsigned div
+        match s.as_str() {
+            "%core.div.udiv" => return nat_lit(n1 / n2),
+            "%core.div.sdiv" => return nat_lit(n1 / n2),
+            "%core.div.urem" => return nat_lit(n1 % n2),
+            "%core.div.srem" => return nat_lit(n1 % n2),
+            _ => (),
+        }
+    }
+
+    None
+}

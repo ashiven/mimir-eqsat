@@ -40,9 +40,9 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "egg"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "abb749745461743bb477fba3ef87c663d5965876155c676c9489cfe0963de5ab"
+checksum = "dd40cfd4196d7a8f882ace95d623d4d6734588e502b4e188675a7c2f55eb4fb4"
 dependencies = [
  "env_logger",
  "hashbrown 0.15.5",
@@ -52,7 +52,6 @@ dependencies = [
  "num-traits",
  "quanta",
  "rustc-hash",
- "saturating",
  "smallvec",
  "symbol_table",
  "symbolic_expressions",
@@ -66,6 +65,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a12e6657c4c97ebab115a42dcee77225f7f482cdd841cf7088c657a42e9e00e7"
 dependencies = [
  "log",
+]
+
+[[package]]
+name = "eqsat"
+version = "0.1.0"
+dependencies = [
+ "egg",
 ]
 
 [[package]]
@@ -128,13 +134,6 @@ name = "log"
 version = "0.4.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34080505efa8e45a4b816c349525ebe327ceaa8559756f0356cba97ef3bf7432"
-
-[[package]]
-name = "mimir-egg"
-version = "0.1.0"
-dependencies = [
- "egg",
-]
 
 [[package]]
 name = "num-bigint"
@@ -223,12 +222,6 @@ name = "rustversion"
 version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b39cdef0fa800fc44525c84ccb54a029961a8215f9619753635a9c0d2538d46d"
-
-[[package]]
-name = "saturating"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ece8e78b2f38ec51c51f5d475df0a7187ba5111b2a28bdc761ee05b075d40a71"
 
 [[package]]
 name = "smallvec"

@@ -67,9 +67,9 @@ impl Analysis<Mim> for MimAnalysis {
         }
     }
 
-    fn make(egraph: &mut EGraph<Mim, Self>, enode: &Mim) -> Self::Data {
+    fn make(egraph: &mut EGraph<Mim, Self>, enode: &Mim, _id: Id) -> Self::Data {
         AnalysisData {
-            constant: fold(egraph, enode),
+            constant: fold_core(egraph, enode),
         }
     }
 
@@ -84,14 +84,6 @@ impl Analysis<Mim> for MimAnalysis {
             egraph.union(id, lit_id);
         }
     }
-}
-
-fn fold(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<Const> {
-    if let Some(folded) = fold_core(egraph, enode) {
-        return Some(folded);
-    }
-
-    None
 }
 
 // Can be used to create conditional rewrite rules like (foo ?a) => (bar ?a) if is_const(var("?a"))

@@ -1,7 +1,11 @@
 [package]
-name = "mimir-egg"
+name = "eqsat"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "eqsat"
+crate-type = ["staticlib"]
+
 [dependencies]
-egg = "0.10.0"
+egg = "0.11.0"

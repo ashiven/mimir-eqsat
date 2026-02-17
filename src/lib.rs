@@ -5,20 +5,8 @@ use std::fs;
 
 mod rules;
 
-/*
-* TODO: I want this to turn into a function that I can import from a mimir plugin
-* via an extern import which then takes an sexpr and simply returns the rewritten sexpr
-*   so something like:
-*       fn equality_saturate(sexpr) -> sexpr
-* for the sake of keeping the project well structured, rewrite rules will
-* be divided into the same directory structure that exists in the mimir compiler
-* plugin infrastructure, so we get something like:
-* > > eqsat.rs
-* > > rules/core.rs
-* > > rules/math.rs
-* > > rules/compile.rs
-*/
-fn main() -> Result<(), Box<dyn Error>> {
+#[unsafe(no_mangle)]
+pub extern "C" fn equality_saturate() -> Result<RecExpr<Mim>, Box<dyn Error>> {
     let rules: &[Rewrite<Mim, MimAnalysis>] = &rules();
 
     // TODO: if we have a series of sexpr's like multiple lambdas in a row,
@@ -41,5 +29,5 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("The best cost is: {}", best_cost);
     println!("Post rewrite: {}", best_expr);
 
-    Ok(())
+    Ok(best_expr)
 }
