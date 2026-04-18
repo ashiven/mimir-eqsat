@@ -1,9 +1,0 @@
-plugin core;
-
-lam f0(s: Nat, i: Nat): Idx s = %core.idx s 0 i;
-lam f1(s: Nat, i: Nat): Idx s = %core.idx s 1 i;
-
-lam extern g0() = f0(42, 23);
-lam extern g1() = f1(42, 23);
-lam extern h0() = f0(23, 42);
-lam extern h1() = f1(23, 42);
