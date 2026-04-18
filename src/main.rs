@@ -1,4 +1,4 @@
-use eqsat_rs::{equality_saturate, ffi::bridge::CostFn, ffi::bridge::RuleSet};
+use mimir_eqsat::{equality_saturate, ffi::bridge::CostFn, ffi::bridge::RuleSet};
 use std::fs;
 
 fn main() {

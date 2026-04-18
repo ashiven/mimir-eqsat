@@ -1,10 +1,10 @@
 [package]
 edition = "2024"
-name = "eqsat-rs"
+name = "mimir-eqsat"
 version = "0.1.0"
 
 [lib]
-name = "eqsat_rs"
+name = "mimir_eqsat"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
