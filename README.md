@@ -2,7 +2,7 @@
 
 This repository contains the [equality saturation](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) implementations for [MimIR](https://github.com/AnyDSL/MimIR).
 
-## Implementations
+## Provided Methods
 
 There are two separate implementations in [egg](https://github.com/egraphs-good/egg) and [slotted-egraphs](https://github.com/memoryleak47/slotted-egraphs) that expose the following methods:
 
