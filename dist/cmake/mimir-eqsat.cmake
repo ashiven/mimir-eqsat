@@ -9,6 +9,8 @@ if (WIN32)
   set_target_properties(mimir-eqsat PROPERTIES
     IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../lib/debug/mimir_eqsat.lib"
     IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/../lib/release/mimir_eqsat.lib"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/../lib/release/mimir_eqsat.lib"
+    IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_LIST_DIR}/../lib/release/mimir_eqsat.lib"
   )
 
   target_link_libraries(mimir-eqsat INTERFACE
@@ -19,5 +21,7 @@ else()
   set_target_properties(mimir-eqsat PROPERTIES
     IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../lib/debug/libmimir_eqsat.a"
     IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/../lib/release/libmimir_eqsat.a"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/../lib/release/libmimir_eqsat.a"
+    IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_LIST_DIR}/../lib/release/libmimir_eqsat.a"
   )
 endif()
