@@ -1,0 +1,38 @@
+name: Update Distribution
+
+on:
+  push:
+    paths:
+      - "src/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
+
+jobs:
+  build:
+    runs-on: $ {{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Distribution
+        run: |
+          chmod +x ./dist.sh
+          ./dist.sh
+        shell: bash
+
+      - name: Push Updated Dist
+        run: |
+          git add dist
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git commit -m "update dist"
+          git push
