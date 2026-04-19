@@ -30,7 +30,6 @@ rust::Vec<RewriteResult> equality_saturate(std::string sexpr, rust::Vec<RuleSet>
 rust::Vec<RewriteResult> equality_saturate_slotted(std::string sexpr, rust::Vec<RuleSet> rulesets, CostFn cost_fn);
 ```
 
-
 ### Pretty-printing
 
 ```cpp
@@ -55,4 +54,38 @@ rust::String pretty(std::string sexpr, size_t line_len);
 
 ## Installation
 
-There are multiple methods of integrating this library into an existing C++ project. The following lists the simplest ones.
+There are multiple methods of integrating this library into an existing C++ project. The following lists the simplest one.
+
+### 1. Add `mimir-eqsat` as a submodule to your project
+
+```bash
+git submodule add https://github.com/ashiven/mimir-eqsat external/mimir-eqsat
+cd external/mimir-eqsat
+git checkout v1.0.0 # whichever version you require
+
+cd ../..
+git add external/mimir-eqsat
+git commit -m "Add mimir-eqsat submodule"
+```
+
+### 2. Add the following to your `CmakeLists.txt`
+
+```cmake
+add_subdirectory(external/mimir-eqsat/dist/cmake)
+# ...
+target_link_libraries(target PRIVATE mimir-eqsat)
+```
+
+## Updating
+
+To update the submodule to a particular release, simply do the following:
+
+```bash
+cd external/mimir-eqsat
+git fetch
+git checkout v1.1.0 # whichever version you require
+
+cd ../..
+git add external/mimir-eqsat
+git commit -m "Update mimir-eqsat submodule"
+```
