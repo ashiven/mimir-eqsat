@@ -8,9 +8,12 @@ on:
       - "Cargo.lock"
       - "build.rs"
 
+  release:
+    types: [created]
+
 jobs:
-  build:
-    runs-on: $ {{ matrix.os }}
+  update:
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
@@ -31,8 +34,10 @@ jobs:
 
       - name: Push Updated Dist
         run: |
-          git add dist
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git commit -m "update dist"
-          git push
+          git diff --quiet dist || (
+            git add dist
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git commit -m "update dist"
+            git push
+          )
