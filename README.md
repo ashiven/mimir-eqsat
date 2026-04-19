@@ -56,7 +56,7 @@ rust::String pretty(std::string sexpr, size_t line_len);
 
 There are multiple methods of integrating this library into an existing C++ project. The following lists the simplest one.
 
-### 1. Add `mimir-eqsat` as a submodule to your project
+**1. Add `mimir-eqsat` as a submodule to your project**
 
 ```bash
 git submodule add https://github.com/ashiven/mimir-eqsat external/mimir-eqsat
@@ -68,7 +68,7 @@ git add external/mimir-eqsat
 git commit -m "Add mimir-eqsat submodule"
 ```
 
-### 2. Add the following to your `CmakeLists.txt`
+**2. Add the following to your `CmakeLists.txt`**
 
 ```cmake
 add_subdirectory(external/mimir-eqsat/dist/cmake)
