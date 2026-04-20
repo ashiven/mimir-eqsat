@@ -51,15 +51,19 @@ pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
 /* core.nat */
 
 fn nat_add0() -> Rewrite<Mim, MimAnalysis> {
-    let pat: Pattern<Mim> = "(app %core.nat.add (tuple (lit 0) ?e))".parse().unwrap();
-    let outpat: Pattern<Mim> = "?e".parse().unwrap();
+    let pat: Pattern<Mim> = "(app %core.nat.add (tuple (lit 0 Nat) ?b))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?b".parse().unwrap();
 
     Rewrite::new("nat_add0", pat, outpat).unwrap()
 }
 
 fn nat_add_same() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.add (tuple ?a ?a))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 2) ?a))".parse().unwrap();
+    let outpat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 2 Nat) ?a))"
+        .parse()
+        .unwrap();
 
     Rewrite::new("nat_add_same", pat, outpat).unwrap()
 }
@@ -72,7 +76,9 @@ fn nat_commute_add() -> Rewrite<Mim, MimAnalysis> {
 }
 
 fn nat_sub0() -> Rewrite<Mim, MimAnalysis> {
-    let pat: Pattern<Mim> = "(app %core.nat.sub (tuple ?e (lit 0)))".parse().unwrap();
+    let pat: Pattern<Mim> = "(app %core.nat.sub (tuple ?a (lit 0 Nat)))"
+        .parse()
+        .unwrap();
     let outpat: Pattern<Mim> = "?e".parse().unwrap();
 
     Rewrite::new("nat_sub0", pat, outpat).unwrap()
@@ -80,21 +86,25 @@ fn nat_sub0() -> Rewrite<Mim, MimAnalysis> {
 
 fn nat_sub_same() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.sub (tuple ?a ?a))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit 0)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit 0 Nat)".parse().unwrap();
 
     Rewrite::new("nat_sub_same", pat, outpat).unwrap()
 }
 
 fn nat_mul0() -> Rewrite<Mim, MimAnalysis> {
-    let pat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 0) ?e))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit 0)".parse().unwrap();
+    let pat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 0 Nat) ?b))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "(lit 0 Nat)".parse().unwrap();
 
     Rewrite::new("nat_mul0", pat, outpat).unwrap()
 }
 
 fn nat_mul1() -> Rewrite<Mim, MimAnalysis> {
-    let pat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 1) ?e))".parse().unwrap();
-    let outpat: Pattern<Mim> = "?e".parse().unwrap();
+    let pat: Pattern<Mim> = "(app %core.nat.mul (tuple (lit 1 Nat) ?b))"
+        .parse()
+        .unwrap();
+    let outpat: Pattern<Mim> = "?b".parse().unwrap();
 
     Rewrite::new("nat_mul1", pat, outpat).unwrap()
 }
@@ -110,28 +120,28 @@ fn nat_commute_mul() -> Rewrite<Mim, MimAnalysis> {
 
 fn icmp_equal() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.icmp.e (tuple ?a ?a))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt Bool)".parse().unwrap();
 
     Rewrite::new("icmp_equal", pat, outpat).unwrap()
 }
 
 fn icmp_not_equal() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.icmp.ne (tuple ?a ?a))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff Bool)".parse().unwrap();
 
     Rewrite::new("icmp_not_equal", pat, outpat).unwrap()
 }
 
 fn icmp_true() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.icmp.t (tuple ?a ?b))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt Bool)".parse().unwrap();
 
     Rewrite::new("icmp_true", pat, outpat).unwrap()
 }
 
 fn icmp_false() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.icmp.f (tuple ?a ?b))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff Bool)".parse().unwrap();
 
     Rewrite::new("icmp_false", pat, outpat).unwrap()
 }
@@ -140,28 +150,28 @@ fn icmp_false() -> Rewrite<Mim, MimAnalysis> {
 
 fn ncmp_equal() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.ncmp.e (tuple ?a ?a))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt Bool)".parse().unwrap();
 
     Rewrite::new("ncmp_equal", pat, outpat).unwrap()
 }
 
 fn ncmp_not_equal() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.ncmp.ne (tuple ?a ?a))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff Bool)".parse().unwrap();
 
     Rewrite::new("ncmp_not_equal", pat, outpat).unwrap()
 }
 
 fn ncmp_true() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.ncmp.t (tuple ?a ?b))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit tt)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit tt Bool)".parse().unwrap();
 
     Rewrite::new("ncmp_true", pat, outpat).unwrap()
 }
 
 fn ncmp_false() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.ncmp.f (tuple ?a ?b))".parse().unwrap();
-    let outpat: Pattern<Mim> = "(lit ff)".parse().unwrap();
+    let outpat: Pattern<Mim> = "(lit ff Bool)".parse().unwrap();
 
     Rewrite::new("ncmp_false", pat, outpat).unwrap()
 }
