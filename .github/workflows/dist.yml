@@ -42,6 +42,7 @@ jobs:
       - name: Push Updated Dist
         run: |
           git diff --quiet && exit 0
+          git pull
           git add dist
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
