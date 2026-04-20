@@ -1,44 +1,33 @@
 name: Update Distribution
 
+concurrency:
+  group: dist-${{ github.ref_name }}
+  cancel-in-progress: false
+  
 permissions:
   contents: write
 
 on:
   workflow_dispatch:
-
   push:
     paths:
       - "src/**"
       - "Cargo.toml"
       - "Cargo.lock"
       - "build.rs"
-
   release:
     types: [created]
 
 jobs:
-  update:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
+  update_macos:
+    runs-on: macos-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Build Distribution
-        run: |
-          chmod +x ./dist.sh
-          ./dist.sh
+      - uses: dtolnay/rust-toolchain@stable
+      - run: chmod +x ./dist.sh && ./dist.sh
         shell: bash
-
       - name: Push Updated Dist
         run: |
           git diff --quiet && exit 0
@@ -46,6 +35,48 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
-          git commit -m "update dist"
+          git commit -m "update macos dist"
+          git push origin HEAD:${{ github.ref_name }}
+        shell: bash
+
+  update_windows:
+    needs: update_macos
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: dtolnay/rust-toolchain@stable
+      - run: ./dist.sh
+        shell: bash
+      - name: Push Updated Dist
+        run: |
+          git diff --quiet && exit 0
+          git pull
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "update windows dist"
+          git push origin HEAD:${{ github.ref_name }}
+        shell: bash
+
+  update_ubuntu:
+    needs: update_windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: dtolnay/rust-toolchain@stable
+      - run: chmod +x ./dist.sh && ./dist.sh
+        shell: bash
+      - name: Push Updated Dist
+        run: |
+          git diff --quiet && exit 0
+          git pull
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "update linux dist"
           git push origin HEAD:${{ github.ref_name }}
         shell: bash
