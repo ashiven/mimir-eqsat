@@ -79,7 +79,7 @@ fn nat_sub0() -> Rewrite<Mim, MimAnalysis> {
     let pat: Pattern<Mim> = "(app %core.nat.sub (tuple ?a (lit 0 Nat)))"
         .parse()
         .unwrap();
-    let outpat: Pattern<Mim> = "?e".parse().unwrap();
+    let outpat: Pattern<Mim> = "?a".parse().unwrap();
 
     Rewrite::new("nat_sub0", pat, outpat).unwrap()
 }
