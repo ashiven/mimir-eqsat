@@ -37,7 +37,7 @@ else
 
   echo "Copying libraries"
   cp "$TARGET_DIR/debug/lib${LIB_NAME}.a" "$DIST_DIR/lib/linux/debug/" || true
-  cp "$TARGET_DIR/release/lib${LIB_NAME}.a" "$DIST_DIR/lib/windows/release/" || true
+  cp "$TARGET_DIR/release/lib${LIB_NAME}.a" "$DIST_DIR/lib/linux/release/" || true
 fi
 
 BRIDGE_DIR=$(find "$TARGET_DIR/cxxbridge" -type d -path "*/src" | head -n 1)
