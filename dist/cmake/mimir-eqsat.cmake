@@ -25,7 +25,7 @@ elseif(APPLE)
     IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_LIST_DIR}/../lib/macos/release/libmimir_eqsat.a"
   )
 
-  target_link_libraries(mimir-eqsat
+  target_link_libraries(mimir-eqsat INTERFACE
     "-framework Security"
     "-framework SystemConfiguration"
   )
