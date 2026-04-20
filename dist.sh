@@ -31,7 +31,7 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
   cp "$TARGET_DIR/debug/${LIB_NAME}.lib" "$DIST_DIR/lib/windows/debug/" || true
   cp "$TARGET_DIR/release/${LIB_NAME}.lib" "$DIST_DIR/lib/windows/release/" || true
 
-elif [[ "$OSTYPE" == "darwin" ]]; then
+elif [[ "$OSTYPE" == "darwin"* ]]; then
   echo "Building macos debug"
   cargo build
 
