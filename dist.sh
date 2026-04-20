@@ -6,12 +6,16 @@ TARGET_DIR="target"
 DIST_DIR="dist"
 WINDBG_CONFIG=".cargo/windbg-config.toml"
 
-echo "Removing dist/"
-rm -rf "$DIST_DIR"
+echo "Creating dist/"
+mkdir -p "$DIST_DIR"
 mkdir -p "$DIST_DIR/include"
 mkdir -p "$DIST_DIR/src"
-mkdir -p "$DIST_DIR/lib/debug"
-mkdir -p "$DIST_DIR/lib/release"
+mkdir -p "$DIST_DIR/lib/windows"
+mkdir -p "$DIST_DIR/lib/windows/debug"
+mkdir -p "$DIST_DIR/lib/windows/release"
+mkdir -p "$DIST_DIR/lib/linux"
+mkdir -p "$DIST_DIR/lib/linux/debug"
+mkdir -p "$DIST_DIR/lib/linux/release"
 
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
   echo "Building windows debug"
@@ -21,8 +25,8 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
   cargo build --release
 
   echo "Copying Libraries"
-  cp "$TARGET_DIR/debug/${LIB_NAME}.lib" "$DIST_DIR/lib/debug/" || true
-  cp "$TARGET_DIR/release/${LIB_NAME}.lib" "$DIST_DIR/lib/release/" || true
+  cp "$TARGET_DIR/debug/${LIB_NAME}.lib" "$DIST_DIR/lib/windows/debug/" || true
+  cp "$TARGET_DIR/release/${LIB_NAME}.lib" "$DIST_DIR/lib/windows/release/" || true
 
 else
   echo "Building linux debug"
@@ -32,8 +36,8 @@ else
   cargo build --release
 
   echo "Copying libraries"
-  cp "$TARGET_DIR/debug/lib${LIB_NAME}.a" "$DIST_DIR/lib/debug/" || true
-  cp "$TARGET_DIR/release/lib${LIB_NAME}.a" "$DIST_DIR/lib/release/" || true
+  cp "$TARGET_DIR/debug/lib${LIB_NAME}.a" "$DIST_DIR/lib/linux/debug/" || true
+  cp "$TARGET_DIR/release/lib${LIB_NAME}.a" "$DIST_DIR/lib/windows/release/" || true
 fi
 
 BRIDGE_DIR=$(find "$TARGET_DIR/cxxbridge" -type d -path "*/src" | head -n 1)
