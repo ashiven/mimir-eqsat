@@ -1,5 +1,8 @@
 name: Update Distribution
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
 
