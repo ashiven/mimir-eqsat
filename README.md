@@ -72,7 +72,10 @@ git commit -m "Add mimir-eqsat submodule"
 
 ```cmake
 include(${PROJECT_SOURCE_DIR}/external/mimir-eqsat/dist/cmake/mimir-eqsat.cmake)
-# ...
+configure_file(
+    "${PROJECT_SOURCE_DIR}/external/mimir-eqsat/dist/include/mimir_eqsat.h"
+    "${CMAKE_BINARY_DIR}/include/mim/plug/eqsat/eqsat_rs.h" # choose a path and name for the header
+)
 target_link_libraries(target PRIVATE mimir-eqsat)
 ```
 
