@@ -35,7 +35,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
-          git commit -m "update dist"
+          git commit -m "update macos dist"
           git push origin HEAD:${{ github.ref_name }}
         shell: bash
 
@@ -56,7 +56,7 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
-          git commit -m "update dist"
+          git commit -m "update windows dist"
           git push origin HEAD:${{ github.ref_name }}
         shell: bash
 
@@ -77,6 +77,6 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
-          git commit -m "update dist"
+          git commit -m "update linux dist"
           git push origin HEAD:${{ github.ref_name }}
         shell: bash
