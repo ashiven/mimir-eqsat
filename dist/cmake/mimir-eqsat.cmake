@@ -17,6 +17,19 @@ if (WIN32)
     ws2_32 userenv advapi32 bcrypt ntdll
   )
 
+elseif(APPLE)
+  set_target_properties(mimir-eqsat PROPERTIES
+    IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../lib/macos/debug/libmimir_eqsat.a"
+    IMPORTED_LOCATION_RELEASE "${CMAKE_CURRENT_LIST_DIR}/../lib/macos/release/libmimir_eqsat.a"
+    IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/../lib/macos/release/libmimir_eqsat.a"
+    IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_LIST_DIR}/../lib/macos/release/libmimir_eqsat.a"
+  )
+
+  target_link_libraries(mimir-eqsat
+    "-framework Security"
+    "-framework SystemConfiguration"
+  )
+
 else()
   set_target_properties(mimir-eqsat PROPERTIES
     IMPORTED_LOCATION_DEBUG "${CMAKE_CURRENT_LIST_DIR}/../lib/linux/debug/libmimir_eqsat.a"
@@ -24,4 +37,5 @@ else()
     IMPORTED_LOCATION_RELWITHDEBINFO "${CMAKE_CURRENT_LIST_DIR}/../lib/linux/release/libmimir_eqsat.a"
     IMPORTED_LOCATION_MINSIZEREL "${CMAKE_CURRENT_LIST_DIR}/../lib/linux/release/libmimir_eqsat.a"
   )
+
 endif()
