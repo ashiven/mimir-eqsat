@@ -7,6 +7,9 @@ use slotted_egraphs::*;
 pub mod analysis;
 pub mod rulesets;
 
+#[cfg(test)]
+mod test;
+
 define_language! {
     pub enum MimSlotted {
         // TERMS
@@ -84,27 +87,18 @@ define_language! {
     }
 }
 
-pub fn equality_saturate(
+pub(crate) fn equality_saturate_ffi(
     sexpr: &str,
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
 ) -> Vec<RewriteResult> {
-    let normalized = sexpr.replace("\r\n", "\n");
-    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
-    sexprs.retain(|s| !s.trim().is_empty());
-
-    let rules = get_rules(rulesets);
-
-    // TODO: Uncomment after implemented
-    // convert_rules(&mut sexprs, &mut rules);
-
-    match cost_fn {
-        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
-        _ => panic!("Unknown cost function provided."),
-    }
+    equality_saturate_internal(sexpr, rulesets, cost_fn)
+        .iter()
+        .map(|res: &RecExpr<MimSlotted>| rec_expr_to_res_slotted(res))
+        .collect()
 }
 
-pub fn pretty(sexpr: &str, _line_len: usize) -> String {
+pub(crate) fn pretty(sexpr: &str, _line_len: usize) -> String {
     let normalized = sexpr.replace("\r\n", "\n");
     let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
     sexprs.retain(|s| !s.trim().is_empty());
@@ -123,16 +117,36 @@ pub fn pretty(sexpr: &str, _line_len: usize) -> String {
     res
 }
 
+fn equality_saturate_internal(
+    sexpr: &str,
+    rulesets: Vec<RuleSet>,
+    cost_fn: CostFn,
+) -> Vec<RecExpr<MimSlotted>> {
+    let normalized = sexpr.replace("\r\n", "\n");
+    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
+    sexprs.retain(|s| !s.trim().is_empty());
+
+    let rules = get_rules(rulesets);
+
+    // TODO: Uncomment after implemented
+    // convert_rules(&mut sexprs, &mut rules);
+
+    match cost_fn {
+        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
+        _ => panic!("Unknown cost function provided."),
+    }
+}
+
 fn rewrite_sexprs<C, F>(
     sexprs: Vec<&str>,
     rules: Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>,
     cost_fn: F,
-) -> Vec<RewriteResult>
+) -> Vec<RecExpr<MimSlotted>>
 where
     C: CostFunction<MimSlotted>,
     F: Fn() -> C,
 {
-    let mut rewritten_sexprs: Vec<RewriteResult> = Vec::new();
+    let mut rewritten_sexprs: Vec<RecExpr<MimSlotted>> = Vec::new();
 
     for sexpr in sexprs {
         let mut runner = Runner::<MimSlotted, MimSlottedAnalysis, ()>::default()
@@ -143,7 +157,7 @@ where
         let extractor = Extractor::new(&runner.egraph, cost_fn());
         let best_expr = extractor.extract(&runner.roots[0], &runner.egraph);
 
-        rewritten_sexprs.push(rec_expr_to_res_slotted(best_expr));
+        rewritten_sexprs.push(best_expr);
     }
 
     rewritten_sexprs

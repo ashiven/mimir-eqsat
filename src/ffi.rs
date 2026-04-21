@@ -99,10 +99,10 @@ fn new_mim(kind: MimKind, children: &[Id], num: Option<i64>, symbol: Option<Stri
     }
 }
 
-pub fn rec_expr_to_res(rec_expr: RecExpr<Mim>) -> RewriteResult {
+pub fn rec_expr_to_res(rec_expr: &RecExpr<Mim>) -> RewriteResult {
     let mut nodes = Vec::new();
 
-    for node in rec_expr.as_ref() {
+    for node in rec_expr {
         match node {
             Mim::Let(children) => nodes.push(new_mim(MimKind::Let, children, None, None)),
             Mim::Lam(children) => nodes.push(new_mim(MimKind::Lam, children, None, None)),
@@ -158,11 +158,11 @@ fn new_mim_slotted(
     }
 }
 
-pub fn rec_expr_to_res_slotted(rec_expr: RecExprSlotted<MimSlotted>) -> RewriteResult {
+pub fn rec_expr_to_res_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RewriteResult {
     let mut nodes = Vec::new();
 
-    for child in rec_expr.children {
-        match child.node {
+    for child in &rec_expr.children {
+        match &child.node {
             MimSlotted::Let(name, def, expr) => nodes.push(new_mim_slotted(
                 MimKind::Let,
                 &[name.elem.id, def.id, expr.id],
@@ -317,7 +317,7 @@ pub fn rec_expr_to_res_slotted(rec_expr: RecExprSlotted<MimSlotted>) -> RewriteR
             )),
             MimSlotted::Nil() => nodes.push(new_mim_slotted(MimKind::Nil, &[], None, None)),
 
-            MimSlotted::Num(n) => nodes.push(new_mim_slotted(MimKind::Num, &[], Some(n), None)),
+            MimSlotted::Num(n) => nodes.push(new_mim_slotted(MimKind::Num, &[], Some(*n), None)),
             MimSlotted::Symbol(s) => nodes.push(new_mim_slotted(
                 MimKind::Symbol,
                 &[],

@@ -7,6 +7,9 @@ use egg::*;
 pub mod analysis;
 pub mod rulesets;
 
+#[cfg(test)]
+mod test;
+
 define_language! {
     pub enum Mim {
         // TERMS
@@ -76,26 +79,18 @@ define_language! {
     }
 }
 
-pub fn equality_saturate(
+pub(crate) fn equality_saturate_ffi(
     sexpr: &str,
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
 ) -> Vec<RewriteResult> {
-    let normalized = sexpr.replace("\r\n", "\n");
-    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
-    sexprs.retain(|s| !s.trim().is_empty());
-
-    let mut rules = get_rules(rulesets);
-    convert_rules(&mut sexprs, &mut rules);
-
-    match cost_fn {
-        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
-        CostFn::AstDepth => rewrite_sexprs(sexprs, rules, || AstDepth),
-        _ => panic!("Unknown cost function provided."),
-    }
+    equality_saturate_internal(sexpr, rulesets, cost_fn)
+        .iter()
+        .map(|res: &RecExpr<Mim>| rec_expr_to_res(res))
+        .collect()
 }
 
-pub fn pretty(sexpr: &str, line_len: usize) -> String {
+pub(crate) fn pretty(sexpr: &str, line_len: usize) -> String {
     let normalized = sexpr.replace("\r\n", "\n");
     let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
     sexprs.retain(|s| !s.trim().is_empty());
@@ -114,16 +109,36 @@ pub fn pretty(sexpr: &str, line_len: usize) -> String {
     res
 }
 
+// Made accessible for test.rs
+fn equality_saturate_internal(
+    sexpr: &str,
+    rulesets: Vec<RuleSet>,
+    cost_fn: CostFn,
+) -> Vec<RecExpr<Mim>> {
+    let normalized = sexpr.replace("\r\n", "\n");
+    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
+    sexprs.retain(|s| !s.trim().is_empty());
+
+    let mut rules = get_rules(rulesets);
+    convert_rules(&mut sexprs, &mut rules);
+
+    match cost_fn {
+        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
+        CostFn::AstDepth => rewrite_sexprs(sexprs, rules, || AstDepth),
+        _ => panic!("Unknown cost function provided."),
+    }
+}
+
 fn rewrite_sexprs<C, F>(
     sexprs: Vec<&str>,
     rules: Vec<Rewrite<Mim, MimAnalysis>>,
     cost_fn: F,
-) -> Vec<RewriteResult>
+) -> Vec<RecExpr<Mim>>
 where
     C: CostFunction<Mim>,
     F: Fn() -> C,
 {
-    let mut rewritten_sexprs: Vec<RewriteResult> = Vec::new();
+    let mut rewritten_sexprs: Vec<RecExpr<Mim>> = Vec::new();
 
     for sexpr in sexprs {
         let runner = Runner::<Mim, MimAnalysis, ()>::default()
@@ -133,7 +148,7 @@ where
         let extractor = Extractor::new(&runner.egraph, cost_fn());
         let (_best_cost, best_expr) = extractor.find_best(runner.roots[0]);
 
-        rewritten_sexprs.push(rec_expr_to_res(best_expr));
+        rewritten_sexprs.push(best_expr);
     }
 
     rewritten_sexprs
