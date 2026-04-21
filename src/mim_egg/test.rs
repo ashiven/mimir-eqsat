@@ -43,3 +43,28 @@ fn fold_core_ncmp_complex() {
     let res = first(rewrites);
     assert_eq!(res, "(lit tt Bool)");
 }
+
+#[test]
+fn fold_core_icmp_plusminus() {
+    let sexpr = "(app (app %core.icmp.Xygle (lit i32 Nat)) (tuple (lit 4 I32) (lit 2 I32)))";
+    let rewrites = equality_saturate_internal(sexpr, vec![RuleSet::Core], CostFn::AstSize);
+    let res = first(rewrites);
+    assert_eq!(res, "(lit ff Bool)");
+}
+
+#[test]
+fn fold_core_icmp_minusplus() {
+    let sexpr =
+        "(app (app %core.icmp.xYgle (lit i32 Nat)) (tuple (lit 4171510507 I32) (lit 2 I32)))";
+    let rewrites = equality_saturate_internal(sexpr, vec![RuleSet::Core], CostFn::AstSize);
+    let res = first(rewrites);
+    assert_eq!(res, "(lit tt Bool)");
+}
+
+#[test]
+fn fold_core_icmp_greater() {
+    let sexpr = "(app (app %core.icmp.xyGle (lit i32 Nat)) (tuple (lit 4 I32) (lit 2 I32)))";
+    let rewrites = equality_saturate_internal(sexpr, vec![RuleSet::Core], CostFn::AstSize);
+    let res = first(rewrites);
+    assert_eq!(res, "(lit tt Bool)");
+}

@@ -368,7 +368,7 @@ fn div_urem1() -> Rewrite<Mim, MimAnalysis> {
 
 /* helpers */
 
-fn idx_size(type_: &Mim) -> i32 {
+fn idx_size(type_: &Mim) -> u64 {
     if let Symbol(s) = type_ {
         match s.as_str() {
             "Bool" => return 1,
@@ -488,7 +488,8 @@ fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<CoreC
     let c = |id: &Id| egraph[*id].data.core_data.clone();
 
     if let App([callee, arg]) = enode
-        && let Some(s) = find_node!(egraph, callee, Symbol(s) => s)
+        && let Some([op, _size]) = find_node!(egraph, callee, App([name, mode]) => [name, mode])
+        && let Some(s) = find_node!(egraph, op, Symbol(s) => s)
         && let Some(t) = find_node!(egraph, arg, Tuple(t) => t)
         && let [e1, e2] = &**t
         && let CoreConst {
@@ -500,10 +501,12 @@ fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<CoreC
             type_: t2,
         } = c(e2)?
     {
-        let plusminus =
-            |n1: u64, n2: u64| (n1 >> (idx_size(&t1) - 1)) == 0 && (n2 >> (idx_size(&t2) - 1)) == 1;
-        let minusplus =
-            |n1: u64, n2: u64| (n1 >> (idx_size(&t1) - 1)) == 1 && (n2 >> (idx_size(&t2) - 1)) == 0;
+        let plusminus = |n1: u64, n2: u64| {
+            (n1 >> (idx_size(&t1) - 1u64)) == 0u64 && (n2 >> (idx_size(&t2) - 1u64)) == 1u64
+        };
+        let minusplus = |n1: u64, n2: u64| {
+            (n1 >> (idx_size(&t1) - 1u64)) == 1u64 && (n2 >> (idx_size(&t2) - 1u64)) == 0u64
+        };
 
         match s.as_str() {
             "%core.icmp.Xygle" => return bool_lit(plusminus(n1, n2)),
