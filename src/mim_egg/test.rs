@@ -5,7 +5,11 @@ use egg::*;
 const LINE_LEN: usize = 80;
 
 fn first(rewrites: Vec<RecExpr<Mim>>) -> String {
-    rewrites.first().unwrap().clone().pretty(LINE_LEN)
+    rewrites
+        .first()
+        .expect("rewrites was empty")
+        .clone()
+        .pretty(LINE_LEN)
 }
 
 #[test]
