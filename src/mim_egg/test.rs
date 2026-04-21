@@ -1,5 +1,6 @@
+use crate::ffi::bridge::{CostFn, RuleSet};
+use crate::mim_egg::Mim;
 use crate::mim_egg::equality_saturate_internal;
-use crate::mim_egg::{CostFn, Mim, RuleSet};
 use egg::*;
 
 const LINE_LEN: usize = 80;
