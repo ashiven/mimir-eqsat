@@ -379,10 +379,9 @@ fn idx_size(type_: &Mim) -> u64 {
             _ => 0,
         };
     } else if let Idx(_s) = type_ {
-        // TODO:
+        // TODO: implement
         return 0;
     }
-
     0
 }
 
