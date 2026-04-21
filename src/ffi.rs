@@ -60,7 +60,7 @@ pub mod bridge {
     struct MimNode {
         kind: MimKind,
         children: Vec<u32>,
-        num: i64,
+        num: u64,
         symbol: String,
     }
 
@@ -88,7 +88,7 @@ pub mod bridge {
     }
 }
 
-fn new_mim(kind: MimKind, children: &[Id], num: Option<i64>, symbol: Option<String>) -> MimNode {
+fn new_mim(kind: MimKind, children: &[Id], num: Option<u64>, symbol: Option<String>) -> MimNode {
     let converted_ids = children.iter().map(|id| usize::from(*id) as u32).collect();
 
     MimNode {
@@ -145,7 +145,7 @@ pub fn rec_expr_to_res(rec_expr: &RecExpr<Mim>) -> RewriteResult {
 fn new_mim_slotted(
     kind: MimKind,
     children: &[IdSlotted],
-    num: Option<i64>,
+    num: Option<u64>,
     symbol: Option<String>,
 ) -> MimNode {
     let converted_ids = children.iter().map(|id| id.0 as u32).collect();

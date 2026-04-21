@@ -82,7 +82,7 @@ define_language! {
         Nil() = "nil",
 
         // Leaf nodes
-        Num(i64),
+        Num(u64),
         Symbol(Symbol),
     }
 }

@@ -376,13 +376,14 @@ fn idx_size(type_: &Mim) -> i32 {
             "I16" => return 16,
             "I32" => return 32,
             "I64" => return 64,
-            _ => panic!("expected Idx type"),
+            _ => 0,
         };
     } else if let Idx(_s) = type_ {
         // TODO:
         return 0;
     }
-    panic!("expected Idx type");
+
+    0
 }
 
 fn new_const(val: Mim, type_: Mim) -> Option<CoreConst> {
@@ -390,14 +391,12 @@ fn new_const(val: Mim, type_: Mim) -> Option<CoreConst> {
 }
 
 fn bool_lit(tt: bool) -> Option<CoreConst> {
-    let ret_val = if tt { "tt" } else { "ff" }.to_string();
-    let bool = "Bool".to_string();
-    new_const(Symbol(ret_val), Symbol(bool))
+    let val = if tt { "tt" } else { "ff" }.to_string();
+    new_const(Symbol(val), Symbol("Bool".into()))
 }
 
-fn nat_lit(n: i64) -> Option<CoreConst> {
-    let nat = "Nat".to_string();
-    new_const(Num(n), Symbol(nat))
+fn nat_lit(n: u64) -> Option<CoreConst> {
+    new_const(Num(n), Symbol("Nat".into()))
 }
 
 /* constant folding */
@@ -501,23 +500,16 @@ fn fold_icmp(egraph: &mut EGraph<Mim, MimAnalysis>, enode: &Mim) -> Option<CoreC
             type_: t2,
         } = c(e2)?
     {
-        // TODO: the above conditional is true for any application
-        // of a symbol to a tuple of two typed literals so we can't
-        // just assume that these types will be idx types
-        let size1 = idx_size(&t1);
-        let size2 = idx_size(&t2);
-        if size1 != size2 {
-            panic!("icmp: idx size mismatch")
-        };
-
-        let plusminus = (n1 >> (size1 - 1)) == 0 && (n2 >> (size2 - 1)) == 1;
-        let minusplus = (n1 >> (size1 - 1)) == 1 && (n2 >> (size2 - 1)) == 0;
+        let plusminus =
+            |n1: u64, n2: u64| (n1 >> (idx_size(&t1) - 1)) == 0 && (n2 >> (idx_size(&t2) - 1)) == 1;
+        let minusplus =
+            |n1: u64, n2: u64| (n1 >> (idx_size(&t1) - 1)) == 1 && (n2 >> (idx_size(&t2) - 1)) == 0;
 
         match s.as_str() {
-            "%core.icmp.Xygle" => return bool_lit(plusminus),
-            "%core.icmp.xYgle" => return bool_lit(minusplus),
-            "%core.icmp.xyGle" => return bool_lit(n1 > n2 && !minusplus),
-            "%core.icmp.xygLe" => return bool_lit(n1 < n2 && !plusminus),
+            "%core.icmp.Xygle" => return bool_lit(plusminus(n1, n2)),
+            "%core.icmp.xYgle" => return bool_lit(minusplus(n1, n2)),
+            "%core.icmp.xyGle" => return bool_lit(n1 > n2 && !minusplus(n1, n2)),
+            "%core.icmp.xygLe" => return bool_lit(n1 < n2 && !plusminus(n1, n2)),
             "%core.icmp.xyglE" => return bool_lit(n1 == n2),
             _ => (),
         }

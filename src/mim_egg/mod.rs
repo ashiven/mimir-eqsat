@@ -75,7 +75,7 @@ define_language! {
         // (reform <meta_type>)
         "reform" = Reform(Id),
 
-        Num(i64), Symbol(String),
+        Num(u64), Symbol(String),
     }
 }
 

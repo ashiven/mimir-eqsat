@@ -27,3 +27,19 @@ fn fold_core_nat_complex() {
     let res = first(rewrites);
     assert_eq!(res, "(lit 2 Nat)");
 }
+
+#[test]
+fn fold_core_ncmp_simple() {
+    let sexpr = "(app %core.ncmp.e (tuple (lit 4 Nat) (lit 2 Nat)))";
+    let rewrites = equality_saturate_internal(sexpr, vec![RuleSet::Core], CostFn::AstSize);
+    let res = first(rewrites);
+    assert_eq!(res, "(lit ff Bool)");
+}
+
+#[test]
+fn fold_core_ncmp_complex() {
+    let sexpr = "(app %core.ncmp.ne (tuple (app %core.nat.add (tuple (lit 1 Nat) (lit 1 Nat))) (app %core.nat.sub (tuple (lit 5 Nat) (lit 4 Nat)))))";
+    let rewrites = equality_saturate_internal(sexpr, vec![RuleSet::Core], CostFn::AstSize);
+    let res = first(rewrites);
+    assert_eq!(res, "(lit tt Bool)");
+}
