@@ -17,6 +17,13 @@ fn let_var_same() {
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
 }
 
+#[test]
+fn bind_con_var_add0() {
+    let a = "(con extern foo Nat $arg (lamdef (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil))))))";
+    let b = "(con extern foo Nat $arg (lamdef (lit ff Bool) (var $arg)))";
+    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
+}
+
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
 // Had to copy-paste the code below since it didn't seem to be exposed as part of the library.
 

@@ -27,11 +27,14 @@ define_language! {
         // (let <definition> <name> <expression>)
         Let(AppliedId, Bind<AppliedId>) = "let",
         // This is also different from egg in that the var comes right before the body
-        // (lam <extern> <name> <domain-type> <codomain-type> <filter> <var-name> <body>)
-        Lam(AppliedId, AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "lam",
+        // (lam <extern> <name> <domain-type> <codomain-type> <var-name> <lamdef>)
+        Lam(AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "lam",
         // This is also different from egg in that the var comes right before the body
-        // (con <extern> <name> <domain-type> <filter> <var-name> <body>)
-        Con(AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "con",
+        // (con <extern> <name> <domain-type> <var-name> <lamdef>)
+        Con(AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "con",
+        // This is needed so we can bind the lambda variable in both its filter and body
+        // (lamdef <filter> <body>)
+        LamDef(AppliedId, AppliedId) = "lamdef",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
         // (var <name>)
