@@ -8,7 +8,7 @@ pub fn rules() -> Vec<Rewrite<MimSlotted, MimSlottedAnalysis>> {
 }
 
 fn let_var_same() -> Rewrite<MimSlotted, MimSlottedAnalysis> {
-    let pat = "(let $1 (var $1) ?def)";
+    let pat = "(let ?def $1 (var $1))";
     let outpat = "?def";
     Rewrite::new("let_var_same", pat, outpat)
 }

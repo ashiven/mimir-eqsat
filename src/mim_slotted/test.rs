@@ -12,9 +12,9 @@ fn get_ruleset_default() {
 
 #[test]
 fn let_var_same() {
-    let a = "(let $foo (var $foo) (lit 1 Nat))";
+    let a = "(let (lit 1 Nat) $foo (var $foo))";
     let b = "(lit 1 Nat)";
-    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 2);
+    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs

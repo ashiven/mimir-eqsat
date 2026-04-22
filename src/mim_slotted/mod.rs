@@ -22,10 +22,10 @@ define_language! {
         // Let(Bind<AppliedId>, AppliedId, AppliedId) as I initially assumed (which caused cryptic
         // errors).
 
-        // This now reads as: "let name in expression be replaced with definition".
+        // This now reads as: "let definition equal name in expression".
         // Instead of (in egg): "let name equal definition in expression".
-        // (let <name> <expression> <definition>)
-        Let(Bind<AppliedId>, AppliedId) = "let",
+        // (let <definition> <name> <expression>)
+        Let(AppliedId, Bind<AppliedId>) = "let",
         // This is also different from egg in that the var comes right before the body
         // (lam <extern> <name> <domain-type> <codomain-type> <filter> <var-name> <body>)
         Lam(AppliedId, AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "lam",

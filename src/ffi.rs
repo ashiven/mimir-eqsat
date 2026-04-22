@@ -167,9 +167,9 @@ pub fn rec_expr_to_res_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> Rewrite
 
     for child in &rec_expr.children {
         match &child.node {
-            MimSlotted::Let(bind, def) => nodes.push(new_mim_slotted(
+            MimSlotted::Let(def, bind) => nodes.push(new_mim_slotted(
                 MimKind::Let,
-                &[bind.elem.id, def.id],
+                &[def.id, bind.elem.id],
                 None,
                 None,
             )),
