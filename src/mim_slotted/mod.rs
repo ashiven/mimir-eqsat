@@ -14,12 +14,24 @@ define_language! {
     pub enum MimSlotted {
         // TERMS
 
-        // (let <name> <definition> <expression>)
-        Let(Bind<AppliedId>, AppliedId, AppliedId) = "let",
-        // (lam <extern> <name> <var-name> <domain-type> <codomain-type> <filter> <body>)
-        Lam(AppliedId, AppliedId, Bind<AppliedId>, AppliedId, AppliedId, AppliedId, AppliedId) = "lam",
-        // (con <extern> <name> <var-name> <domain-type> <filter> <body>)
-        Con(AppliedId, AppliedId, Bind<AppliedId>, AppliedId, AppliedId, AppliedId) = "con",
+        // NOTE: Bind<AppliedId> is apparently a wrapper for a pattern like "(bind $1 (expr $1))" whose
+        // first child defines a slot while its second child defines some pattern using the slot.
+        // This lead to a whole lot of confusion because it means that a pattern like "(let $1 (var $1) ?e)"
+        // contains this bind node implicitly as if it was defined as "(let (bind $1 (var $1)) ?e)"
+        // and therefore we would have to define Let(Bind<AppliedId>, AppliedId) instead of
+        // Let(Bind<AppliedId>, AppliedId, AppliedId) as I initially assumed (which caused cryptic
+        // errors).
+
+        // This now reads as: "let name in expression be replaced with definition".
+        // Instead of (in egg): "let name equal definition in expression".
+        // (let <name> <expression> <definition>)
+        Let(Bind<AppliedId>, AppliedId) = "let",
+        // This is also different from egg in that the var comes right before the body
+        // (lam <extern> <name> <domain-type> <codomain-type> <filter> <var-name> <body>)
+        Lam(AppliedId, AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "lam",
+        // This is also different from egg in that the var comes right before the body
+        // (con <extern> <name> <domain-type> <filter> <var-name> <body>)
+        Con(AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "con",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
         // (var <name>)

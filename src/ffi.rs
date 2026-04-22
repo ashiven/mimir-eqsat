@@ -10,8 +10,11 @@ use slotted_egraphs::RecExpr as RecExprSlotted;
 pub mod bridge {
     #[derive(Debug)]
     enum RuleSet {
+        // Egg
         Core,
         Math,
+        // Slotted
+        Default,
     }
 
     #[derive(Debug)]
@@ -158,43 +161,27 @@ fn new_mim_slotted(
     }
 }
 
+// TODO: What do we do with slots in the ffi i.e. for Var, Let, Lam, Con ?
 pub fn rec_expr_to_res_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RewriteResult {
     let mut nodes = Vec::new();
 
     for child in &rec_expr.children {
         match &child.node {
-            MimSlotted::Let(name, def, expr) => nodes.push(new_mim_slotted(
+            MimSlotted::Let(bind, def) => nodes.push(new_mim_slotted(
                 MimKind::Let,
-                &[name.elem.id, def.id, expr.id],
+                &[bind.elem.id, def.id],
                 None,
                 None,
             )),
-            MimSlotted::Lam(ext, name, var_name, dom, codom, filter, body) => {
-                nodes.push(new_mim_slotted(
-                    MimKind::Lam,
-                    &[
-                        ext.id,
-                        name.id,
-                        var_name.elem.id,
-                        dom.id,
-                        codom.id,
-                        filter.id,
-                        body.id,
-                    ],
-                    None,
-                    None,
-                ))
-            }
-            MimSlotted::Con(ext, name, var_name, dom, filter, body) => nodes.push(new_mim_slotted(
+            MimSlotted::Lam(ext, name, dom, codom, filter, bind) => nodes.push(new_mim_slotted(
+                MimKind::Lam,
+                &[ext.id, name.id, dom.id, codom.id, filter.id, bind.elem.id],
+                None,
+                None,
+            )),
+            MimSlotted::Con(ext, name, dom, filter, bind) => nodes.push(new_mim_slotted(
                 MimKind::Con,
-                &[
-                    ext.id,
-                    name.id,
-                    var_name.elem.id,
-                    dom.id,
-                    filter.id,
-                    body.id,
-                ],
+                &[ext.id, name.id, dom.id, filter.id, bind.elem.id],
                 None,
                 None,
             )),

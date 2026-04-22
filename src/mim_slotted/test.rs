@@ -1,11 +1,20 @@
+use crate::ffi::bridge::RuleSet;
 use crate::mim_slotted::MimSlotted;
+use crate::mim_slotted::analysis::MimSlottedAnalysis;
+use crate::mim_slotted::get_rules;
 use slotted_egraphs::*;
 
 #[test]
-fn fold_core_nat_simple() {
-    let a = "(app %core.nat.add (tuple (lit 1 Nat) (lit 1 Nat)))";
-    let b = "(app %core.nat.add (tuple (lit 1 Nat) (lit 1 Nat)))";
-    assert_reaches::<MimSlotted, ()>(a, b, &[], 10);
+fn get_ruleset_default() {
+    let default = get_rules(vec![RuleSet::Default]);
+    assert_ne!(default.len(), 0);
+}
+
+#[test]
+fn let_var_same() {
+    let a = "(let $foo (var $foo) (lit 1 Nat))";
+    let b = "(lit 1 Nat)";
+    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 2);
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
@@ -51,7 +60,6 @@ where
     })
 }
 
-// assert that `start` is in the same e-class as `goal` in `steps` steps.
 fn assert_reaches<L, N>(start: &str, goal: &str, rewrites: &[Rewrite<L, N>], steps: usize)
 where
     L: Language + 'static,
@@ -73,8 +81,6 @@ where
         return;
     }
 
-    // `start` did not reach `goal` in `steps` steps.
-    // or it saturated before then
     runner.egraph.dump();
     panic!("Couldn't reach goal in provided number of steps.");
 }
