@@ -69,7 +69,7 @@ fn parse_import_slotted() {
 #[test]
 fn eqsat_import_slotted() {
     let import_slotted =
-        fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
+        fs::read_to_string("examples/import.slotted").expect("Failed to read import.slotted");
     let _nodes =
         equality_saturate_slotted(&import_slotted, vec![RuleSet::Default], CostFn::AstSize);
     // TODO: comparison against expected ffi nodes
