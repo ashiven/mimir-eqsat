@@ -1,6 +1,7 @@
 use std::fs;
 
-use crate::ffi::bridge::RuleSet;
+use crate::equality_saturate_slotted;
+use crate::ffi::bridge::{CostFn, RuleSet};
 use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::get_rules;
@@ -32,6 +33,14 @@ fn parse_loop_slotted() {
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
     let _parsed: RecExpr<MimSlotted> =
         RecExpr::parse(&loop_slotted).expect("Failed to parse loop.slotted");
+}
+
+#[test]
+fn eqsat_loop_slotted() {
+    let loop_slotted =
+        fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
+    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    println!("{:#?}", nodes);
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
