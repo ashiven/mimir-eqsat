@@ -56,8 +56,7 @@ fn parse_loop_slotted() {
 // fn eqsat_loop_slotted() {
 //     let loop_slotted =
 //         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
-//     let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
-//     println!("{:#?}", nodes);
+//     let _nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
 // }
 
 #[test]
@@ -71,8 +70,9 @@ fn parse_import_slotted() {
 fn eqsat_import_slotted() {
     let import_slotted =
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
-    let nodes = equality_saturate_slotted(&import_slotted, vec![RuleSet::Default], CostFn::AstSize);
-    println!("{:#?}", nodes);
+    let _nodes =
+        equality_saturate_slotted(&import_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    // TODO: comparison against expected ffi nodes
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
