@@ -60,7 +60,7 @@ pub mod bridge {
         Symbol,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     struct MimNode {
         kind: MimKind,
         children: Vec<u32>,
@@ -174,7 +174,12 @@ pub fn rec_expr_to_res_slotted_internal(rec_expr: &RecExprSlotted<MimSlotted>) -
     let mut nodes = Vec::new();
 
     for child in &rec_expr.children {
-        nodes.extend(rec_expr_to_res_slotted_internal(child));
+        let child_nodes = rec_expr_to_res_slotted_internal(child);
+        for child_node in child_nodes {
+            if !nodes.contains(&child_node) {
+                nodes.push(child_node);
+            }
+        }
     }
 
     match &rec_expr.node {
