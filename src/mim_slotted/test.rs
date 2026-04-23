@@ -7,6 +7,18 @@ use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::get_rules;
 use slotted_egraphs::*;
 
+fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
+    let normalized = sexpr.replace("\r\n", "\n");
+    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
+    sexprs.retain(|s| !s.trim().is_empty());
+
+    let mut res = vec![];
+    for sexpr in sexprs {
+        res.push(RecExpr::parse(sexpr).unwrap());
+    }
+    res
+}
+
 #[test]
 fn get_ruleset_default() {
     let default = get_rules(vec![RuleSet::Default]);
@@ -31,8 +43,7 @@ fn bind_con_var_add0() {
 fn parse_loop_slotted() {
     let loop_slotted =
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
-    let _parsed: RecExpr<MimSlotted> =
-        RecExpr::parse(&loop_slotted).expect("Failed to parse loop.slotted");
+    let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&loop_slotted);
 }
 
 #[test]

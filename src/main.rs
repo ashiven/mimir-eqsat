@@ -1,10 +1,13 @@
-use mimir_eqsat::{equality_saturate, ffi::bridge::CostFn, ffi::bridge::RuleSet};
+#[allow(unused_imports)]
+use mimir_eqsat::{
+    equality_saturate, equality_saturate_slotted,
+    ffi::bridge::{CostFn, RuleSet},
+};
 use std::fs;
 
 fn main() {
-    let example = fs::read_to_string("./examples/example.sexpr").expect("Failed to read file.");
-
-    let nodes = equality_saturate(&example, vec![RuleSet::Core], CostFn::AstSize);
+    let example = fs::read_to_string("./examples/loop.slotted").expect("Failed to read file.");
+    let nodes = equality_saturate_slotted(&example, vec![RuleSet::Default], CostFn::AstSize);
 
     println!("{:#?}", nodes);
 }
