@@ -14,7 +14,7 @@ fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
 
     let mut res = vec![];
     for sexpr in sexprs {
-        res.push(RecExpr::parse(sexpr).unwrap());
+        res.push(RecExpr::parse(sexpr).expect("Failed to parse RecExpr"));
     }
     res
 }
@@ -46,11 +46,32 @@ fn parse_loop_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&loop_slotted);
 }
 
+// TODO: The below test case would fail because the loop continuation in loop.slotted
+// has a recursive definition where it calls on the body continuation which once again
+// wants to call on the loop continuation. The problem with this is that we end up with a
+// var use of the loop continuation before it has even been bound by the the let-binding
+// surrounding it. I.e. in the body continuation we have "(var $loop_22536)" but this is
+// in a scope where "$loop_22536" has not been bound yet and so running equality saturation fails.
+// #[test]
+// fn eqsat_loop_slotted() {
+//     let loop_slotted =
+//         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
+//     let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
+//     println!("{:#?}", nodes);
+// }
+
 #[test]
-fn eqsat_loop_slotted() {
-    let loop_slotted =
+fn parse_import_slotted() {
+    let import_slotted =
+        fs::read_to_string("examples/import.slotted").expect("Failed to read import.slotted");
+    let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&import_slotted);
+}
+
+#[test]
+fn eqsat_import_slotted() {
+    let import_slotted =
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
-    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    let nodes = equality_saturate_slotted(&import_slotted, vec![RuleSet::Default], CostFn::AstSize);
     println!("{:#?}", nodes);
 }
 
