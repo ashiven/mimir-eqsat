@@ -52,6 +52,15 @@ fn parse_loop_slotted() {
 // var use of the loop continuation before it has even been bound by the the let-binding
 // surrounding it. I.e. in the body continuation we have "(var $loop_22536)" but this is
 // in a scope where "$loop_22536" has not been bound yet and so running equality saturation fails.
+// - maybe we should completely exclude lambdas from the whole binder-var paradigm i.e.
+//   not wrap them in let nodes and when they are used as vars just use their names without
+//   a slot prefix
+// - because even if i managed to fix this issue with the recursive var use, what if we end up
+//   wanting to use a lambda as var that is defined as another closed sexpr? for example, in
+//   rebuild_pow.mim we define a pow continuation and then use it in the main continuation as a var
+// - the fix would be to simply not wrap any lambdas in let nodes for slotted and also
+//   not wrap their uses as vars in var nodes
+//
 // #[test]
 // fn eqsat_loop_slotted() {
 //     let loop_slotted =

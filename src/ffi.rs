@@ -162,164 +162,171 @@ fn new_mim_slotted(
     }
 }
 
-// TODO: What do we do with slots in the ffi i.e. for Var, Let, Lam, Con ?
 pub fn rec_expr_to_res_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RewriteResult {
+    RewriteResult {
+        value: rec_expr_to_res_slotted_internal(rec_expr),
+    }
+}
+
+// TODO:
+// - what do we do with slots in the ffi i.e. for Var, Let, Lam, Con ?
+pub fn rec_expr_to_res_slotted_internal(rec_expr: &RecExprSlotted<MimSlotted>) -> Vec<MimNode> {
     let mut nodes = Vec::new();
 
     for child in &rec_expr.children {
-        match &child.node {
-            MimSlotted::Let(def, bind) => nodes.push(new_mim_slotted(
-                MimKind::Let,
-                &[def.id, bind.elem.id],
-                None,
-                None,
-            )),
-            MimSlotted::Lam(ext, name, dom, codom, bind) => nodes.push(new_mim_slotted(
-                MimKind::Lam,
-                &[ext.id, name.id, dom.id, codom.id, bind.elem.id],
-                None,
-                None,
-            )),
-            MimSlotted::Con(ext, name, dom, bind) => nodes.push(new_mim_slotted(
-                MimKind::Con,
-                &[ext.id, name.id, dom.id, bind.elem.id],
-                None,
-                None,
-            )),
-            MimSlotted::LamDef(filter, body) => nodes.push(new_mim_slotted(
-                MimKind::LamDef,
-                &[filter.id, body.id],
-                None,
-                None,
-            )),
-            MimSlotted::App(callee, arg) => nodes.push(new_mim_slotted(
-                MimKind::App,
-                &[callee.id, arg.id],
-                None,
-                None,
-            )),
-            MimSlotted::Var(_slot) => nodes.push(new_mim_slotted(MimKind::Var, &[], None, None)),
-            MimSlotted::Lit(val, type_) => nodes.push(new_mim_slotted(
-                MimKind::Lit,
-                &[val.id, type_.id],
-                None,
-                None,
-            )),
-            MimSlotted::Pack(arity, body) => nodes.push(new_mim_slotted(
-                MimKind::Pack,
-                &[arity.id, body.id],
-                None,
-                None,
-            )),
-            MimSlotted::Tuple(elem_cons) => {
-                nodes.push(new_mim_slotted(MimKind::Tuple, &[elem_cons.id], None, None))
-            }
-            MimSlotted::Extract(tuple, index) => nodes.push(new_mim_slotted(
-                MimKind::Extract,
-                &[tuple.id, index.id],
-                None,
-                None,
-            )),
-            MimSlotted::Insert(tuple, index, value) => nodes.push(new_mim_slotted(
-                MimKind::Insert,
-                &[tuple.id, index.id, value.id],
-                None,
-                None,
-            )),
-            MimSlotted::Rule(name, meta_var, lhs, rhs, guard) => nodes.push(new_mim_slotted(
-                MimKind::Rule,
-                &[name.id, meta_var.id, lhs.id, rhs.id, guard.id],
-                None,
-                None,
-            )),
-            MimSlotted::Inj(type_, val) => nodes.push(new_mim_slotted(
-                MimKind::Inj,
-                &[type_.id, val.id],
-                None,
-                None,
-            )),
-            MimSlotted::Merge(type_, type_cons) => nodes.push(new_mim_slotted(
-                MimKind::Merge,
-                &[type_.id, type_cons.id],
-                None,
-                None,
-            )),
-            MimSlotted::Axm(name, type_) => nodes.push(new_mim_slotted(
-                MimKind::Axm,
-                &[name.id, type_.id],
-                None,
-                None,
-            )),
-            MimSlotted::Match(op_cons) => {
-                nodes.push(new_mim_slotted(MimKind::Match, &[op_cons.id], None, None))
-            }
-            MimSlotted::Proxy(type_, pass, tag, op_cons) => nodes.push(new_mim_slotted(
-                MimKind::Proxy,
-                &[type_.id, pass.id, tag.id, op_cons.id],
-                None,
-                None,
-            )),
-
-            MimSlotted::Join(type_cons) => {
-                nodes.push(new_mim_slotted(MimKind::Join, &[type_cons.id], None, None))
-            }
-            MimSlotted::Meet(type_cons) => {
-                nodes.push(new_mim_slotted(MimKind::Meet, &[type_cons.id], None, None))
-            }
-            MimSlotted::Bot(type_) => {
-                nodes.push(new_mim_slotted(MimKind::Bot, &[type_.id], None, None))
-            }
-            MimSlotted::Top(type_) => {
-                nodes.push(new_mim_slotted(MimKind::Top, &[type_.id], None, None))
-            }
-            MimSlotted::Arr(arity, body) => nodes.push(new_mim_slotted(
-                MimKind::Arr,
-                &[arity.id, body.id],
-                None,
-                None,
-            )),
-            MimSlotted::Sigma(type_cons) => {
-                nodes.push(new_mim_slotted(MimKind::Sigma, &[type_cons.id], None, None))
-            }
-            MimSlotted::Cn(domain) => {
-                nodes.push(new_mim_slotted(MimKind::Cn, &[domain.id], None, None))
-            }
-            MimSlotted::Pi(domain, codomain) => nodes.push(new_mim_slotted(
-                MimKind::Pi,
-                &[domain.id, codomain.id],
-                None,
-                None,
-            )),
-            MimSlotted::Idx(size) => {
-                nodes.push(new_mim_slotted(MimKind::Idx, &[size.id], None, None))
-            }
-            MimSlotted::Hole(type_) => {
-                nodes.push(new_mim_slotted(MimKind::Hole, &[type_.id], None, None))
-            }
-            MimSlotted::Type(level) => {
-                nodes.push(new_mim_slotted(MimKind::Type, &[level.id], None, None))
-            }
-            MimSlotted::Reform(meta_type) => {
-                nodes.push(new_mim_slotted(MimKind::Type, &[meta_type.id], None, None))
-            }
-
-            MimSlotted::Cons(elem, next) => nodes.push(new_mim_slotted(
-                MimKind::Cons,
-                &[elem.id, next.id],
-                None,
-                None,
-            )),
-            MimSlotted::Nil() => nodes.push(new_mim_slotted(MimKind::Nil, &[], None, None)),
-
-            MimSlotted::Num(n) => nodes.push(new_mim_slotted(MimKind::Num, &[], Some(*n), None)),
-            MimSlotted::Symbol(s) => nodes.push(new_mim_slotted(
-                MimKind::Symbol,
-                &[],
-                None,
-                Some(s.to_string()),
-            )),
-        }
+        nodes.extend(rec_expr_to_res_slotted_internal(child));
     }
 
-    RewriteResult { value: nodes }
+    match &rec_expr.node {
+        MimSlotted::Let(def, bind) => nodes.push(new_mim_slotted(
+            MimKind::Let,
+            &[def.id, bind.elem.id],
+            None,
+            None,
+        )),
+        MimSlotted::Lam(ext, name, dom, codom, bind) => nodes.push(new_mim_slotted(
+            MimKind::Lam,
+            &[ext.id, name.id, dom.id, codom.id, bind.elem.id],
+            None,
+            None,
+        )),
+        MimSlotted::Con(ext, name, dom, bind) => nodes.push(new_mim_slotted(
+            MimKind::Con,
+            &[ext.id, name.id, dom.id, bind.elem.id],
+            None,
+            None,
+        )),
+        MimSlotted::LamDef(filter, body) => nodes.push(new_mim_slotted(
+            MimKind::LamDef,
+            &[filter.id, body.id],
+            None,
+            None,
+        )),
+        MimSlotted::App(callee, arg) => nodes.push(new_mim_slotted(
+            MimKind::App,
+            &[callee.id, arg.id],
+            None,
+            None,
+        )),
+        MimSlotted::Var(_slot) => nodes.push(new_mim_slotted(MimKind::Var, &[], None, None)),
+        MimSlotted::Lit(val, type_) => nodes.push(new_mim_slotted(
+            MimKind::Lit,
+            &[val.id, type_.id],
+            None,
+            None,
+        )),
+        MimSlotted::Pack(arity, body) => nodes.push(new_mim_slotted(
+            MimKind::Pack,
+            &[arity.id, body.id],
+            None,
+            None,
+        )),
+        MimSlotted::Tuple(elem_cons) => {
+            nodes.push(new_mim_slotted(MimKind::Tuple, &[elem_cons.id], None, None))
+        }
+        MimSlotted::Extract(tuple, index) => nodes.push(new_mim_slotted(
+            MimKind::Extract,
+            &[tuple.id, index.id],
+            None,
+            None,
+        )),
+        MimSlotted::Insert(tuple, index, value) => nodes.push(new_mim_slotted(
+            MimKind::Insert,
+            &[tuple.id, index.id, value.id],
+            None,
+            None,
+        )),
+        MimSlotted::Rule(name, meta_var, lhs, rhs, guard) => nodes.push(new_mim_slotted(
+            MimKind::Rule,
+            &[name.id, meta_var.id, lhs.id, rhs.id, guard.id],
+            None,
+            None,
+        )),
+        MimSlotted::Inj(type_, val) => nodes.push(new_mim_slotted(
+            MimKind::Inj,
+            &[type_.id, val.id],
+            None,
+            None,
+        )),
+        MimSlotted::Merge(type_, type_cons) => nodes.push(new_mim_slotted(
+            MimKind::Merge,
+            &[type_.id, type_cons.id],
+            None,
+            None,
+        )),
+        MimSlotted::Axm(name, type_) => nodes.push(new_mim_slotted(
+            MimKind::Axm,
+            &[name.id, type_.id],
+            None,
+            None,
+        )),
+        MimSlotted::Match(op_cons) => {
+            nodes.push(new_mim_slotted(MimKind::Match, &[op_cons.id], None, None))
+        }
+        MimSlotted::Proxy(type_, pass, tag, op_cons) => nodes.push(new_mim_slotted(
+            MimKind::Proxy,
+            &[type_.id, pass.id, tag.id, op_cons.id],
+            None,
+            None,
+        )),
+
+        MimSlotted::Join(type_cons) => {
+            nodes.push(new_mim_slotted(MimKind::Join, &[type_cons.id], None, None))
+        }
+        MimSlotted::Meet(type_cons) => {
+            nodes.push(new_mim_slotted(MimKind::Meet, &[type_cons.id], None, None))
+        }
+        MimSlotted::Bot(type_) => {
+            nodes.push(new_mim_slotted(MimKind::Bot, &[type_.id], None, None))
+        }
+        MimSlotted::Top(type_) => {
+            nodes.push(new_mim_slotted(MimKind::Top, &[type_.id], None, None))
+        }
+        MimSlotted::Arr(arity, body) => nodes.push(new_mim_slotted(
+            MimKind::Arr,
+            &[arity.id, body.id],
+            None,
+            None,
+        )),
+        MimSlotted::Sigma(type_cons) => {
+            nodes.push(new_mim_slotted(MimKind::Sigma, &[type_cons.id], None, None))
+        }
+        MimSlotted::Cn(domain) => {
+            nodes.push(new_mim_slotted(MimKind::Cn, &[domain.id], None, None))
+        }
+        MimSlotted::Pi(domain, codomain) => nodes.push(new_mim_slotted(
+            MimKind::Pi,
+            &[domain.id, codomain.id],
+            None,
+            None,
+        )),
+        MimSlotted::Idx(size) => nodes.push(new_mim_slotted(MimKind::Idx, &[size.id], None, None)),
+        MimSlotted::Hole(type_) => {
+            nodes.push(new_mim_slotted(MimKind::Hole, &[type_.id], None, None))
+        }
+        MimSlotted::Type(level) => {
+            nodes.push(new_mim_slotted(MimKind::Type, &[level.id], None, None))
+        }
+        MimSlotted::Reform(meta_type) => {
+            nodes.push(new_mim_slotted(MimKind::Type, &[meta_type.id], None, None))
+        }
+
+        MimSlotted::Cons(elem, next) => nodes.push(new_mim_slotted(
+            MimKind::Cons,
+            &[elem.id, next.id],
+            None,
+            None,
+        )),
+        MimSlotted::Nil() => nodes.push(new_mim_slotted(MimKind::Nil, &[], None, None)),
+
+        MimSlotted::Num(n) => nodes.push(new_mim_slotted(MimKind::Num, &[], Some(*n), None)),
+        MimSlotted::Symbol(s) => nodes.push(new_mim_slotted(
+            MimKind::Symbol,
+            &[],
+            None,
+            Some(s.to_string()),
+        )),
+    }
+
+    nodes
 }
