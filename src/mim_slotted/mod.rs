@@ -164,7 +164,7 @@ where
     let mut rewritten_sexprs: Vec<RecExpr<MimSlotted>> = Vec::new();
 
     for sexpr in sexprs {
-        let mut runner = Runner::<MimSlotted, MimSlottedAnalysis, ()>::default()
+        let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default()
             .with_expr(&RecExpr::parse(sexpr).unwrap());
 
         let _report = runner.run(&rules);
