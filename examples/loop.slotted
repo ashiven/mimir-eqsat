@@ -1,11 +1,11 @@
 (con extern main
-    (sigma (sigma (app %mem.M (lit 0 Nat)) I32 (app %mem.Ptr (tuple (app %mem.Ptr (tuple I8 (lit 0 Nat))) (lit 0 Nat)))) (cn (sigma (app %mem.M (lit 0 Nat)) I32)))
+    (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
     $_22529
     (lamdef
         (lit ff Bool)
         (let
             (con intern loop_22536
-                (sigma (app %mem.M (lit 0 Nat)) I32 I32)
+                (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons I32 nil))))
                 $_22537
                 (lamdef
                     (lit ff Bool)
