@@ -27,7 +27,7 @@ fn bind_con_var_add0() {
 }
 
 #[test]
-fn parse_slotted_loop() {
+fn parse_loop_slotted() {
     let loop_slotted =
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
     let _parsed: RecExpr<MimSlotted> =
