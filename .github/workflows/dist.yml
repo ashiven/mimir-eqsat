@@ -3,18 +3,12 @@ name: Update Distribution
 concurrency:
   group: dist-${{ github.ref_name }}
   cancel-in-progress: false
-  
+
 permissions:
   contents: write
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "src/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
-      - "build.rs"
   release:
     types: [created]
 

@@ -1,3 +1,5 @@
+use std::fs;
+
 use crate::ffi::bridge::RuleSet;
 use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
@@ -22,6 +24,14 @@ fn bind_con_var_add0() {
     let a = "(con extern foo Nat $arg (lamdef (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil))))))";
     let b = "(con extern foo Nat $arg (lamdef (lit ff Bool) (var $arg)))";
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
+}
+
+#[test]
+fn parse_slotted_loop() {
+    let loop_slotted =
+        fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
+    let _parsed: RecExpr<MimSlotted> =
+        RecExpr::parse(&loop_slotted).expect("Failed to parse loop.slotted");
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
