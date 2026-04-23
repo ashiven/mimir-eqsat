@@ -4,13 +4,13 @@
     (lamdef
         (lit ff Bool)
         (let
-            (con intern $loop_22536
+            (con intern loop_22536
                 (sigma (app %mem.M (lit 0 Nat)) I32 I32)
                 $_22537
                 (lamdef
                     (lit ff Bool)
                     (let
-                        (con intern $exit_22547
+                        (con intern exit_22547
                             (app %mem.M (lit 0 Nat))
                             $m_22548
                             (lamdef
@@ -35,7 +35,7 @@
                                         nil))))))))
                         $exit_22547
                     (let
-                        (con intern $body_22553
+                        (con intern body_22553
                             (app %mem.M (lit 0 Nat))
                             $m_22554
                             (lamdef
