@@ -17,60 +17,54 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
       - uses: dtolnay/rust-toolchain@stable
+      - run: |
+            git fetch origin main
+            git reset --hard origin/main
       - run: chmod +x ./dist.sh && ./dist.sh
         shell: bash
-      - name: Push Updated Dist
-        run: |
+      - run: |
           git diff --quiet && exit 0
-          git pull origin HEAD:${{ github.ref_name }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update macos dist"
-          git push origin HEAD:${{ github.ref_name }}
-        shell: bash
+          git push origin HEAD:main
 
   update_windows:
     needs: update_macos
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
       - uses: dtolnay/rust-toolchain@stable
+      - run: |
+            git fetch origin main
+            git reset --hard origin/main
       - run: ./dist.sh
         shell: bash
-      - name: Push Updated Dist
-        run: |
+      - run: |
           git diff --quiet && exit 0
-          git pull origin HEAD:${{ github.ref_name }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update windows dist"
-          git push origin HEAD:${{ github.ref_name }}
-        shell: bash
+          git push origin HEAD:main
 
   update_ubuntu:
     needs: update_windows
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
       - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          git fetch origin main
+          git reset --hard origin/main
       - run: chmod +x ./dist.sh && ./dist.sh
         shell: bash
-      - name: Push Updated Dist
-        run: |
+      - run: |
           git diff --quiet && exit 0
-          git pull origin HEAD:${{ github.ref_name }}
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update linux dist"
-          git push origin HEAD:${{ github.ref_name }}
-        shell: bash
+          git push origin HEAD:main

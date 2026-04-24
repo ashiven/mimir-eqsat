@@ -812,6 +812,7 @@ struct RewriteResult;
 enum class RuleSet : ::std::uint8_t {
   Core = 0,
   Math = 1,
+  Default = 2,
 };
 #endif // CXXBRIDGE1_ENUM_RuleSet
 
@@ -854,10 +855,11 @@ enum class MimKind : ::std::uint8_t {
   Hole = 25,
   Type = 26,
   Reform = 27,
-  Cons = 28,
-  Nil = 29,
-  Num = 30,
-  Symbol = 31,
+  Scope = 28,
+  Cons = 29,
+  Nil = 30,
+  Num = 31,
+  Symbol = 32,
 };
 #endif // CXXBRIDGE1_ENUM_MimKind
 
@@ -866,9 +868,12 @@ enum class MimKind : ::std::uint8_t {
 struct MimNode final {
   ::MimKind kind;
   ::rust::Vec<::std::uint32_t> children;
-  ::std::int64_t num CXX_DEFAULT_VALUE(0);
+  ::std::uint64_t num CXX_DEFAULT_VALUE(0);
   ::rust::String symbol;
+  ::rust::String slot;
 
+  bool operator==(MimNode const &) const noexcept;
+  bool operator!=(MimNode const &) const noexcept;
   using IsRelocatable = ::std::true_type;
 };
 #endif // CXXBRIDGE1_STRUCT_MimNode

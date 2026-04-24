@@ -18,6 +18,7 @@
 #endif
 
 #ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wshadow"
 #ifdef __clang__
 #pragma clang diagnostic ignored "-Wdollar-in-identifier-extension"
@@ -840,6 +841,7 @@ struct RewriteResult;
 enum class RuleSet : ::std::uint8_t {
   Core = 0,
   Math = 1,
+  Default = 2,
 };
 #endif // CXXBRIDGE1_ENUM_RuleSet
 
@@ -882,10 +884,11 @@ enum class MimKind : ::std::uint8_t {
   Hole = 25,
   Type = 26,
   Reform = 27,
-  Cons = 28,
-  Nil = 29,
-  Num = 30,
-  Symbol = 31,
+  Scope = 28,
+  Cons = 29,
+  Nil = 30,
+  Num = 31,
+  Symbol = 32,
 };
 #endif // CXXBRIDGE1_ENUM_MimKind
 
@@ -894,9 +897,12 @@ enum class MimKind : ::std::uint8_t {
 struct MimNode final {
   ::MimKind kind;
   ::rust::Vec<::std::uint32_t> children;
-  ::std::int64_t num CXX_DEFAULT_VALUE(0);
+  ::std::uint64_t num CXX_DEFAULT_VALUE(0);
   ::rust::String symbol;
+  ::rust::String slot;
 
+  bool operator==(MimNode const &) const noexcept;
+  bool operator!=(MimNode const &) const noexcept;
   using IsRelocatable = ::std::true_type;
 };
 #endif // CXXBRIDGE1_STRUCT_MimNode
@@ -911,6 +917,9 @@ struct RewriteResult final {
 #endif // CXXBRIDGE1_STRUCT_RewriteResult
 
 extern "C" {
+bool cxxbridge1$194$MimNode$operator$eq(MimNode const &, MimNode const &) noexcept;
+bool cxxbridge1$194$MimNode$operator$ne(MimNode const &, MimNode const &) noexcept;
+
 void cxxbridge1$194$equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RewriteResult> *return$) noexcept;
 
 void cxxbridge1$194$pretty(::rust::Str sexpr, ::std::size_t line_len, ::rust::String *return$) noexcept;
@@ -921,6 +930,14 @@ void cxxbridge1$194$pretty_slotted(::rust::Str sexpr, ::std::size_t line_len, ::
 
 void cxxbridge1$194$mim_node_str(::MimNode *node, ::rust::String *return$) noexcept;
 } // extern "C"
+
+bool MimNode::operator==(MimNode const &rhs) const noexcept {
+  return cxxbridge1$194$MimNode$operator$eq(*this, rhs);
+}
+
+bool MimNode::operator!=(MimNode const &rhs) const noexcept {
+  return cxxbridge1$194$MimNode$operator$ne(*this, rhs);
+}
 
 ::rust::Vec<::RewriteResult> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
   ::rust::ManuallyDrop<::rust::Vec<::RuleSet>> rulesets$(::std::move(rulesets));

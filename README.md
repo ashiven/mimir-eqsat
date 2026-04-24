@@ -60,10 +60,6 @@ There are multiple methods of integrating this library into an existing C++ proj
 
 ```bash
 git submodule add https://github.com/ashiven/mimir-eqsat external/mimir-eqsat
-cd external/mimir-eqsat
-git checkout v1.0.0 # whichever version you require
-
-cd ../..
 git add external/mimir-eqsat
 git commit -m "Add mimir-eqsat submodule"
 ```
@@ -85,9 +81,7 @@ To update the submodule to a particular release, simply do the following:
 
 ```bash
 cd external/mimir-eqsat
-git fetch
-git checkout v1.1.0 # whichever version you require
-
+git pull
 cd ../..
 git add external/mimir-eqsat
 git commit -m "Update mimir-eqsat submodule"
