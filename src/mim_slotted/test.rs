@@ -46,21 +46,13 @@ fn parse_loop_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&loop_slotted);
 }
 
-// TODO: The below test case would fail because the loop continuation in loop.slotted
-// has a recursive definition where it calls on the body continuation which once again
-// wants to call on the loop continuation. The problem with this is that we end up with a
-// var use of the loop continuation before it has even been bound by the the let-binding
-// surrounding it. I.e. in the body continuation we have "(var $loop_22536)" but this is
-// in a scope where "$loop_22536" has not been bound yet and so running equality saturation fails.
-// - do something similar to lamdef where the let binder binds both the def and expr so a binding
-//   can already refer to itself in its own definition
-//
-// #[test]
-// fn eqsat_loop_slotted() {
-//     let loop_slotted =
-//         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
-//     let _nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
-// }
+#[test]
+fn eqsat_loop_slotted() {
+    let loop_slotted =
+        fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
+    let _nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    // TODO: comparison against expected ffi nodes
+}
 
 #[test]
 fn parse_import_slotted() {
