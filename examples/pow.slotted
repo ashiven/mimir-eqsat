@@ -1,0 +1,161 @@
+(con extern main
+    (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+    $_22607
+    (scope
+        (lit ff Bool)
+        (let
+            $return_22606
+            (scope
+                (con intern return_22606
+                    I32
+                    $res_22610
+                    (scope
+                        (lit ff Bool)
+                        (let
+                            $return_22612
+                            (scope
+                                (extract
+                                    (var $_22607)
+                                    (lit tt Bool))
+                        (let
+                            $mem_22609
+                            (scope
+                                (extract
+                                    (extract
+                                        (var $_22607)
+                                        (lit ff Bool))
+                                    (lit 0 (idx (lit 3 Nat))))
+                        (app
+                            (var $return_22612)
+                            (tuple
+                                (cons
+                                    (var $mem_22609)
+                                (cons
+                                    (var $res_22610)
+                                nil))))))))))
+        (app
+            (var $pow_22617)
+            (tuple
+                (cons
+                    (lit 4 I32)
+                (cons
+                    (var $return_22606)
+                nil))))))))
+
+(con intern pow_22617
+    (sigma (cons I32 (cons (cn I32) nil)))
+    $_22619
+    (scope
+        (lit ff Bool)
+        (let
+            $pow_else_22627
+            (scope
+                (con intern pow_else_22627
+                    (sigma )
+                    $_21809
+                    (scope
+                        (lit ff Bool)
+                        (let
+                            $pow_cont_22635
+                            (scope
+                                (con intern pow_cont_22635
+                                    I32
+                                    $v_22637
+                                    (scope
+                                        (lit ff Bool)
+                                        (let
+                                            $return_22642
+                                            (scope
+                                                (extract
+                                                    (var $_22619)
+                                                    (lit tt Bool))
+                                        (app
+                                            (var $return_22642)
+                                            (app
+                                                (app
+                                                    (app
+                                                        %core.wrap.mul
+                                                        (lit i32 Nat))
+                                                    (lit 0 Nat))
+                                                (tuple
+                                                    (cons
+                                                        (lit 3 I32)
+                                                    (cons
+                                                        (var $v_22637)
+                                                    nil)))))))))
+                        (let
+                            $b_22620
+                            (scope
+                                (extract
+                                    (var $_22619)
+                                    (lit ff Bool))
+                        (let
+                            $b_1_22634
+                            (scope
+                                (app
+                                    (app
+                                        (app
+                                            %core.wrap.add
+                                            (lit i32 Nat))
+                                        (lit 0 Nat))
+                                    (tuple
+                                        (cons
+                                            (lit 4294967295 I32)
+                                        (cons
+                                            (var $b_22620)
+                                        nil))))
+                        (app
+                            (var $pow_22617)
+                            (tuple
+                                (cons
+                                    (var $b_1_22634)
+                                (cons
+                                    (var $pow_cont_22635)
+                                nil))))))))))))
+        (let
+            $pow_then_22646
+            (scope
+                (con intern pow_then_22646
+                    (sigma )
+                    $_21809
+                    (scope
+                        (lit ff Bool)
+                        (let
+                            $return_22642
+                            (scope
+                                (extract
+                                    (var $_22619)
+                                    (lit tt Bool))
+                        (app
+                            (var $return_22642)
+                            (lit 1 I32))))))
+        (let
+            $b_22620
+            (scope
+                (extract
+                    (var $_22619)
+                    (lit ff Bool))
+        (let
+            $cmp_22625
+            (scope
+                (app
+                    (app
+                        %core.icmp.xyglE
+                        (lit i32 Nat))
+                    (tuple
+                        (cons
+                            (lit 0 I32)
+                        (cons
+                            (var $b_22620)
+                        nil))))
+        (app
+            (extract
+                (tuple
+                    (cons
+                        (var $pow_else_22627)
+                    (cons
+                        (var $pow_then_22646)
+                    nil)))
+                (var $cmp_22625))
+            (tuple))))))))))))
+

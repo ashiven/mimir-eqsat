@@ -85,6 +85,22 @@ fn eqsat_fun_slotted() {
     // TODO: comparison against expected ffi nodes
 }
 
+// TODO: below test cases fail because the pow lam is used as var($pow) even though it is never bound
+#[test]
+fn parse_pow_slotted() {
+    let pow_slotted =
+        fs::read_to_string("examples/pow.slotted").expect("Failed to read pow.slotted");
+    let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&pow_slotted);
+}
+
+#[test]
+fn eqsat_pow_slotted() {
+    let pow_slotted =
+        fs::read_to_string("examples/pow.slotted").expect("Failed to read pow.slotted");
+    let _nodes = equality_saturate_slotted(&pow_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    // TODO: comparison against expected ffi nodes
+}
+
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
 // Had to copy-paste the code below since it didn't seem to be exposed as part of the library.
 
