@@ -27,15 +27,15 @@ fn get_ruleset_default() {
 
 #[test]
 fn let_var_same() {
-    let a = "(let (lit 1 Nat) $foo (var $foo))";
+    let a = "(let $foo (scope (lit 1 Nat) (var $foo)))";
     let b = "(lit 1 Nat)";
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
 }
 
 #[test]
 fn bind_con_var_add0() {
-    let a = "(con extern foo Nat $arg (body (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil))))))";
-    let b = "(con extern foo Nat $arg (body (lit ff Bool) (var $arg)))";
+    let a = "(con extern foo Nat $arg (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil))))))";
+    let b = "(con extern foo Nat $arg (scope (lit ff Bool) (var $arg)))";
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
 }
 
