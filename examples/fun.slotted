@@ -1,0 +1,28 @@
+(con extern main
+    (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+    $_25431
+    (scope
+        (lit ff Bool)
+        (let
+            $return_25436
+            (scope
+                (extract
+                    (var $_25431)
+                    (lit tt Bool))
+        (let
+            $mem_25433
+            (scope
+                (extract
+                    (extract
+                        (var $_25431)
+                        (lit ff Bool))
+                    (lit 0 (idx (lit 3 Nat))))
+        (app
+            (var $return_25436)
+            (tuple
+                (cons
+                    (var $mem_25433)
+                (cons
+                    (lit 48 I32)
+                nil))))))))))
+

@@ -78,6 +78,21 @@ fn eqsat_import_slotted() {
     // TODO: comparison against expected ffi nodes
 }
 
+#[test]
+fn parse_fun_slotted() {
+    let fun_slotted =
+        fs::read_to_string("examples/fun.slotted").expect("Failed to read fun.slotted");
+    let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&fun_slotted);
+}
+
+#[test]
+fn eqsat_fun_slotted() {
+    let fun_slotted =
+        fs::read_to_string("examples/fun.slotted").expect("Failed to read fun.slotted");
+    let _nodes = equality_saturate_slotted(&fun_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    // TODO: comparison against expected ffi nodes
+}
+
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
 // Had to copy-paste the code below since it didn't seem to be exposed as part of the library.
 
