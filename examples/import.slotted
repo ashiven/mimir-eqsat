@@ -1,226 +1,246 @@
 (con intern atoi
     (sigma (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil))))
     $_23280
-    (lamdef nil nil))
+    (scope nil nil))
 
 (con extern main
     (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (arr (top Nat) (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))) (cons (lit 0 Nat) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))))
     $_23217
-    (lamdef
+    (scope
         (lit ff Bool)
         (let
-            (con intern atoi_cont_a_23247
-                (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
-                $_23248
-                (lamdef
-                    (lit ff Bool)
-                    (let
-                        (con intern atoi_cont_b_23257
-                            (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
-                            $_23258
-                            (lamdef
-                                (lit ff Bool)
-                                (let
-                                    (extract
-                                        (var $_23217)
-                                        (lit 3 (idx (lit 4 Nat))))
-                                    $return_23271
-                                (let
-                                    (extract
-                                        (var $_23258)
-                                        (lit ff Bool))
-                                    $mem_23259
-                                (let
-                                    (extract
-                                        (var $_23258)
-                                        (lit tt Bool))
-                                    $b_23260
-                                (let
-                                    (extract
-                                        (var $_23248)
-                                        (lit tt Bool))
-                                    $a_23261
+            $atoi_cont_a_23247
+            (scope
+                (con intern atoi_cont_a_23247
+                    (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
+                    $_23248
+                    (scope
+                        (lit ff Bool)
+                        (let
+                            $atoi_cont_b_23257
+                            (scope
+                                (con intern atoi_cont_b_23257
+                                    (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
+                                    $_23258
+                                    (scope
+                                        (lit ff Bool)
+                                        (let
+                                            $return_23271
+                                            (scope
+                                                (extract
+                                                    (var $_23217)
+                                                    (lit 3 (idx (lit 4 Nat))))
+                                        (let
+                                            $mem_23259
+                                            (scope
+                                                (extract
+                                                    (var $_23258)
+                                                    (lit ff Bool))
+                                        (let
+                                            $b_23260
+                                            (scope
+                                                (extract
+                                                    (var $_23258)
+                                                    (lit tt Bool))
+                                        (let
+                                            $a_23261
+                                            (scope
+                                                (extract
+                                                    (var $_23248)
+                                                    (lit tt Bool))
+                                        (app
+                                            (var $return_23271)
+                                            (tuple
+                                                (cons
+                                                    (var $mem_23259)
+                                                (cons
+                                                    (app
+                                                        (app
+                                                            (app
+                                                                %core.wrap.add
+                                                                (lit i32 Nat))
+                                                            (lit 0 Nat))
+                                                        (tuple
+                                                            (cons
+                                                                (var $b_23260)
+                                                            (cons
+                                                                (var $a_23261)
+                                                            nil))))
+                                                nil)))))))))))))))
+                        (let
+                            $mem_23249
+                            (scope
+                                (extract
+                                    (var $_23248)
+                                    (lit ff Bool))
+                        (let
+                            $n_22391
+                            (scope
+                                (top Nat)
+                        (let
+                            $Ts_23225
+                            (scope
+                                (pack
+                                    (var $n_22391)
+                                    (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))))
+                        (let
+                            $argv_23220
+                            (scope
+                                (extract
+                                    (var $_23217)
+                                    (lit 2 (idx (lit 4 Nat))))
+                        (let
+                            $argv_ptr_b_23252
+                            (scope
                                 (app
-                                    (var $return_23271)
+                                    (app
+                                        %mem.lea
+                                        (tuple
+                                            (cons
+                                                (var $n_22391)
+                                            (cons
+                                                (var $Ts_23225)
+                                            (cons
+                                                (lit 0 Nat)
+                                            nil)))))
                                     (tuple
                                         (cons
-                                            (var $mem_23259)
+                                            (var $argv_23220)
                                         (cons
-                                            (app
-                                                (app
-                                                    (app
-                                                        %core.wrap.add
-                                                        (lit i32 Nat))
-                                                    (lit 0 Nat))
-                                                (tuple
-                                                    (cons
-                                                        (var $b_23260)
-                                                    (cons
-                                                        (var $a_23261)
-                                                    nil))))
-                                        nil))))))))))
-                        $atoi_cont_b_23257
-                    (let
-                        (extract
-                            (var $_23248)
-                            (lit ff Bool))
-                        $mem_23249
-                    (let
-                        (top Nat)
-                        $n_22391
-                    (let
-                        (pack
-                            (var $n_22391)
-                            (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))))
-                        $Ts_23225
-                    (let
-                        (extract
-                            (var $_23217)
-                            (lit 2 (idx (lit 4 Nat))))
-                        $argv_23220
-                    (let
+                                            (lit 2 I32)
+                                        nil))))
+                        (let
+                            $mem_23255
+                            (scope
+                                (extract
+                                    (app
+                                        (app
+                                            %mem.load
+                                            (tuple
+                                                (cons
+                                                    (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                                (cons
+                                                    (lit 0 Nat)
+                                                nil))))
+                                        (tuple
+                                            (cons
+                                                (var $mem_23249)
+                                            (cons
+                                                (var $argv_ptr_b_23252)
+                                            nil))))
+                                    (lit ff Bool))
+                        (let
+                            $val_23256
+                            (scope
+                                (extract
+                                    (app
+                                        (app
+                                            %mem.load
+                                            (tuple
+                                                (cons
+                                                    (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                                (cons
+                                                    (lit 0 Nat)
+                                                nil))))
+                                        (tuple
+                                            (cons
+                                                (var $mem_23249)
+                                            (cons
+                                                (var $argv_ptr_b_23252)
+                                            nil))))
+                                    (lit tt Bool))
                         (app
-                            (app
-                                %mem.lea
-                                (tuple
-                                    (cons
-                                        (var $n_22391)
-                                    (cons
-                                        (var $Ts_23225)
-                                    (cons
-                                        (lit 0 Nat)
-                                    nil)))))
+                            atoi
                             (tuple
                                 (cons
-                                    (var $argv_23220)
+                                    (var $mem_23255)
                                 (cons
-                                    (lit 2 I32)
-                                nil))))
-                        $argv_ptr_b_23252
-                    (let
-                        (extract
-                            (app
-                                (app
-                                    %mem.load
-                                    (tuple
-                                        (cons
-                                            (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
-                                        (cons
-                                            (lit 0 Nat)
-                                        nil))))
-                                (tuple
-                                    (cons
-                                        (var $mem_23249)
-                                    (cons
-                                        (var $argv_ptr_b_23252)
-                                    nil))))
-                            (lit ff Bool))
-                        $mem_23255
-                    (let
-                        (extract
-                            (app
-                                (app
-                                    %mem.load
-                                    (tuple
-                                        (cons
-                                            (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
-                                        (cons
-                                            (lit 0 Nat)
-                                        nil))))
-                                (tuple
-                                    (cons
-                                        (var $mem_23249)
-                                    (cons
-                                        (var $argv_ptr_b_23252)
-                                    nil))))
-                            (lit tt Bool))
-                        $val_23256
-                    (app
-                        atoi
-                        (tuple
-                            (cons
-                                (var $mem_23255)
-                            (cons
-                                (var $val_23256)
-                            (cons
-                                (var $atoi_cont_b_23257)
-                            nil)))))))))))))))
-            $atoi_cont_a_23247
+                                    (var $val_23256)
+                                (cons
+                                    (var $atoi_cont_b_23257)
+                                nil)))))))))))))))))))))))
         (let
-            (extract
-                (var $_23217)
-                (lit 0 (idx (lit 4 Nat))))
             $mem_23218
+            (scope
+                (extract
+                    (var $_23217)
+                    (lit 0 (idx (lit 4 Nat))))
         (let
-            (top Nat)
             $n_22391
+            (scope
+                (top Nat)
         (let
-            (pack
-                (var $n_22391)
-                (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))))
             $Ts_23225
+            (scope
+                (pack
+                    (var $n_22391)
+                    (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))))
         (let
-            (extract
-                (var $_23217)
-                (lit 2 (idx (lit 4 Nat))))
             $argv_23220
+            (scope
+                (extract
+                    (var $_23217)
+                    (lit 2 (idx (lit 4 Nat))))
         (let
-            (app
-                (app
-                    %mem.lea
-                    (tuple
-                        (cons
-                            (var $n_22391)
-                        (cons
-                            (var $Ts_23225)
-                        (cons
-                            (lit 0 Nat)
-                        nil)))))
-                (tuple
-                    (cons
-                        (var $argv_23220)
-                    (cons
-                        (lit 1 I32)
-                    nil))))
             $argv_ptr_a_23238
-        (let
-            (extract
+            (scope
                 (app
                     (app
-                        %mem.load
+                        %mem.lea
                         (tuple
                             (cons
-                                (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                (var $n_22391)
+                            (cons
+                                (var $Ts_23225)
                             (cons
                                 (lit 0 Nat)
-                            nil))))
+                            nil)))))
                     (tuple
                         (cons
-                            (var $mem_23218)
+                            (var $argv_23220)
                         (cons
-                            (var $argv_ptr_a_23238)
+                            (lit 1 I32)
                         nil))))
-                (lit ff Bool))
+        (let
             $mem_23245
-        (let
-            (extract
-                (app
+            (scope
+                (extract
                     (app
-                        %mem.load
+                        (app
+                            %mem.load
+                            (tuple
+                                (cons
+                                    (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                (cons
+                                    (lit 0 Nat)
+                                nil))))
                         (tuple
                             (cons
-                                (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                (var $mem_23218)
                             (cons
-                                (lit 0 Nat)
+                                (var $argv_ptr_a_23238)
                             nil))))
-                    (tuple
-                        (cons
-                            (var $mem_23218)
-                        (cons
-                            (var $argv_ptr_a_23238)
-                        nil))))
-                (lit tt Bool))
+                    (lit ff Bool))
+        (let
             $val_23246
+            (scope
+                (extract
+                    (app
+                        (app
+                            %mem.load
+                            (tuple
+                                (cons
+                                    (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                (cons
+                                    (lit 0 Nat)
+                                nil))))
+                        (tuple
+                            (cons
+                                (var $mem_23218)
+                            (cons
+                                (var $argv_ptr_a_23238)
+                            nil))))
+                    (lit tt Bool))
         (app
             atoi
             (tuple
@@ -230,5 +250,5 @@
                     (var $val_23246)
                 (cons
                     (var $atoi_cont_a_23247)
-                nil)))))))))))))))
+                nil))))))))))))))))))))))
 

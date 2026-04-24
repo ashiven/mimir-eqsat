@@ -28,7 +28,7 @@ pub mod bridge {
         Let,
         Lam,
         Con,
-        LamDef,
+        Scope,
         App,
         Var,
         Lit,
@@ -183,12 +183,9 @@ pub fn rec_expr_to_res_slotted_internal(rec_expr: &RecExprSlotted<MimSlotted>) -
     }
 
     match &rec_expr.node {
-        MimSlotted::Let(def, bind) => nodes.push(new_mim_slotted(
-            MimKind::Let,
-            &[def.id, bind.elem.id],
-            None,
-            None,
-        )),
+        MimSlotted::Let(bind) => {
+            nodes.push(new_mim_slotted(MimKind::Let, &[bind.elem.id], None, None))
+        }
         MimSlotted::Lam(ext, name, dom, codom, bind) => nodes.push(new_mim_slotted(
             MimKind::Lam,
             &[ext.id, name.id, dom.id, codom.id, bind.elem.id],
@@ -201,8 +198,8 @@ pub fn rec_expr_to_res_slotted_internal(rec_expr: &RecExprSlotted<MimSlotted>) -
             None,
             None,
         )),
-        MimSlotted::LamDef(filter, body) => nodes.push(new_mim_slotted(
-            MimKind::LamDef,
+        MimSlotted::Scope(filter, body) => nodes.push(new_mim_slotted(
+            MimKind::Scope,
             &[filter.id, body.id],
             None,
             None,

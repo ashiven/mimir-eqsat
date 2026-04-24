@@ -19,22 +19,16 @@ define_language! {
         // This lead to a whole lot of confusion because it means that a pattern like "(let $1 (var $1) ?e)"
         // contains this bind node implicitly as if it was defined as "(let (bind $1 (var $1)) ?e)"
         // and therefore we would have to define Let(Bind<AppliedId>, AppliedId) instead of
-        // Let(Bind<AppliedId>, AppliedId, AppliedId) as I initially assumed (which caused cryptic
-        // errors).
+        // Let(Bind<AppliedId>, AppliedId, AppliedId) as I initially assumed
 
-        // This now reads as: "let definition equal name in expression".
+        // This now reads as: "let definition equal name in scope containing definition and expression".
         // Instead of (in egg): "let name equal definition in expression".
-        // (let <definition> <name> <expression>)
-        Let(AppliedId, Bind<AppliedId>) = "let",
-        // This is also different from egg in that the var comes right before the body
-        // (lam <extern> <name> <domain-type> <codomain-type> <var-name> <lamdef>)
+        // (let <name> <name-scope>)
+        Let(Bind<AppliedId>) = "let",
+        // (lam <extern> <name> <domain-type> <codomain-type> <var-name> <var-scope>)
         Lam(AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "lam",
-        // This is also different from egg in that the var comes right before the body
-        // (con <extern> <name> <domain-type> <var-name> <lamdef>)
+        // (con <extern> <name> <domain-type> <var-name> <var-scope>)
         Con(AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "con",
-        // This is needed so we can bind the lambda variable in both its filter and body
-        // (lamdef <filter> <body>)
-        LamDef(AppliedId, AppliedId) = "lamdef",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
         // (var <name>)
@@ -90,6 +84,11 @@ define_language! {
         // (reform <meta_type>)
         Reform(AppliedId) = "reform",
 
+
+        // This is needed so we can bind a lambda variable to both its filter and body
+        // and also bind a let variable to both its definition and its expression:
+        // (scope <filter> <body>) or (scope <definition> <expression>)  i.e.: (let $foo (scope <def> <expr>))
+        Scope(AppliedId, AppliedId) = "scope",
 
         // Enables variadic language constructs such as Tuple, Sigma, Match, ...
         // (cons <elem> <next>)
