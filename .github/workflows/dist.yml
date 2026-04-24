@@ -17,20 +17,18 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
       - uses: dtolnay/rust-toolchain@stable
       - run: chmod +x ./dist.sh && ./dist.sh
         shell: bash
       - name: Push Updated Dist
         run: |
           git diff --quiet && exit 0
-          git pull origin HEAD:${{ github.ref_name }}
+          git pull origin main
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update macos dist"
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:main
         shell: bash
 
   update_windows:
@@ -38,20 +36,18 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
       - uses: dtolnay/rust-toolchain@stable
       - run: ./dist.sh
         shell: bash
       - name: Push Updated Dist
         run: |
           git diff --quiet && exit 0
-          git pull origin HEAD:${{ github.ref_name }}
+          git pull origin main
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update windows dist"
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:main
         shell: bash
 
   update_ubuntu:
@@ -59,18 +55,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
       - uses: dtolnay/rust-toolchain@stable
       - run: chmod +x ./dist.sh && ./dist.sh
         shell: bash
       - name: Push Updated Dist
         run: |
           git diff --quiet && exit 0
-          git pull origin HEAD:${{ github.ref_name }}
+          git pull origin main
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update linux dist"
-          git push origin HEAD:${{ github.ref_name }}
+          git push origin HEAD:main
         shell: bash
