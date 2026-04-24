@@ -51,7 +51,7 @@
             $pow_else_22627
             (scope
                 (con intern pow_else_22627
-                    (sigma )
+                    (sigma nil)
                     $_21809
                     (scope
                         (lit ff Bool)
@@ -116,7 +116,7 @@
             $pow_then_22646
             (scope
                 (con intern pow_then_22646
-                    (sigma )
+                    (sigma nil)
                     $_21809
                     (scope
                         (lit ff Bool)
@@ -157,5 +157,6 @@
                         (var $pow_then_22646)
                     nil)))
                 (var $cmp_22625))
-            (tuple))))))))))))
+            (tuple
+                nil))))))))))))
 

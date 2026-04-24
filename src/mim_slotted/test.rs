@@ -85,7 +85,7 @@ fn eqsat_fun_slotted() {
     // TODO: comparison against expected ffi nodes
 }
 
-// TODO: below test cases fail because the pow lam is used as var($pow) even though it is never bound
+// TODO: Below test cases are faulty because the internal closed pow lam is referenced as (var $pow) but wasn't bound as such
 #[test]
 fn parse_pow_slotted() {
     let pow_slotted =
