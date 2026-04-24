@@ -18,18 +18,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - run: |
+            git fetch origin main
+            git reset --hard origin/main
       - run: chmod +x ./dist.sh && ./dist.sh
         shell: bash
-      - name: Push Updated Dist
-        run: |
+      - run: |
           git diff --quiet && exit 0
-          git pull origin main
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update macos dist"
           git push origin HEAD:main
-        shell: bash
 
   update_windows:
     needs: update_macos
@@ -37,18 +37,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - run: |
+            git fetch origin main
+            git reset --hard origin/main
       - run: ./dist.sh
         shell: bash
-      - name: Push Updated Dist
-        run: |
+      - run: |
           git diff --quiet && exit 0
-          git pull origin main
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update windows dist"
           git push origin HEAD:main
-        shell: bash
 
   update_ubuntu:
     needs: update_windows
@@ -56,15 +56,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - run: |
+          git fetch origin main
+          git reset --hard origin/main
       - run: chmod +x ./dist.sh && ./dist.sh
         shell: bash
-      - name: Push Updated Dist
-        run: |
+      - run: |
           git diff --quiet && exit 0
-          git pull origin main
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -A
           git commit -m "update linux dist"
           git push origin HEAD:main
-        shell: bash
