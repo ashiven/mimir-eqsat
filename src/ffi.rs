@@ -62,8 +62,6 @@ pub mod bridge {
         Symbol,
     }
 
-    // TODO:
-    // - implement display for mimnode to print a sexpr representation of the node
     #[derive(Debug, PartialEq)]
     struct MimNode {
         kind: MimKind,
@@ -332,6 +330,9 @@ fn to_ffi_slotted_internal(
     {
         let child_node = to_mim_slotted(child);
         idxmap.insert(child_id.id, child_node);
+        // TODO: Vars all have the same id even though they contain
+        // different slots so they end up replacing each other in the
+        // idxmap and we end up with the same slot in every single var use.
         to_ffi_slotted_internal(child, idxmap);
     }
 }

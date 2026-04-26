@@ -108,7 +108,7 @@ pub(crate) fn equality_saturate_ffi(
 ) -> Vec<RecExprFFI> {
     equality_saturate_internal(sexpr, rulesets, cost_fn)
         .iter()
-        .map(|res: &RecExpr<MimSlotted>| to_ffi_slotted(res))
+        .map(|rec_expr: &RecExpr<MimSlotted>| to_ffi_slotted(rec_expr))
         .collect()
 }
 
