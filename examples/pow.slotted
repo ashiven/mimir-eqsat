@@ -34,7 +34,7 @@
                                     (var $res_22610)
                                 nil))))))))))
         (app
-            (var $pow_22617)
+            pow_22617
             (tuple
                 (cons
                     (lit 4 I32)
@@ -105,7 +105,7 @@
                                             (var $b_22620)
                                         nil))))
                         (app
-                            (var $pow_22617)
+                            pow_22617
                             (tuple
                                 (cons
                                     (var $b_1_22634)
