@@ -212,7 +212,7 @@ impl RecExprFFI {
     fn to_sexpr_rec(&self, i: usize, f: &mut impl FnMut(u32) -> Option<String>) -> Sexpr {
         let node = &self.nodes[i];
         let op = Sexpr::String(node.to_string());
-        if node.children.is_empty() {
+        if node.children.is_empty() && node.slot.is_empty() {
             op
         } else {
             let mut vec = vec![op];
@@ -224,6 +224,15 @@ impl RecExprFFI {
                 } else {
                     Sexpr::String(format!("<<<< CYCLE to {} = {:?} >>>>", i, node))
                 })
+            }
+            // Some nodes introduce or use slots which don't
+            // have their own nodes so we insert them manually.
+            match node.kind {
+                MimKind::Let => vec.insert(1, Sexpr::String(node.slot.clone())),
+                MimKind::Lam => vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone())),
+                MimKind::Con => vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone())),
+                MimKind::Var => vec.insert(1, Sexpr::String(node.slot.clone())),
+                _ => (),
             }
             Sexpr::List(vec)
         }
