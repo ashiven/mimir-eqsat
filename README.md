@@ -49,7 +49,7 @@ rust::String pretty(std::string sexpr, size_t line_len);
  *  sexpr:     a symbolic expr in `slotted-egraphs` format (emitted by the `mim` compiler via `--slotted --output-sexpr`)
  *  line_len:  the maximal line length after which the sexpr continues on a new line
  */
-rust::String pretty(std::string sexpr, size_t line_len);
+rust::String pretty_slotted(std::string sexpr, size_t line_len);
 ```
 
 ## Installation
