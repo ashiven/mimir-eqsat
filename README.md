@@ -16,7 +16,7 @@ There are two separate implementations in [egg](https://github.com/egraphs-good/
  *  rulesets:  provides a list of identifiers to rulesets that should be used for rewriting (see src/mim_egg/rulesets)
  *  cost_fn:   provides a cost function that should be used for extraction (currently only AstSize and AstDepth)
  */
-rust::Vec<RewriteResult> equality_saturate(std::string sexpr, rust::Vec<RuleSet> rulesets, CostFn cost_fn);
+rust::Vec<RecExprFFI> equality_saturate(std::string sexpr, rust::Vec<RuleSet> rulesets, CostFn cost_fn);
 ```
 
 ```cpp
@@ -27,7 +27,7 @@ rust::Vec<RewriteResult> equality_saturate(std::string sexpr, rust::Vec<RuleSet>
  *  rulesets:  provides a list of identifiers to rulesets that should be used for rewriting (see src/mim_slotted/rulesets)
  *  cost_fn:   provides a cost function that should be used for extraction (currently only AstSize)
  */
-rust::Vec<RewriteResult> equality_saturate_slotted(std::string sexpr, rust::Vec<RuleSet> rulesets, CostFn cost_fn);
+rust::Vec<RecExprFFI> equality_saturate_slotted(std::string sexpr, rust::Vec<RuleSet> rulesets, CostFn cost_fn);
 ```
 
 ### Pretty-printing

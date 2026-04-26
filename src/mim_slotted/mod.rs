@@ -1,4 +1,4 @@
-use crate::ffi::bridge::{CostFn, RewriteResult, RuleSet};
+use crate::ffi::bridge::{CostFn, RecExprFFI, RuleSet};
 use crate::ffi::rec_expr_to_res_slotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
@@ -105,7 +105,7 @@ pub(crate) fn equality_saturate_ffi(
     sexpr: &str,
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
-) -> Vec<RewriteResult> {
+) -> Vec<RecExprFFI> {
     equality_saturate_internal(sexpr, rulesets, cost_fn)
         .iter()
         .map(|res: &RecExpr<MimSlotted>| rec_expr_to_res_slotted(res))

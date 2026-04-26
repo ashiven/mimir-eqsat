@@ -1,14 +1,10 @@
-use ffi::bridge::{CostFn, MimNode, RewriteResult, RuleSet};
+use ffi::bridge::{CostFn, MimNode, RecExprFFI, RuleSet};
 
 pub mod ffi;
 mod mim_egg;
 mod mim_slotted;
 
-pub fn equality_saturate(
-    sexpr: &str,
-    rulesets: Vec<RuleSet>,
-    cost_fn: CostFn,
-) -> Vec<RewriteResult> {
+pub fn equality_saturate(sexpr: &str, rulesets: Vec<RuleSet>, cost_fn: CostFn) -> Vec<RecExprFFI> {
     mim_egg::equality_saturate_ffi(sexpr, rulesets, cost_fn)
 }
 
@@ -20,7 +16,7 @@ pub fn equality_saturate_slotted(
     sexpr: &str,
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
-) -> Vec<RewriteResult> {
+) -> Vec<RecExprFFI> {
     mim_slotted::equality_saturate_ffi(sexpr, rulesets, cost_fn)
 }
 

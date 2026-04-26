@@ -1,10 +1,11 @@
 use crate::mim_egg::Mim;
 use crate::mim_slotted::MimSlotted;
 use crate::{equality_saturate, equality_saturate_slotted, mim_node_str, pretty, pretty_slotted};
-use bridge::{MimKind, MimNode, RewriteResult};
+use bridge::{MimKind, MimNode, RecExprFFI};
 use egg::{Id, RecExpr};
 use slotted_egraphs::Id as IdSlotted;
 use slotted_egraphs::RecExpr as RecExprSlotted;
+use std::fmt;
 
 #[cxx::bridge]
 pub mod bridge {
@@ -60,6 +61,8 @@ pub mod bridge {
         Symbol,
     }
 
+    // TODO:
+    // - implement display for mimnode to print a sexpr representation of the node
     #[derive(Debug, PartialEq)]
     struct MimNode {
         kind: MimKind,
@@ -70,8 +73,8 @@ pub mod bridge {
     }
 
     #[derive(Debug)]
-    struct RewriteResult {
-        value: Vec<MimNode>,
+    struct RecExprFFI {
+        nodes: Vec<MimNode>,
     }
 
     extern "Rust" {
@@ -79,19 +82,133 @@ pub mod bridge {
             sexpr: &str,
             rulesets: Vec<RuleSet>,
             cost_fn: CostFn,
-        ) -> Vec<RewriteResult>;
+        ) -> Vec<RecExprFFI>;
         fn pretty(sexpr: &str, line_len: usize) -> String;
 
         fn equality_saturate_slotted(
             sexpr: &str,
             rulesets: Vec<RuleSet>,
             cost_fn: CostFn,
-        ) -> Vec<RewriteResult>;
+        ) -> Vec<RecExprFFI>;
         fn pretty_slotted(sexpr: &str, line_len: usize) -> String;
 
         fn mim_node_str(node: MimNode) -> String;
     }
 }
+
+impl fmt::Display for MimNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self.kind {
+            MimKind::Let => f.write_str("let"),
+            _ => f.write_str("todo"),
+        }
+    }
+}
+
+/* ------------------------------------------------------------ */
+/* ---- Pretty-printing implementation from the egg library --- */
+/* ------------------------------------------------------------ */
+
+// Source: https://github.com/egraphs-good/egg/blob/main/src/sexp.rs
+#[allow(dead_code)]
+#[derive(Debug, Clone, PartialEq)]
+enum Sexpr {
+    String(String),
+    List(Vec<Sexpr>),
+    Empty,
+}
+
+impl fmt::Display for Sexpr {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Sexpr::String(s) => {
+                if s.contains(' ') || s.contains('(') || s.contains(')') || s.is_empty() {
+                    write!(f, "\"{}\"", s)
+                } else {
+                    write!(f, "{}", s)
+                }
+            }
+            Sexpr::List(items) => {
+                write!(f, "(")?;
+                for (i, item) in items.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, " ")?;
+                    }
+                    write!(f, "{}", item)?;
+                }
+                write!(f, ")")
+            }
+            Sexpr::Empty => write!(f, "()"),
+        }
+    }
+}
+
+// Source: https://github.com/egraphs-good/egg/blob/main/src/util.rs
+fn pretty_print(buf: &mut String, sexpr: &Sexpr, width: usize, level: usize) -> std::fmt::Result {
+    use std::fmt::Write;
+    if let Sexpr::List(list) = sexpr {
+        let indent = sexpr.to_string().len() > width;
+        write!(buf, "(")?;
+
+        for (i, val) in list.iter().enumerate() {
+            if indent && i > 0 {
+                writeln!(buf)?;
+                for _ in 0..level {
+                    write!(buf, "  ")?;
+                }
+            }
+            pretty_print(buf, val, width, level + 1)?;
+            if !indent && i < list.len() - 1 {
+                write!(buf, " ")?;
+            }
+        }
+
+        write!(buf, ")")?;
+        Ok(())
+    } else {
+        write!(buf, "{}", sexpr.to_string().trim_matches('"'))
+    }
+}
+
+// Source: https://github.com/egraphs-good/egg/blob/main/src/language.rs
+impl RecExprFFI {
+    fn to_sexpr(&self) -> Sexpr {
+        let last = self.nodes.len() - 1;
+        self.to_sexpr_rec(last, &mut |_| None)
+    }
+
+    fn to_sexpr_rec(&self, i: usize, f: &mut impl FnMut(u32) -> Option<String>) -> Sexpr {
+        let node = &self.nodes[i];
+        let op = Sexpr::String(node.to_string());
+        if node.children.is_empty() {
+            op
+        } else {
+            let mut vec = vec![op];
+            for child in node.children.iter() {
+                vec.push(if let Some(s) = f(*child) {
+                    return Sexpr::String(s);
+                } else if (*child as usize) < i {
+                    self.to_sexpr_rec(*child as usize, f)
+                } else {
+                    Sexpr::String(format!("<<<< CYCLE to {} = {:?} >>>>", i, node))
+                })
+            }
+            Sexpr::List(vec)
+        }
+    }
+
+    pub fn pretty(&self, width: usize) -> String {
+        let sexp = self.to_sexpr();
+
+        let mut buf = String::new();
+        pretty_print(&mut buf, &sexp, width, 1).unwrap();
+        buf
+    }
+}
+
+/* ------------------------------------------------------------ */
+/* ------------------------------------------------------------ */
+/* ------------------------------------------------------------ */
 
 fn new_mim(kind: MimKind, children: &[Id], num: Option<u64>, symbol: Option<String>) -> MimNode {
     let converted_ids = children.iter().map(|id| usize::from(*id) as u32).collect();
@@ -105,7 +222,7 @@ fn new_mim(kind: MimKind, children: &[Id], num: Option<u64>, symbol: Option<Stri
     }
 }
 
-pub fn rec_expr_to_res(rec_expr: &RecExpr<Mim>) -> RewriteResult {
+pub fn rec_expr_to_res(rec_expr: &RecExpr<Mim>) -> RecExprFFI {
     let mut nodes = Vec::new();
 
     for node in rec_expr {
@@ -145,7 +262,7 @@ pub fn rec_expr_to_res(rec_expr: &RecExpr<Mim>) -> RewriteResult {
         }
     }
 
-    RewriteResult { value: nodes }
+    RecExprFFI { nodes }
 }
 
 fn new_mim_slotted(
@@ -166,9 +283,9 @@ fn new_mim_slotted(
     }
 }
 
-pub fn rec_expr_to_res_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RewriteResult {
-    RewriteResult {
-        value: rec_expr_to_res_slotted_internal(rec_expr),
+pub fn rec_expr_to_res_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
+    RecExprFFI {
+        nodes: rec_expr_to_res_slotted_internal(rec_expr),
     }
 }
 
