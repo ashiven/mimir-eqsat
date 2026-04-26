@@ -1,5 +1,5 @@
 use crate::ffi::bridge::{CostFn, RecExprFFI, RuleSet};
-use crate::ffi::rec_expr_to_res_slotted;
+use crate::ffi::to_ffi_slotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
 use slotted_egraphs::*;
@@ -108,7 +108,7 @@ pub(crate) fn equality_saturate_ffi(
 ) -> Vec<RecExprFFI> {
     equality_saturate_internal(sexpr, rulesets, cost_fn)
         .iter()
-        .map(|res: &RecExpr<MimSlotted>| rec_expr_to_res_slotted(res))
+        .map(|res: &RecExpr<MimSlotted>| to_ffi_slotted(res))
         .collect()
 }
 

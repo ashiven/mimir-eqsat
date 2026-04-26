@@ -1,5 +1,5 @@
 use crate::ffi::bridge::{CostFn, RecExprFFI, RuleSet};
-use crate::ffi::rec_expr_to_res;
+use crate::ffi::to_ffi;
 use crate::mim_egg::analysis::MimAnalysis;
 use crate::mim_egg::rulesets::get_rules;
 use egg::*;
@@ -86,7 +86,7 @@ pub(crate) fn equality_saturate_ffi(
 ) -> Vec<RecExprFFI> {
     equality_saturate_internal(sexpr, rulesets, cost_fn)
         .iter()
-        .map(|res: &RecExpr<Mim>| rec_expr_to_res(res))
+        .map(|rec_expr: &RecExpr<Mim>| to_ffi(rec_expr))
         .collect()
 }
 

@@ -100,7 +100,39 @@ impl fmt::Display for MimNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.kind {
             MimKind::Let => f.write_str("let"),
-            _ => f.write_str("todo"),
+            MimKind::Lam => f.write_str("lam"),
+            MimKind::Con => f.write_str("con"),
+            MimKind::App => f.write_str("app"),
+            MimKind::Var => f.write_str("var"),
+            MimKind::Lit => f.write_str("lit"),
+            MimKind::Pack => f.write_str("pack"),
+            MimKind::Tuple => f.write_str("tuple"),
+            MimKind::Extract => f.write_str("extract"),
+            MimKind::Insert => f.write_str("insert"),
+            MimKind::Rule => f.write_str("rule"),
+            MimKind::Inj => f.write_str("inj"),
+            MimKind::Merge => f.write_str("merge"),
+            MimKind::Axm => f.write_str("axm"),
+            MimKind::Match => f.write_str("match"),
+            MimKind::Proxy => f.write_str("proxy"),
+            MimKind::Join => f.write_str("join"),
+            MimKind::Meet => f.write_str("meet"),
+            MimKind::Bot => f.write_str("bot"),
+            MimKind::Top => f.write_str("top"),
+            MimKind::Arr => f.write_str("arr"),
+            MimKind::Sigma => f.write_str("sigma"),
+            MimKind::Cn => f.write_str("cn"),
+            MimKind::Pi => f.write_str("pi"),
+            MimKind::Idx => f.write_str("idx"),
+            MimKind::Hole => f.write_str("hole"),
+            MimKind::Type => f.write_str("type"),
+            MimKind::Reform => f.write_str("reform"),
+            MimKind::Scope => f.write_str("scope"),
+            MimKind::Cons => f.write_str("cons"),
+            MimKind::Nil => f.write_str("nil"),
+            MimKind::Num => f.write_str(&self.num.to_string()),
+            MimKind::Symbol => f.write_str(&self.symbol),
+            _ => todo!(),
         }
     }
 }
@@ -222,7 +254,7 @@ fn new_mim(kind: MimKind, children: &[Id], num: Option<u64>, symbol: Option<Stri
     }
 }
 
-pub fn rec_expr_to_res(rec_expr: &RecExpr<Mim>) -> RecExprFFI {
+pub fn to_ffi(rec_expr: &RecExpr<Mim>) -> RecExprFFI {
     let mut nodes = Vec::new();
 
     for node in rec_expr {
@@ -283,17 +315,17 @@ fn new_mim_slotted(
     }
 }
 
-pub fn rec_expr_to_res_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
+pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
     RecExprFFI {
-        nodes: rec_expr_to_res_slotted_internal(rec_expr),
+        nodes: to_ffi_slotted_internal(rec_expr),
     }
 }
 
-pub fn rec_expr_to_res_slotted_internal(rec_expr: &RecExprSlotted<MimSlotted>) -> Vec<MimNode> {
+pub fn to_ffi_slotted_internal(rec_expr: &RecExprSlotted<MimSlotted>) -> Vec<MimNode> {
     let mut nodes = Vec::new();
 
     for child in &rec_expr.children {
-        let child_nodes = rec_expr_to_res_slotted_internal(child);
+        let child_nodes = to_ffi_slotted_internal(child);
         for child_node in child_nodes {
             if !nodes.contains(&child_node) {
                 nodes.push(child_node);
