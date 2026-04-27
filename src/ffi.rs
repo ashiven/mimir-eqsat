@@ -5,7 +5,7 @@ use bridge::{MimKind, NodeFFI, RecExprFFI};
 use egg::{Id, RecExpr};
 use slotted_egraphs::RecExpr as RecExprSlotted;
 use slotted_egraphs::{Id as IdSlotted, Language};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 
 #[cxx::bridge]
@@ -25,7 +25,7 @@ pub mod bridge {
         AstDepth,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Hash)]
     enum MimKind {
         Let,
         Lam,
@@ -62,7 +62,7 @@ pub mod bridge {
         Symbol,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Hash, Eq, Clone)]
     struct NodeFFI {
         kind: MimKind,
         children: Vec<u32>,
@@ -217,8 +217,29 @@ fn new_node_ffi(
 }
 
 pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
-    let mut idxmap = BTreeMap::<IdSlotted, NodeFFI>::new();
+    let mut idxmap = BTreeMap::<usize, NodeFFI>::new();
     to_ffi_slotted_internal(rec_expr, &mut idxmap);
+
+    let mut unique_vars = BTreeMap::<usize, NodeFFI>::new();
+    let mut var_uses = HashMap::<NodeFFI, Vec<(usize, NodeFFI)>>::new();
+    analyze_var_uses(rec_expr, &mut var_uses, &mut unique_vars);
+
+    if !unique_vars.is_empty() {
+        // 1) Shift all indices in idxmap (both the keys and the ffi nodes' child indices)
+        //    that are greater than the first var index up by the number of vars we want to insert.
+        let var_start_idx = *unique_vars
+            .keys()
+            .min()
+            .expect("Failed to get var start idx");
+        let var_count = unique_vars.len() - 1; // Not counting the var already in idxmap
+        shift_indices(var_start_idx, var_count, &mut idxmap);
+
+        // 2) Insert the vars above the var start idx (we made space for them in the previous step)
+        idxmap.extend(unique_vars);
+
+        // 3) Go over idxmap and adjust child indices according to var_uses
+        // // TODO:
+    }
 
     let mut nodes = Vec::new();
     for (_id, mimnode) in idxmap {
@@ -229,9 +250,62 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
     RecExprFFI { nodes }
 }
 
+fn shift_indices(offset: usize, shift_amount: usize, idxmap: &mut BTreeMap<usize, NodeFFI>) {
+    let shift_children = move |children: &mut Vec<u32>| {
+        children.iter_mut().for_each(|c| {
+            if *c > (offset as u32) {
+                *c += shift_amount as u32;
+            }
+        })
+    };
+
+    let shifted: BTreeMap<usize, NodeFFI> = idxmap
+        .iter_mut()
+        .map(|(idx, node)| {
+            let mut new_node = node.clone();
+            shift_children(&mut new_node.children);
+
+            if *idx > offset {
+                (*idx + shift_amount, new_node)
+            } else {
+                (*idx, new_node)
+            }
+        })
+        .collect();
+
+    *idxmap = shifted;
+}
+
+// var_uses: Parent Node -> Vec<(Child Idx, Child Node)>
+// - Maps every ffi node to the var nodes they use (have as children)
+//   and the index at which they have them as child nodes
+//
+// unique_vars: BTreeMap<Var Id, Var Node>
+// - Stores every unique variable along with its Id
+fn analyze_var_uses(
+    rec_expr: &RecExprSlotted<MimSlotted>,
+    var_uses: &mut HashMap<NodeFFI, Vec<(usize, NodeFFI)>>,
+    unique_vars: &mut BTreeMap<usize, NodeFFI>,
+) {
+    for (child_idx, child) in rec_expr.children.iter().enumerate() {
+        if let MimSlotted::Var(_) = child.node {
+            let parent_node = to_node_ffi_slotted(rec_expr);
+            let child_node = to_node_ffi_slotted(child);
+            let parent_uses = var_uses.entry(parent_node).or_default();
+            parent_uses.push((child_idx, child_node.clone()));
+
+            let var_id = rec_expr.node.applied_id_occurrences()[child_idx];
+            if !unique_vars.values().any(|v| *v == child_node) {
+                unique_vars.insert(var_id.id.0 + unique_vars.len(), child_node);
+            }
+        }
+        analyze_var_uses(child, var_uses, unique_vars);
+    }
+}
+
 fn to_ffi_slotted_internal(
     rec_expr: &RecExprSlotted<MimSlotted>,
-    idxmap: &mut BTreeMap<IdSlotted, NodeFFI>,
+    idxmap: &mut BTreeMap<usize, NodeFFI>,
 ) {
     for (child_id, child) in rec_expr
         .node
@@ -240,12 +314,7 @@ fn to_ffi_slotted_internal(
         .zip(&rec_expr.children)
     {
         let child_node = to_node_ffi_slotted(child);
-        idxmap.insert(child_id.id, child_node);
-        // TODO: Vars all have the same id even though they contain
-        // different slots so they end up replacing each other in the
-        // idxmap and we end up with the same slot in every single var use.
-        // - the whole index shifting thing didn't work
-        // - maybe add another list of vars to the ffi apart from children?
+        idxmap.insert(child_id.id.0, child_node);
         to_ffi_slotted_internal(child, idxmap);
     }
 }
