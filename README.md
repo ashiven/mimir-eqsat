@@ -52,6 +52,16 @@ rust::String pretty(std::string sexpr, size_t line_len);
 rust::String pretty_slotted(std::string sexpr, size_t line_len);
 ```
 
+```cpp
+/**
+ *  Pretty-prints an sexpr represented by a Vec<RecExprFFI>
+ *
+ *  sexprs:    a vector of symbolic expressions in RecExprFFI format (the result of equality saturation)
+ *  line_len:  the maximal line length after which the sexpr continues on a new line
+ */
+rust::String pretty_ffi(rust::Vec<RecExprFFI> sexprs, size_t line_len);
+```
+
 ## Installation
 
 There are multiple methods of integrating this library into an existing C++ project. The following lists the simplest one.
