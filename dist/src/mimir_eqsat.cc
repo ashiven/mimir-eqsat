@@ -834,7 +834,7 @@ enum class RuleSet : ::std::uint8_t;
 enum class CostFn : ::std::uint8_t;
 enum class MimKind : ::std::uint8_t;
 struct MimNode;
-struct RewriteResult;
+struct RecExprFFI;
 
 #ifndef CXXBRIDGE1_ENUM_RuleSet
 #define CXXBRIDGE1_ENUM_RuleSet
@@ -907,24 +907,24 @@ struct MimNode final {
 };
 #endif // CXXBRIDGE1_STRUCT_MimNode
 
-#ifndef CXXBRIDGE1_STRUCT_RewriteResult
-#define CXXBRIDGE1_STRUCT_RewriteResult
-struct RewriteResult final {
-  ::rust::Vec<::MimNode> value;
+#ifndef CXXBRIDGE1_STRUCT_RecExprFFI
+#define CXXBRIDGE1_STRUCT_RecExprFFI
+struct RecExprFFI final {
+  ::rust::Vec<::MimNode> nodes;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_RewriteResult
+#endif // CXXBRIDGE1_STRUCT_RecExprFFI
 
 extern "C" {
 bool cxxbridge1$194$MimNode$operator$eq(MimNode const &, MimNode const &) noexcept;
 bool cxxbridge1$194$MimNode$operator$ne(MimNode const &, MimNode const &) noexcept;
 
-void cxxbridge1$194$equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RewriteResult> *return$) noexcept;
+void cxxbridge1$194$equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RecExprFFI> *return$) noexcept;
 
 void cxxbridge1$194$pretty(::rust::Str sexpr, ::std::size_t line_len, ::rust::String *return$) noexcept;
 
-void cxxbridge1$194$equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RewriteResult> *return$) noexcept;
+void cxxbridge1$194$equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RecExprFFI> *return$) noexcept;
 
 void cxxbridge1$194$pretty_slotted(::rust::Str sexpr, ::std::size_t line_len, ::rust::String *return$) noexcept;
 
@@ -939,9 +939,9 @@ bool MimNode::operator!=(MimNode const &rhs) const noexcept {
   return cxxbridge1$194$MimNode$operator$ne(*this, rhs);
 }
 
-::rust::Vec<::RewriteResult> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
+::rust::Vec<::RecExprFFI> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
   ::rust::ManuallyDrop<::rust::Vec<::RuleSet>> rulesets$(::std::move(rulesets));
-  ::rust::MaybeUninit<::rust::Vec<::RewriteResult>> return$;
+  ::rust::MaybeUninit<::rust::Vec<::RecExprFFI>> return$;
   cxxbridge1$194$equality_saturate(sexpr, &rulesets$.value, cost_fn, &return$.value);
   return ::std::move(return$.value);
 }
@@ -952,9 +952,9 @@ bool MimNode::operator!=(MimNode const &rhs) const noexcept {
   return ::std::move(return$.value);
 }
 
-::rust::Vec<::RewriteResult> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
+::rust::Vec<::RecExprFFI> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
   ::rust::ManuallyDrop<::rust::Vec<::RuleSet>> rulesets$(::std::move(rulesets));
-  ::rust::MaybeUninit<::rust::Vec<::RewriteResult>> return$;
+  ::rust::MaybeUninit<::rust::Vec<::RecExprFFI>> return$;
   cxxbridge1$194$equality_saturate_slotted(sexpr, &rulesets$.value, cost_fn, &return$.value);
   return ::std::move(return$.value);
 }
@@ -991,14 +991,14 @@ void cxxbridge1$rust_vec$RuleSet$reserve_total(::rust::Vec<::RuleSet> *ptr, ::st
 void cxxbridge1$rust_vec$RuleSet$set_len(::rust::Vec<::RuleSet> *ptr, ::std::size_t len) noexcept;
 void cxxbridge1$rust_vec$RuleSet$truncate(::rust::Vec<::RuleSet> *ptr, ::std::size_t len) noexcept;
 
-void cxxbridge1$rust_vec$RewriteResult$new(::rust::Vec<::RewriteResult> const *ptr) noexcept;
-void cxxbridge1$rust_vec$RewriteResult$drop(::rust::Vec<::RewriteResult> *ptr) noexcept;
-::std::size_t cxxbridge1$rust_vec$RewriteResult$len(::rust::Vec<::RewriteResult> const *ptr) noexcept;
-::std::size_t cxxbridge1$rust_vec$RewriteResult$capacity(::rust::Vec<::RewriteResult> const *ptr) noexcept;
-::RewriteResult const *cxxbridge1$rust_vec$RewriteResult$data(::rust::Vec<::RewriteResult> const *ptr) noexcept;
-void cxxbridge1$rust_vec$RewriteResult$reserve_total(::rust::Vec<::RewriteResult> *ptr, ::std::size_t new_cap) noexcept;
-void cxxbridge1$rust_vec$RewriteResult$set_len(::rust::Vec<::RewriteResult> *ptr, ::std::size_t len) noexcept;
-void cxxbridge1$rust_vec$RewriteResult$truncate(::rust::Vec<::RewriteResult> *ptr, ::std::size_t len) noexcept;
+void cxxbridge1$rust_vec$RecExprFFI$new(::rust::Vec<::RecExprFFI> const *ptr) noexcept;
+void cxxbridge1$rust_vec$RecExprFFI$drop(::rust::Vec<::RecExprFFI> *ptr) noexcept;
+::std::size_t cxxbridge1$rust_vec$RecExprFFI$len(::rust::Vec<::RecExprFFI> const *ptr) noexcept;
+::std::size_t cxxbridge1$rust_vec$RecExprFFI$capacity(::rust::Vec<::RecExprFFI> const *ptr) noexcept;
+::RecExprFFI const *cxxbridge1$rust_vec$RecExprFFI$data(::rust::Vec<::RecExprFFI> const *ptr) noexcept;
+void cxxbridge1$rust_vec$RecExprFFI$reserve_total(::rust::Vec<::RecExprFFI> *ptr, ::std::size_t new_cap) noexcept;
+void cxxbridge1$rust_vec$RecExprFFI$set_len(::rust::Vec<::RecExprFFI> *ptr, ::std::size_t len) noexcept;
+void cxxbridge1$rust_vec$RecExprFFI$truncate(::rust::Vec<::RecExprFFI> *ptr, ::std::size_t len) noexcept;
 } // extern "C"
 
 namespace rust {
@@ -1068,36 +1068,36 @@ void Vec<::RuleSet>::truncate(::std::size_t len) {
   return cxxbridge1$rust_vec$RuleSet$truncate(this, len);
 }
 template <>
-Vec<::RewriteResult>::Vec() noexcept {
-  cxxbridge1$rust_vec$RewriteResult$new(this);
+Vec<::RecExprFFI>::Vec() noexcept {
+  cxxbridge1$rust_vec$RecExprFFI$new(this);
 }
 template <>
-void Vec<::RewriteResult>::drop() noexcept {
-  return cxxbridge1$rust_vec$RewriteResult$drop(this);
+void Vec<::RecExprFFI>::drop() noexcept {
+  return cxxbridge1$rust_vec$RecExprFFI$drop(this);
 }
 template <>
-::std::size_t Vec<::RewriteResult>::size() const noexcept {
-  return cxxbridge1$rust_vec$RewriteResult$len(this);
+::std::size_t Vec<::RecExprFFI>::size() const noexcept {
+  return cxxbridge1$rust_vec$RecExprFFI$len(this);
 }
 template <>
-::std::size_t Vec<::RewriteResult>::capacity() const noexcept {
-  return cxxbridge1$rust_vec$RewriteResult$capacity(this);
+::std::size_t Vec<::RecExprFFI>::capacity() const noexcept {
+  return cxxbridge1$rust_vec$RecExprFFI$capacity(this);
 }
 template <>
-::RewriteResult const *Vec<::RewriteResult>::data() const noexcept {
-  return cxxbridge1$rust_vec$RewriteResult$data(this);
+::RecExprFFI const *Vec<::RecExprFFI>::data() const noexcept {
+  return cxxbridge1$rust_vec$RecExprFFI$data(this);
 }
 template <>
-void Vec<::RewriteResult>::reserve_total(::std::size_t new_cap) noexcept {
-  return cxxbridge1$rust_vec$RewriteResult$reserve_total(this, new_cap);
+void Vec<::RecExprFFI>::reserve_total(::std::size_t new_cap) noexcept {
+  return cxxbridge1$rust_vec$RecExprFFI$reserve_total(this, new_cap);
 }
 template <>
-void Vec<::RewriteResult>::set_len(::std::size_t len) noexcept {
-  return cxxbridge1$rust_vec$RewriteResult$set_len(this, len);
+void Vec<::RecExprFFI>::set_len(::std::size_t len) noexcept {
+  return cxxbridge1$rust_vec$RecExprFFI$set_len(this, len);
 }
 template <>
-void Vec<::RewriteResult>::truncate(::std::size_t len) {
-  return cxxbridge1$rust_vec$RewriteResult$truncate(this, len);
+void Vec<::RecExprFFI>::truncate(::std::size_t len) {
+  return cxxbridge1$rust_vec$RecExprFFI$truncate(this, len);
 }
 } // namespace cxxbridge1
 } // namespace rust

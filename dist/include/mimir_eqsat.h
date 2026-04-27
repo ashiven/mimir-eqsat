@@ -805,7 +805,7 @@ enum class RuleSet : ::std::uint8_t;
 enum class CostFn : ::std::uint8_t;
 enum class MimKind : ::std::uint8_t;
 struct MimNode;
-struct RewriteResult;
+struct RecExprFFI;
 
 #ifndef CXXBRIDGE1_ENUM_RuleSet
 #define CXXBRIDGE1_ENUM_RuleSet
@@ -878,20 +878,20 @@ struct MimNode final {
 };
 #endif // CXXBRIDGE1_STRUCT_MimNode
 
-#ifndef CXXBRIDGE1_STRUCT_RewriteResult
-#define CXXBRIDGE1_STRUCT_RewriteResult
-struct RewriteResult final {
-  ::rust::Vec<::MimNode> value;
+#ifndef CXXBRIDGE1_STRUCT_RecExprFFI
+#define CXXBRIDGE1_STRUCT_RecExprFFI
+struct RecExprFFI final {
+  ::rust::Vec<::MimNode> nodes;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_RewriteResult
+#endif // CXXBRIDGE1_STRUCT_RecExprFFI
 
-::rust::Vec<::RewriteResult> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
+::rust::Vec<::RecExprFFI> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
 
 ::rust::String pretty(::rust::Str sexpr, ::std::size_t line_len) noexcept;
 
-::rust::Vec<::RewriteResult> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
+::rust::Vec<::RecExprFFI> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
 
 ::rust::String pretty_slotted(::rust::Str sexpr, ::std::size_t line_len) noexcept;
 
