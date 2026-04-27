@@ -224,9 +224,11 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
     let mut var_uses = HashMap::<NodeFFI, Vec<(usize, NodeFFI)>>::new();
     analyze_var_uses(rec_expr, &mut var_uses, &mut unique_vars);
 
+    // Since slotted-egraphs seems to represent (var $1) (var $2) ... all as the same Var node
+    // with the same Id, we have to manually insert Var nodes for every single slot into the idxmap.
+    // This is to ensure that references to different vars will not all reference the same node.
     if !unique_vars.is_empty() {
-        // 1) Shift all indices in idxmap (both the keys and the ffi nodes' child indices)
-        //    that are greater than the first var index up by the number of vars we want to insert.
+        // 1) Shift up indices in idxmap (both the keys and the ffi nodes' child indices)
         let var_start_idx = *unique_vars
             .keys()
             .min()
@@ -235,18 +237,15 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
         shift_indices(var_start_idx, var_count, &mut idxmap);
 
         // 2) Insert the vars above the var start idx (we made space for them in the previous step)
-        idxmap.extend(unique_vars);
+        idxmap.extend(unique_vars.clone());
 
         // 3) Go over idxmap and adjust child indices according to var_uses
-        // // TODO:
+        println!("BEFORE: {:#?}", idxmap);
+        adjust_var_uses(&mut idxmap, &mut var_uses, &unique_vars);
+        println!("AFTER: {:#?}", idxmap);
     }
 
-    let mut nodes = Vec::new();
-    for (_id, mimnode) in idxmap {
-        nodes.push(mimnode);
-    }
-    nodes.push(to_node_ffi_slotted(rec_expr));
-
+    let nodes = idxmap.values().cloned().collect();
     RecExprFFI { nodes }
 }
 
@@ -303,7 +302,46 @@ fn analyze_var_uses(
     }
 }
 
+fn adjust_var_uses(
+    idxmap: &mut BTreeMap<usize, NodeFFI>,
+    var_uses: &mut HashMap<NodeFFI, Vec<(usize, NodeFFI)>>,
+    unique_vars: &BTreeMap<usize, NodeFFI>,
+) {
+    let unique_vars_rev: HashMap<NodeFFI, usize> =
+        unique_vars.iter().map(|(k, v)| (v.clone(), *k)).collect();
+
+    let adjusted = idxmap
+        .iter_mut()
+        .map(|(idx, node)| {
+            let mut new_node = node.clone();
+
+            if let Some(var_uses) = var_uses.get(node) {
+                for (child_idx, child_node) in var_uses {
+                    let new_idx = *unique_vars_rev
+                        .get(child_node)
+                        .expect("did not find var id");
+                    new_node.children[*child_idx] = new_idx as u32;
+                }
+            }
+
+            (*idx, new_node)
+        })
+        .collect();
+
+    *idxmap = adjusted;
+}
+
 fn to_ffi_slotted_internal(
+    rec_expr: &RecExprSlotted<MimSlotted>,
+    idxmap: &mut BTreeMap<usize, NodeFFI>,
+) {
+    to_ffi_slotted_internal_(rec_expr, idxmap);
+    let root_node = to_node_ffi_slotted(rec_expr);
+    let root_id = idxmap.len();
+    idxmap.insert(root_id, root_node);
+}
+
+fn to_ffi_slotted_internal_(
     rec_expr: &RecExprSlotted<MimSlotted>,
     idxmap: &mut BTreeMap<usize, NodeFFI>,
 ) {
@@ -315,7 +353,7 @@ fn to_ffi_slotted_internal(
     {
         let child_node = to_node_ffi_slotted(child);
         idxmap.insert(child_id.id.0, child_node);
-        to_ffi_slotted_internal(child, idxmap);
+        to_ffi_slotted_internal_(child, idxmap);
     }
 }
 
