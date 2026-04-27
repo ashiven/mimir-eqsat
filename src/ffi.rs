@@ -220,27 +220,25 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
     let mut idxmap = BTreeMap::<usize, NodeFFI>::new();
     to_ffi_slotted_internal(rec_expr, &mut idxmap);
 
-    let mut unique_vars = BTreeMap::<usize, NodeFFI>::new();
-    let mut var_uses = HashMap::<NodeFFI, Vec<(usize, NodeFFI)>>::new();
-    analyze_var_uses(rec_expr, &mut var_uses, &mut unique_vars);
+    let mut vars = BTreeMap::<usize, NodeFFI>::new();
+    let mut var_uses = HashMap::<usize, Vec<(usize, NodeFFI)>>::new();
+    let root_id = idxmap.len();
+    analyze_var_uses(root_id, rec_expr, &mut var_uses, &mut vars);
 
     // Since slotted-egraphs seems to represent (var $1) (var $2) ... all as the same Var node
     // with the same Id, we have to manually insert Var nodes for every single slot into the idxmap.
     // This is to ensure that references to different vars will not all be to the the same node.
-    if !unique_vars.is_empty() {
+    if !vars.is_empty() {
         // 1) Shift up indices in idxmap (both the keys and the ffi nodes' child indices)
-        let var_start_idx = *unique_vars
-            .keys()
-            .min()
-            .expect("Failed to get var start idx");
-        let var_count = unique_vars.len() - 1; // Not counting the var already in idxmap
+        let var_start_idx = *vars.keys().min().expect("Failed to get var start idx");
+        let var_count = vars.len() - 1; // Not counting the var already in idxmap
         shift_indices(var_start_idx, var_count, &mut idxmap, &mut var_uses);
 
         // 2) Insert the vars above the var start idx (we made space for them in the previous step)
-        idxmap.extend(unique_vars.clone());
+        idxmap.extend(vars.clone());
 
         // 3) Go over idxmap and adjust child indices according to var_uses
-        adjust_var_uses(&mut idxmap, &mut var_uses, &unique_vars);
+        adjust_var_uses(&mut idxmap, &mut var_uses, &vars);
     }
 
     let nodes = idxmap.values().cloned().collect();
@@ -251,7 +249,7 @@ fn shift_indices(
     offset: usize,
     shift_amount: usize,
     idxmap: &mut BTreeMap<usize, NodeFFI>,
-    var_uses: &mut HashMap<NodeFFI, Vec<(usize, NodeFFI)>>,
+    var_uses: &mut HashMap<usize, Vec<(usize, NodeFFI)>>,
 ) {
     let shift_children = move |children: &mut Vec<u32>| {
         children.iter_mut().for_each(|c| {
@@ -279,62 +277,63 @@ fn shift_indices(
 
     let shifted_var_uses = var_uses
         .iter_mut()
-        .map(|(node, uses)| {
-            let mut shifted_user = node.clone();
-            shift_children(&mut shifted_user.children);
+        .map(|(idx, uses)| {
+            let new_uses = uses.clone();
 
-            (shifted_user, uses.clone())
+            if *idx > offset {
+                (*idx + shift_amount, new_uses)
+            } else {
+                (*idx, new_uses)
+            }
         })
         .collect();
 
     *var_uses = shifted_var_uses;
 }
 
-// var_uses: Parent Node -> Vec<(Child Idx, Child Node)>
+// var_uses: Parent Id -> Vec<(Child Idx, Child Node)>
 // - Maps every ffi node to the var nodes they use (have as children)
 //   and the index at which they have them as child nodes
 //
-// unique_vars: BTreeMap<Var Id, Var Node>
+// vars: Var Id -> Var Node
 // - Stores every unique variable along with its Id
 fn analyze_var_uses(
+    curr_id: usize,
     rec_expr: &RecExprSlotted<MimSlotted>,
-    var_uses: &mut HashMap<NodeFFI, Vec<(usize, NodeFFI)>>,
-    unique_vars: &mut BTreeMap<usize, NodeFFI>,
+    var_uses: &mut HashMap<usize, Vec<(usize, NodeFFI)>>,
+    vars: &mut BTreeMap<usize, NodeFFI>,
 ) {
     for (child_idx, child) in rec_expr.children.iter().enumerate() {
+        let child_id = rec_expr.node.applied_id_occurrences()[child_idx].id.0;
+
         if let MimSlotted::Var(_) = child.node {
-            let parent_node = to_node_ffi_slotted(rec_expr);
             let child_node = to_node_ffi_slotted(child);
-            let parent_uses = var_uses.entry(parent_node).or_default();
+            let parent_uses = var_uses.entry(curr_id).or_default();
             parent_uses.push((child_idx, child_node.clone()));
 
-            let var_id = rec_expr.node.applied_id_occurrences()[child_idx];
-            if !unique_vars.values().any(|v| *v == child_node) {
-                unique_vars.insert(var_id.id.0 + unique_vars.len(), child_node);
+            if !vars.values().any(|v| *v == child_node) {
+                vars.insert(child_id + vars.len(), child_node);
             }
         }
-        analyze_var_uses(child, var_uses, unique_vars);
+        analyze_var_uses(child_id, child, var_uses, vars);
     }
 }
 
 fn adjust_var_uses(
     idxmap: &mut BTreeMap<usize, NodeFFI>,
-    var_uses: &mut HashMap<NodeFFI, Vec<(usize, NodeFFI)>>,
-    unique_vars: &BTreeMap<usize, NodeFFI>,
+    var_uses: &mut HashMap<usize, Vec<(usize, NodeFFI)>>,
+    vars: &BTreeMap<usize, NodeFFI>,
 ) {
-    let unique_vars_rev: HashMap<NodeFFI, usize> =
-        unique_vars.iter().map(|(k, v)| (v.clone(), *k)).collect();
+    let vars_rev: HashMap<NodeFFI, usize> = vars.iter().map(|(k, v)| (v.clone(), *k)).collect();
 
     let adjusted = idxmap
         .iter_mut()
         .map(|(idx, node)| {
             let mut new_node = node.clone();
 
-            if let Some(var_uses) = var_uses.get(node) {
+            if let Some(var_uses) = var_uses.get(idx) {
                 for (child_idx, child_node) in var_uses {
-                    let new_idx = *unique_vars_rev
-                        .get(child_node)
-                        .expect("did not find var id");
+                    let new_idx = *vars_rev.get(child_node).expect("did not find var id");
                     new_node.children[*child_idx] = new_idx as u32;
                 }
             }
