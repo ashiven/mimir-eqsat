@@ -96,11 +96,11 @@ pub mod bridge {
     }
 }
 
-pub(crate) fn pretty_ffi(sexprs: Vec<RecExprFFI>, _line_len: usize) -> String {
+pub(crate) fn pretty_ffi(sexprs: Vec<RecExprFFI>, line_len: usize) -> String {
     let mut res = String::new();
 
     for (i, sexpr) in sexprs.iter().enumerate() {
-        res.push_str(&sexpr.pretty(80));
+        res.push_str(&sexpr.pretty(line_len));
         if i < sexprs.len() - 1 {
             res.push_str("\n\n");
         } else {
