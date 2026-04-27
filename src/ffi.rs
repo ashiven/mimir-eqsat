@@ -235,14 +235,13 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
             .expect("Failed to get var start idx");
         let var_count = unique_vars.len() - 1; // Not counting the var already in idxmap
         shift_indices(var_start_idx, var_count, &mut idxmap);
+        // TODO: this shift also needs to be applied to the value nodes of var_uses
 
         // 2) Insert the vars above the var start idx (we made space for them in the previous step)
         idxmap.extend(unique_vars.clone());
 
         // 3) Go over idxmap and adjust child indices according to var_uses
-        println!("BEFORE: {:#?}", idxmap);
         adjust_var_uses(&mut idxmap, &mut var_uses, &unique_vars);
-        println!("AFTER: {:#?}", idxmap);
     }
 
     let nodes = idxmap.values().cloned().collect();
