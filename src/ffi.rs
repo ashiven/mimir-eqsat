@@ -226,7 +226,7 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
 
     // Since slotted-egraphs seems to represent (var $1) (var $2) ... all as the same Var node
     // with the same Id, we have to manually insert Var nodes for every single slot into the idxmap.
-    // This is to ensure that references to different vars will not all reference the same node.
+    // This is to ensure that references to different vars will not all be to the the same node.
     if !unique_vars.is_empty() {
         // 1) Shift up indices in idxmap (both the keys and the ffi nodes' child indices)
         let var_start_idx = *unique_vars
@@ -234,8 +234,7 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
             .min()
             .expect("Failed to get var start idx");
         let var_count = unique_vars.len() - 1; // Not counting the var already in idxmap
-        shift_indices(var_start_idx, var_count, &mut idxmap);
-        // TODO: this shift also needs to be applied to the value nodes of var_uses
+        shift_indices(var_start_idx, var_count, &mut idxmap, &mut var_uses);
 
         // 2) Insert the vars above the var start idx (we made space for them in the previous step)
         idxmap.extend(unique_vars.clone());
@@ -248,7 +247,12 @@ pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
     RecExprFFI { nodes }
 }
 
-fn shift_indices(offset: usize, shift_amount: usize, idxmap: &mut BTreeMap<usize, NodeFFI>) {
+fn shift_indices(
+    offset: usize,
+    shift_amount: usize,
+    idxmap: &mut BTreeMap<usize, NodeFFI>,
+    var_uses: &mut HashMap<NodeFFI, Vec<(usize, NodeFFI)>>,
+) {
     let shift_children = move |children: &mut Vec<u32>| {
         children.iter_mut().for_each(|c| {
             if *c > (offset as u32) {
@@ -257,7 +261,7 @@ fn shift_indices(offset: usize, shift_amount: usize, idxmap: &mut BTreeMap<usize
         })
     };
 
-    let shifted: BTreeMap<usize, NodeFFI> = idxmap
+    let shifted_idxmap: BTreeMap<usize, NodeFFI> = idxmap
         .iter_mut()
         .map(|(idx, node)| {
             let mut new_node = node.clone();
@@ -271,7 +275,19 @@ fn shift_indices(offset: usize, shift_amount: usize, idxmap: &mut BTreeMap<usize
         })
         .collect();
 
-    *idxmap = shifted;
+    *idxmap = shifted_idxmap;
+
+    let shifted_var_uses = var_uses
+        .iter_mut()
+        .map(|(node, uses)| {
+            let mut shifted_user = node.clone();
+            shift_children(&mut shifted_user.children);
+
+            (shifted_user, uses.clone())
+        })
+        .collect();
+
+    *var_uses = shifted_var_uses;
 }
 
 // var_uses: Parent Node -> Vec<(Child Idx, Child Node)>
