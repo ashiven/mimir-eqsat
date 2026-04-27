@@ -1,4 +1,4 @@
-use ffi::bridge::{CostFn, MimNode, RecExprFFI, RuleSet};
+use ffi::bridge::{CostFn, NodeFFI, RecExprFFI, RuleSet};
 
 pub mod ffi;
 mod mim_egg;
@@ -24,6 +24,10 @@ pub fn pretty_slotted(sexpr: &str, line_len: usize) -> String {
     mim_slotted::pretty(sexpr, line_len)
 }
 
-pub fn mim_node_str(node: MimNode) -> String {
+pub fn node_ffi_str(node: NodeFFI) -> String {
     format!("{:?}", node)
+}
+
+pub fn pretty_ffi(sexprs: Vec<RecExprFFI>, line_len: usize) -> String {
+    ffi::pretty_ffi(sexprs, line_len)
 }
