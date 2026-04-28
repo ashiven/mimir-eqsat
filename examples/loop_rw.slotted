@@ -48,7 +48,7 @@
                           $f240
                           (scope
                             (extract (var $f255) (lit 2 (idx (lit 3 Nat))))
-                            (app (var $f242) (tuple (cons (var $f254) (cons (var $f253) nil))))))))))
+                            (app (var $f242) (tuple (cons (var $f245) (cons (var $f240) nil))))))))))
                 (let
                   $f253
                   (scope
@@ -68,7 +68,7 @@
                               (scope
                                 (app
                                   (app (app %core.wrap.add (lit i32 Nat)) (lit 0 Nat))
-                                  (tuple (cons (lit 1 I32) (cons (var $f253) nil))))
+                                  (tuple (cons (lit 1 I32) (cons (var $f251) nil))))
                                 (let
                                   $f247
                                   (scope
@@ -78,10 +78,10 @@
                                       (scope
                                         (app
                                           (app (app %core.wrap.add (lit i32 Nat)) (lit 0 Nat))
-                                          (tuple (cons (var $f254) (cons (var $f253) nil))))
+                                          (tuple (cons (var $f251) (cons (var $f247) nil))))
                                         (app
                                           (var $f256)
-                                          (tuple (cons (var $f252) (cons (var $f254) (cons (var $f253) nil)))))))))))))))
+                                          (tuple (cons (var $f252) (cons (var $f249) (cons (var $f243) nil)))))))))))))))
                     (let
                       $f250
                       (scope
@@ -95,7 +95,7 @@
                               (scope
                                 (app
                                   (app %core.icmp.XygLe (lit i32 Nat))
-                                  (tuple (cons (var $f254) (cons (var $f253) nil))))
+                                  (tuple (cons (var $f250) (cons (var $f248) nil))))
                                 (let
                                   $f241
                                   (scope

@@ -4,8 +4,7 @@ use crate::{equality_saturate, equality_saturate_slotted, node_ffi_str, pretty, 
 use bridge::{MimKind, NodeFFI, RecExprFFI};
 use egg::{Id, RecExpr};
 use slotted_egraphs::RecExpr as RecExprSlotted;
-use slotted_egraphs::{Id as IdSlotted, Language};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::fmt;
 
 #[cxx::bridge]
@@ -217,286 +216,110 @@ fn new_node_ffi(
 }
 
 pub fn to_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> RecExprFFI {
-    let mut idxmap = BTreeMap::<usize, NodeFFI>::new();
-    to_ffi_slotted_internal(rec_expr, &mut idxmap);
-
-    let mut vars = BTreeMap::<usize, NodeFFI>::new();
-    let mut var_uses = HashMap::<usize, Vec<(usize, NodeFFI)>>::new();
-    let root_id = idxmap.len();
-    analyze_var_uses(root_id, rec_expr, &mut var_uses, &mut vars);
-
-    // Since slotted-egraphs seems to represent (var $1) (var $2) ... all as the same Var node
-    // with the same Id, we have to manually insert Var nodes for every single slot into the idxmap.
-    // This is to ensure that references to different vars will not all be to the the same node.
-    if !vars.is_empty() {
-        // 1) Shift up indices in idxmap (both the keys and the ffi nodes' child indices)
-        let var_start_idx = *vars.keys().min().expect("Failed to get var start idx");
-        let var_count = vars.len() - 1; // Not counting the var already in idxmap
-        shift_indices(var_start_idx, var_count, &mut idxmap, &mut var_uses);
-
-        // 2) Insert the vars above the var start idx (we made space for them in the previous step)
-        idxmap.extend(vars.clone());
-
-        // 3) Go over idxmap and adjust child indices according to var_uses
-        adjust_var_uses(&mut idxmap, &mut var_uses, &vars);
-    }
-
-    let nodes = idxmap.values().cloned().collect();
+    let mut nodes: Vec<NodeFFI> = Vec::new();
+    let mut added = HashMap::<NodeFFI, usize>::new();
+    to_ffi_slotted_internal(rec_expr, &mut nodes, &mut added);
     RecExprFFI { nodes }
-}
-
-fn shift_indices(
-    offset: usize,
-    shift_amount: usize,
-    idxmap: &mut BTreeMap<usize, NodeFFI>,
-    var_uses: &mut HashMap<usize, Vec<(usize, NodeFFI)>>,
-) {
-    let shift_children = move |children: &mut Vec<u32>| {
-        children.iter_mut().for_each(|c| {
-            if *c > (offset as u32) {
-                *c += shift_amount as u32;
-            }
-        })
-    };
-
-    let shifted_idxmap: BTreeMap<usize, NodeFFI> = idxmap
-        .iter_mut()
-        .map(|(idx, node)| {
-            let mut new_node = node.clone();
-            shift_children(&mut new_node.children);
-
-            if *idx > offset {
-                (*idx + shift_amount, new_node)
-            } else {
-                (*idx, new_node)
-            }
-        })
-        .collect();
-
-    *idxmap = shifted_idxmap;
-
-    let shifted_var_uses = var_uses
-        .iter_mut()
-        .map(|(idx, uses)| {
-            let new_uses = uses.clone();
-
-            if *idx > offset {
-                (*idx + shift_amount, new_uses)
-            } else {
-                (*idx, new_uses)
-            }
-        })
-        .collect();
-
-    *var_uses = shifted_var_uses;
-}
-
-// var_uses: Parent Id -> Vec<(Child Idx, Child Node)>
-// - Maps every ffi node to the var nodes they use (have as children)
-//   and the index at which they have them as child nodes
-//
-// vars: Var Id -> Var Node
-// - Stores every unique variable along with its Id
-fn analyze_var_uses(
-    curr_id: usize,
-    rec_expr: &RecExprSlotted<MimSlotted>,
-    var_uses: &mut HashMap<usize, Vec<(usize, NodeFFI)>>,
-    vars: &mut BTreeMap<usize, NodeFFI>,
-) {
-    for (child_idx, child) in rec_expr.children.iter().enumerate() {
-        let child_id = rec_expr.node.applied_id_occurrences()[child_idx].id.0;
-
-        if let MimSlotted::Var(_) = child.node {
-            let child_node = to_node_ffi_slotted(child);
-            let parent_uses = var_uses.entry(curr_id).or_default();
-            parent_uses.push((child_idx, child_node.clone()));
-
-            if !vars.values().any(|v| *v == child_node) {
-                vars.insert(child_id + vars.len(), child_node);
-            }
-        }
-        analyze_var_uses(child_id, child, var_uses, vars);
-    }
-}
-
-fn adjust_var_uses(
-    idxmap: &mut BTreeMap<usize, NodeFFI>,
-    var_uses: &mut HashMap<usize, Vec<(usize, NodeFFI)>>,
-    vars: &BTreeMap<usize, NodeFFI>,
-) {
-    let vars_rev: HashMap<NodeFFI, usize> = vars.iter().map(|(k, v)| (v.clone(), *k)).collect();
-
-    let adjusted = idxmap
-        .iter_mut()
-        .map(|(idx, node)| {
-            let mut new_node = node.clone();
-
-            if let Some(var_uses) = var_uses.get(idx) {
-                for (child_idx, child_node) in var_uses {
-                    let new_idx = *vars_rev.get(child_node).expect("did not find var id");
-                    new_node.children[*child_idx] = new_idx as u32;
-                }
-            }
-
-            (*idx, new_node)
-        })
-        .collect();
-
-    *idxmap = adjusted;
 }
 
 fn to_ffi_slotted_internal(
     rec_expr: &RecExprSlotted<MimSlotted>,
-    idxmap: &mut BTreeMap<usize, NodeFFI>,
-) {
-    to_ffi_slotted_internal_(rec_expr, idxmap);
-    let root_node = to_node_ffi_slotted(rec_expr);
-    let root_id = idxmap.len();
-    idxmap.insert(root_id, root_node);
-}
-
-fn to_ffi_slotted_internal_(
-    rec_expr: &RecExprSlotted<MimSlotted>,
-    idxmap: &mut BTreeMap<usize, NodeFFI>,
-) {
-    for (child_id, child) in rec_expr
-        .node
-        .applied_id_occurrences()
+    nodes: &mut Vec<NodeFFI>,
+    added: &mut HashMap<NodeFFI, usize>,
+) -> usize {
+    let child_ids: Vec<usize> = rec_expr
+        .children
         .iter()
-        .zip(&rec_expr.children)
-    {
-        let child_node = to_node_ffi_slotted(child);
-        idxmap.insert(child_id.id.0, child_node);
-        to_ffi_slotted_internal_(child, idxmap);
+        .map(|child| to_ffi_slotted_internal(child, nodes, added))
+        .collect();
+
+    let new_node = to_node_ffi_slotted(rec_expr, &child_ids);
+
+    if added.contains_key(&new_node) {
+        return *added.get(&new_node).unwrap();
     }
+
+    let id = nodes.len();
+    nodes.push(new_node);
+    id
 }
 
-fn to_node_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>) -> NodeFFI {
+fn to_node_ffi_slotted(rec_expr: &RecExprSlotted<MimSlotted>, children: &[usize]) -> NodeFFI {
     match &rec_expr.node {
         MimSlotted::Let(bind) => new_node_ffi_slotted(
             MimKind::Let,
-            &[bind.elem.id],
+            children,
             None,
             None,
             Some(format!("{}", bind.slot)),
         ),
-        MimSlotted::Lam(ext, name, dom, codom, bind) => new_node_ffi_slotted(
+        MimSlotted::Lam(.., bind) => new_node_ffi_slotted(
             MimKind::Lam,
-            &[ext.id, name.id, dom.id, codom.id, bind.elem.id],
+            children,
             None,
             None,
             Some(format!("{}", bind.slot)),
         ),
-        MimSlotted::Con(ext, name, dom, bind) => new_node_ffi_slotted(
+        MimSlotted::Con(.., bind) => new_node_ffi_slotted(
             MimKind::Con,
-            &[ext.id, name.id, dom.id, bind.elem.id],
+            children,
             None,
             None,
             Some(format!("{}", bind.slot)),
         ),
-        MimSlotted::Scope(filter, body) => {
-            new_node_ffi_slotted(MimKind::Scope, &[filter.id, body.id], None, None, None)
-        }
-        MimSlotted::App(callee, arg) => {
-            new_node_ffi_slotted(MimKind::App, &[callee.id, arg.id], None, None, None)
-        }
-        MimSlotted::Var(slot) => {
-            new_node_ffi_slotted(MimKind::Var, &[], None, None, Some(format!("{}", slot)))
-        }
-        MimSlotted::Lit(val, type_) => {
-            new_node_ffi_slotted(MimKind::Lit, &[val.id, type_.id], None, None, None)
-        }
-        MimSlotted::Pack(arity, body) => {
-            new_node_ffi_slotted(MimKind::Pack, &[arity.id, body.id], None, None, None)
-        }
-        MimSlotted::Tuple(elem_cons) => {
-            new_node_ffi_slotted(MimKind::Tuple, &[elem_cons.id], None, None, None)
-        }
-        MimSlotted::Extract(tuple, index) => {
-            new_node_ffi_slotted(MimKind::Extract, &[tuple.id, index.id], None, None, None)
-        }
-        MimSlotted::Insert(tuple, index, value) => new_node_ffi_slotted(
-            MimKind::Insert,
-            &[tuple.id, index.id, value.id],
+        MimSlotted::Scope(..) => new_node_ffi_slotted(MimKind::Scope, children, None, None, None),
+        MimSlotted::App(..) => new_node_ffi_slotted(MimKind::App, children, None, None, None),
+        MimSlotted::Var(slot) => new_node_ffi_slotted(
+            MimKind::Var,
+            children,
             None,
             None,
-            None,
+            Some(format!("{}", slot)),
         ),
-        MimSlotted::Rule(name, meta_var, lhs, rhs, guard) => new_node_ffi_slotted(
-            MimKind::Rule,
-            &[name.id, meta_var.id, lhs.id, rhs.id, guard.id],
-            None,
-            None,
-            None,
-        ),
-        MimSlotted::Inj(type_, val) => {
-            new_node_ffi_slotted(MimKind::Inj, &[type_.id, val.id], None, None, None)
+        MimSlotted::Lit(..) => new_node_ffi_slotted(MimKind::Lit, children, None, None, None),
+        MimSlotted::Pack(..) => new_node_ffi_slotted(MimKind::Pack, children, None, None, None),
+        MimSlotted::Tuple(..) => new_node_ffi_slotted(MimKind::Tuple, children, None, None, None),
+        MimSlotted::Extract(..) => {
+            new_node_ffi_slotted(MimKind::Extract, children, None, None, None)
         }
-        MimSlotted::Merge(type_, type_cons) => {
-            new_node_ffi_slotted(MimKind::Merge, &[type_.id, type_cons.id], None, None, None)
-        }
-        MimSlotted::Axm(name, type_) => {
-            new_node_ffi_slotted(MimKind::Axm, &[name.id, type_.id], None, None, None)
-        }
-        MimSlotted::Match(op_cons) => {
-            new_node_ffi_slotted(MimKind::Match, &[op_cons.id], None, None, None)
-        }
-        MimSlotted::Proxy(type_, pass, tag, op_cons) => new_node_ffi_slotted(
-            MimKind::Proxy,
-            &[type_.id, pass.id, tag.id, op_cons.id],
-            None,
-            None,
-            None,
-        ),
-        MimSlotted::Join(type_cons) => {
-            new_node_ffi_slotted(MimKind::Join, &[type_cons.id], None, None, None)
-        }
-        MimSlotted::Meet(type_cons) => {
-            new_node_ffi_slotted(MimKind::Meet, &[type_cons.id], None, None, None)
-        }
-        MimSlotted::Bot(type_) => new_node_ffi_slotted(MimKind::Bot, &[type_.id], None, None, None),
-        MimSlotted::Top(type_) => new_node_ffi_slotted(MimKind::Top, &[type_.id], None, None, None),
-        MimSlotted::Arr(arity, body) => {
-            new_node_ffi_slotted(MimKind::Arr, &[arity.id, body.id], None, None, None)
-        }
-        MimSlotted::Sigma(type_cons) => {
-            new_node_ffi_slotted(MimKind::Sigma, &[type_cons.id], None, None, None)
-        }
-        MimSlotted::Cn(domain) => new_node_ffi_slotted(MimKind::Cn, &[domain.id], None, None, None),
-        MimSlotted::Pi(domain, codomain) => {
-            new_node_ffi_slotted(MimKind::Pi, &[domain.id, codomain.id], None, None, None)
-        }
-        MimSlotted::Idx(size) => new_node_ffi_slotted(MimKind::Idx, &[size.id], None, None, None),
-        MimSlotted::Hole(type_) => {
-            new_node_ffi_slotted(MimKind::Hole, &[type_.id], None, None, None)
-        }
-        MimSlotted::Type(level) => {
-            new_node_ffi_slotted(MimKind::Type, &[level.id], None, None, None)
-        }
-        MimSlotted::Reform(meta_type) => {
-            new_node_ffi_slotted(MimKind::Type, &[meta_type.id], None, None, None)
-        }
+        MimSlotted::Insert(..) => new_node_ffi_slotted(MimKind::Insert, children, None, None, None),
+        MimSlotted::Rule(..) => new_node_ffi_slotted(MimKind::Rule, children, None, None, None),
+        MimSlotted::Inj(..) => new_node_ffi_slotted(MimKind::Inj, children, None, None, None),
+        MimSlotted::Merge(..) => new_node_ffi_slotted(MimKind::Merge, children, None, None, None),
+        MimSlotted::Axm(..) => new_node_ffi_slotted(MimKind::Axm, children, None, None, None),
+        MimSlotted::Match(..) => new_node_ffi_slotted(MimKind::Match, children, None, None, None),
+        MimSlotted::Proxy(..) => new_node_ffi_slotted(MimKind::Proxy, children, None, None, None),
+        MimSlotted::Join(..) => new_node_ffi_slotted(MimKind::Join, children, None, None, None),
+        MimSlotted::Meet(..) => new_node_ffi_slotted(MimKind::Meet, children, None, None, None),
+        MimSlotted::Bot(..) => new_node_ffi_slotted(MimKind::Bot, children, None, None, None),
+        MimSlotted::Top(..) => new_node_ffi_slotted(MimKind::Top, children, None, None, None),
+        MimSlotted::Arr(..) => new_node_ffi_slotted(MimKind::Arr, children, None, None, None),
+        MimSlotted::Sigma(..) => new_node_ffi_slotted(MimKind::Sigma, children, None, None, None),
+        MimSlotted::Cn(..) => new_node_ffi_slotted(MimKind::Cn, children, None, None, None),
+        MimSlotted::Pi(..) => new_node_ffi_slotted(MimKind::Pi, children, None, None, None),
+        MimSlotted::Idx(..) => new_node_ffi_slotted(MimKind::Idx, children, None, None, None),
+        MimSlotted::Hole(..) => new_node_ffi_slotted(MimKind::Hole, children, None, None, None),
+        MimSlotted::Type(..) => new_node_ffi_slotted(MimKind::Type, children, None, None, None),
+        MimSlotted::Reform(..) => new_node_ffi_slotted(MimKind::Type, children, None, None, None),
 
-        MimSlotted::Cons(elem, next) => {
-            new_node_ffi_slotted(MimKind::Cons, &[elem.id, next.id], None, None, None)
-        }
-        MimSlotted::Nil() => new_node_ffi_slotted(MimKind::Nil, &[], None, None, None),
+        MimSlotted::Cons(..) => new_node_ffi_slotted(MimKind::Cons, children, None, None, None),
+        MimSlotted::Nil() => new_node_ffi_slotted(MimKind::Nil, children, None, None, None),
 
-        MimSlotted::Num(n) => new_node_ffi_slotted(MimKind::Num, &[], Some(*n), None, None),
+        MimSlotted::Num(n) => new_node_ffi_slotted(MimKind::Num, children, Some(*n), None, None),
         MimSlotted::Symbol(s) => {
-            new_node_ffi_slotted(MimKind::Symbol, &[], None, Some(s.to_string()), None)
+            new_node_ffi_slotted(MimKind::Symbol, children, None, Some(s.to_string()), None)
         }
     }
 }
 
 fn new_node_ffi_slotted(
     kind: MimKind,
-    children: &[IdSlotted],
+    children: &[usize],
     num: Option<u64>,
     symbol: Option<String>,
     slot: Option<String>,
 ) -> NodeFFI {
-    let converted_ids = children.iter().map(|id| id.0 as u32).collect();
+    let converted_ids = children.iter().map(|id| *id as u32).collect();
 
     NodeFFI {
         kind,
