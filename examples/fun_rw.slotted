@@ -29,4 +29,3 @@
           (scope
             (extract (extract (var $f29) (lit ff Bool)) (lit 0 (idx (lit 3 Nat))))
             (app (var $f28) (tuple (cons (var $f27) (cons (lit 48 I32) nil))))))))))
-

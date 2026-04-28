@@ -1,10 +1,10 @@
 use std::fs;
 
-use crate::equality_saturate_slotted;
 use crate::ffi::bridge::{CostFn, RuleSet};
 use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::get_rules;
+use crate::{equality_saturate_slotted, pretty_ffi};
 use slotted_egraphs::*;
 
 fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
@@ -18,6 +18,8 @@ fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
     }
     res
 }
+
+const LINE_LEN: usize = 80;
 
 #[test]
 fn get_ruleset_default() {
@@ -50,8 +52,10 @@ fn parse_loop_slotted() {
 fn eqsat_loop_slotted() {
     let loop_slotted =
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
-    let _nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
-    // TODO: comparison against expected ffi nodes
+    let loop_slotted_rw =
+        fs::read_to_string("examples/loop_rw.slotted").expect("Failed to read loop_rw.slotted");
+    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    assert_eq!(pretty_ffi(nodes, LINE_LEN), loop_slotted_rw);
 }
 
 #[test]
@@ -65,9 +69,10 @@ fn parse_import_slotted() {
 fn eqsat_import_slotted() {
     let import_slotted =
         fs::read_to_string("examples/import.slotted").expect("Failed to read import.slotted");
-    let _nodes =
-        equality_saturate_slotted(&import_slotted, vec![RuleSet::Default], CostFn::AstSize);
-    // TODO: comparison against expected ffi nodes
+    let import_slotted_rw =
+        fs::read_to_string("examples/import_rw.slotted").expect("Failed to read import_rw.slotted");
+    let nodes = equality_saturate_slotted(&import_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    assert_eq!(pretty_ffi(nodes, LINE_LEN), import_slotted_rw);
 }
 
 #[test]
@@ -81,11 +86,12 @@ fn parse_fun_slotted() {
 fn eqsat_fun_slotted() {
     let fun_slotted =
         fs::read_to_string("examples/fun.slotted").expect("Failed to read fun.slotted");
-    let _nodes = equality_saturate_slotted(&fun_slotted, vec![RuleSet::Default], CostFn::AstSize);
-    // TODO: comparison against expected ffi nodes
+    let fun_slotted_rw =
+        fs::read_to_string("examples/fun_rw.slotted").expect("Failed to read fun_rw.slotted");
+    let nodes = equality_saturate_slotted(&fun_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    assert_eq!(pretty_ffi(nodes, LINE_LEN), fun_slotted_rw);
 }
 
-// TODO: Below test cases are faulty because the internal closed pow lam is referenced as (var $pow) but wasn't bound as such
 #[test]
 fn parse_pow_slotted() {
     let pow_slotted =
@@ -97,8 +103,10 @@ fn parse_pow_slotted() {
 fn eqsat_pow_slotted() {
     let pow_slotted =
         fs::read_to_string("examples/pow.slotted").expect("Failed to read pow.slotted");
-    let _nodes = equality_saturate_slotted(&pow_slotted, vec![RuleSet::Default], CostFn::AstSize);
-    // TODO: comparison against expected ffi nodes
+    let pow_slotted_rw =
+        fs::read_to_string("examples/pow_rw.slotted").expect("Failed to read pow_rw.slotted");
+    let nodes = equality_saturate_slotted(&pow_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    assert_eq!(pretty_ffi(nodes, LINE_LEN), pow_slotted_rw);
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs

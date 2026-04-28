@@ -7,8 +7,8 @@ use mimir_eqsat::{
 use std::fs;
 
 fn main() {
-    let example = fs::read_to_string("./examples/pow.slotted").expect("Failed to read file.");
+    let example = fs::read_to_string("./examples/import.slotted").expect("Failed to read file.");
     let nodes = equality_saturate_slotted(&example, vec![RuleSet::Default], CostFn::AstSize);
 
-    println!("{}", pretty_ffi(nodes, 80));
+    print!("{}", pretty_ffi(nodes, 80));
 }
