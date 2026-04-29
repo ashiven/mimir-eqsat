@@ -842,7 +842,7 @@ struct RecExprFFI;
 enum class RuleSet : ::std::uint8_t {
   Core = 0,
   Math = 1,
-  Default = 2,
+  Standard = 2,
 };
 #endif // CXXBRIDGE1_ENUM_RuleSet
 
@@ -885,11 +885,13 @@ enum class MimKind : ::std::uint8_t {
   Hole = 25,
   Type = 26,
   Reform = 27,
-  Scope = 28,
-  Cons = 29,
-  Nil = 30,
-  Num = 31,
-  Symbol = 32,
+  MetaVar = 28,
+  Root = 29,
+  Scope = 30,
+  Cons = 31,
+  Nil = 32,
+  Num = 33,
+  Symbol = 34,
 };
 #endif // CXXBRIDGE1_ENUM_MimKind
 
