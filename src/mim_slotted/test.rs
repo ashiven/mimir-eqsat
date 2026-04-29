@@ -21,6 +21,20 @@ fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
     res
 }
 
+fn eqsat_equals(file: &str, file_rw: &str) {
+    let slotted = fs::read_to_string(file).expect("Failed to read file.slotted");
+    let nodes = equality_saturate_slotted(&slotted, vec![], CostFn::AstSize);
+
+    let slotted = pretty_ffi(nodes, LINE_LEN);
+    let slotted_rw = fs::read_to_string(file_rw).expect("Failed to read file_rw.slotted");
+
+    let slot_re = Regex::new(r"\$[_A-Za-z0-9]+").unwrap();
+    let slotted = slot_re.replace_all(&slotted, "slot");
+    let slotted_rw = slot_re.replace_all(&slotted_rw, "slot");
+
+    assert_eq!(slotted, slotted_rw);
+}
+
 const LINE_LEN: usize = 80;
 
 #[test]
@@ -52,19 +66,7 @@ fn parse_loop_slotted() {
 
 #[test]
 fn eqsat_loop_slotted() {
-    let loop_slotted =
-        fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
-    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Standard], CostFn::AstSize);
-
-    let loop_slotted = pretty_ffi(nodes, LINE_LEN);
-    let loop_slotted_rw =
-        fs::read_to_string("examples/loop_rw.slotted").expect("Failed to read loop_rw.slotted");
-
-    let slot_re = Regex::new(r"\$[_A-Za-z0-9]+").unwrap();
-    let loop_slotted = slot_re.replace_all(&loop_slotted, "slot");
-    let loop_slotted_rw = slot_re.replace_all(&loop_slotted_rw, "slot");
-
-    assert_eq!(loop_slotted, loop_slotted_rw);
+    eqsat_equals("examples/loop.slotted", "examples/loop_rw.slotted");
 }
 
 #[test]
@@ -76,20 +78,7 @@ fn parse_import_slotted() {
 
 #[test]
 fn eqsat_import_slotted() {
-    let import_slotted =
-        fs::read_to_string("examples/import.slotted").expect("Failed to read import.slotted");
-    let nodes =
-        equality_saturate_slotted(&import_slotted, vec![RuleSet::Standard], CostFn::AstSize);
-
-    let import_slotted = pretty_ffi(nodes, LINE_LEN);
-    let import_slotted_rw =
-        fs::read_to_string("examples/import_rw.slotted").expect("Failed to read import_rw.slotted");
-
-    let slot_re = Regex::new(r"\$[_A-Za-z0-9]+").unwrap();
-    let import_slotted = slot_re.replace_all(&import_slotted, "slot");
-    let import_slotted_rw = slot_re.replace_all(&import_slotted_rw, "slot");
-
-    assert_eq!(import_slotted, import_slotted_rw);
+    eqsat_equals("examples/import.slotted", "examples/import_rw.slotted");
 }
 
 #[test]
@@ -99,15 +88,9 @@ fn parse_fun_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&fun_slotted);
 }
 
-// TODO:
 #[test]
 fn eqsat_fun_slotted() {
-    let fun_slotted =
-        fs::read_to_string("examples/fun.slotted").expect("Failed to read fun.slotted");
-    let fun_slotted_rw =
-        fs::read_to_string("examples/fun_rw.slotted").expect("Failed to read fun_rw.slotted");
-    let nodes = equality_saturate_slotted(&fun_slotted, vec![RuleSet::Standard], CostFn::AstSize);
-    assert_eq!(pretty_ffi(nodes, LINE_LEN), fun_slotted_rw);
+    eqsat_equals("examples/fun.slotted", "examples/fun_rw.slotted");
 }
 
 #[test]
@@ -117,15 +100,9 @@ fn parse_pow_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&pow_slotted);
 }
 
-// TODO:
 #[test]
 fn eqsat_pow_slotted() {
-    let pow_slotted =
-        fs::read_to_string("examples/pow.slotted").expect("Failed to read pow.slotted");
-    let pow_slotted_rw =
-        fs::read_to_string("examples/pow_rw.slotted").expect("Failed to read pow_rw.slotted");
-    let nodes = equality_saturate_slotted(&pow_slotted, vec![RuleSet::Standard], CostFn::AstSize);
-    assert_eq!(pretty_ffi(nodes, LINE_LEN), pow_slotted_rw);
+    eqsat_equals("examples/pow.slotted", "examples/pow_rw.slotted");
 }
 
 #[test]
