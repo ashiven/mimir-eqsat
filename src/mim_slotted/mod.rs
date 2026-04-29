@@ -1,5 +1,5 @@
-use crate::ffi::bridge::{CostFn, RecExprFFI, RuleSet};
-use crate::ffi::to_ffi_slotted;
+use crate::ffi::FFI;
+use crate::ffi::bridge::{CostFn, MimKind, RecExprFFI, RuleSet};
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
 use slotted_egraphs::*;
@@ -85,6 +85,11 @@ define_language! {
         Reform(AppliedId) = "reform",
 
 
+        // STRUCTURAL
+
+        // (root <extern> <name> <definition>)
+        // Root(AppliedId, AppliedId, AppliedId)
+
         // This is needed so we can bind a lambda variable to both its filter and body
         // and also bind a let variable to both its definition and its expression:
         // (scope <filter> <body>) or (scope <definition> <expression>)  i.e.: (let $foo (scope <def> <expr>))
@@ -108,7 +113,7 @@ pub(crate) fn equality_saturate_ffi(
 ) -> Vec<RecExprFFI> {
     equality_saturate_internal(sexpr, rulesets, cost_fn)
         .iter()
-        .map(|rec_expr: &RecExpr<MimSlotted>| to_ffi_slotted(rec_expr))
+        .map(|rec_expr: &RecExpr<MimSlotted>| rec_expr.to_ffi())
         .collect()
 }
 
@@ -140,10 +145,9 @@ fn equality_saturate_internal(
     let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
     sexprs.retain(|s| !s.trim().is_empty());
 
-    let rules = get_rules(rulesets);
+    let mut rules = get_rules(rulesets);
 
-    // TODO: Uncomment after implemented
-    // convert_rules(&mut sexprs, &mut rules);
+    convert_rules(&mut sexprs, &mut rules);
 
     match cost_fn {
         CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
@@ -177,66 +181,50 @@ where
     rewritten_sexprs
 }
 
-// TODO: Implement
-/*
 fn convert_rules(sexprs: &mut Vec<&str>, rules: &mut Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>) {
-    // Converts rewrite rules in sexpr form into rewrite rules usable in egg and then
-    // filters them out so we only have proper sexprs remaining to equality saturate in the next loop
     sexprs.retain(|sexpr| {
-        let parsed: RecExpr<MimSlotted> = sexpr.parse().unwrap();
-        if let Some((_id, MimSlotted::Rule(name, meta_var, lhs, rhs, _guard))) =
-            parsed.items().last()
-        {
-            let nth_node = |id: AppliedId| parsed.items().nth(usize::from(id)).unwrap().1.clone();
+        let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
 
-            let rule_name = if let Mim::Symbol(s) = nth_node(*name) {
-                s
-            } else {
-                panic!("Failed to parse rule name.")
-            };
+        // (rule <name> <meta_var> <lhs> <rhs> <guard>)
+        if let MimSlotted::Rule(..) = parsed.node {
+            let flattened = parsed.to_ffi();
+
+            let mut rule_name = "";
+            if let MimSlotted::Symbol(s) = parsed.children[0].node {
+                rule_name = s.into();
+            }
 
             let mut meta_vars: Vec<String> = Vec::new();
-            let meta_var_rexpr = nth_node(*meta_var).build_recexpr(nth_node);
-            for (_id, node) in meta_var_rexpr.items() {
-                if let MimSlotted::Var(ids) = node
-                    && let [var_name, ..] = &**ids
-                {
-                    if let Some((_id, MimSlotted::Symbol(s))) =
-                        meta_var_rexpr.items().nth(usize::from(*var_name))
-                    {
-                        meta_vars.push(s.to_string().clone());
-                    } else {
-                        panic!("Failed to parse meta variable name.")
-                    };
+            for node in flattened.nodes {
+                if node.kind == MimKind::Var {
+                    meta_vars.push(node.symbol.clone());
                 }
             }
 
-            let mut lhs_rexpr = nth_node(lhs).build_recexpr(nth_node);
-            for (_id, node) in lhs_rexpr.items_mut() {
-                if let MimSlotted::Symbol(s) = node
-                    && meta_vars.contains(s)
-                {
-                    s.insert(0, '?')
-                }
-            }
+            let mut lhs_rexpr = parsed.children[2].clone();
+            inject_meta_vars(&meta_vars, &mut lhs_rexpr);
 
-            let mut rhs_rexpr = nth_node(*rhs).build_recexpr(nth_node);
-            for (_id, node) in rhs_rexpr.items_mut() {
-                if let Mim::Symbol(s) = node
-                    && meta_vars.contains(s)
-                {
-                    s.insert(0, '?')
-                }
-            }
+            let mut rhs_rexpr = parsed.children[3].clone();
+            inject_meta_vars(&meta_vars, &mut rhs_rexpr);
 
-            let pat: Pattern<MimSlotted> = lhs_rexpr.pretty(80).parse().unwrap();
-            let outpat: Pattern<MimSlotted> = rhs_rexpr.pretty(80).parse().unwrap();
+            let pat = format!("{}", re_to_pattern(&lhs_rexpr));
+            let outpat = format!("{}", re_to_pattern(&rhs_rexpr));
             let rule: Rewrite<MimSlotted, MimSlottedAnalysis> =
-                Rewrite::new(rule_name, pat, outpat).unwrap();
+                Rewrite::new(rule_name, &pat, &outpat);
             rules.push(rule);
             false
         } else {
             true
         }
     });
-}*/
+}
+
+fn inject_meta_vars(meta_vars: &Vec<String>, rec_expr: &mut RecExpr<MimSlotted>) {
+    // for (_id, node) in rec_rexpr.items_mut() {
+    //     if let MimSlotted::Symbol(s) = node
+    //         && meta_vars.contains(s)
+    //     {
+    //         s.insert(0, '?')
+    //     }
+    // }
+}
