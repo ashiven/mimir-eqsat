@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <initializer_list>
 #include <iterator>
 #include <new>
@@ -918,7 +919,7 @@ struct RecExprFFI final {
 
 extern "C" {
 bool cxxbridge1$194$NodeFFI$operator$eq(NodeFFI const &, NodeFFI const &) noexcept;
-bool cxxbridge1$194$NodeFFI$operator$ne(NodeFFI const &, NodeFFI const &) noexcept;
+::std::size_t cxxbridge1$194$NodeFFI$operator$hash(NodeFFI const &) noexcept;
 
 void cxxbridge1$194$equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RecExprFFI> *return$) noexcept;
 
@@ -933,12 +934,20 @@ void cxxbridge1$194$pretty_ffi(::rust::Vec<::RecExprFFI> *sexpr, ::std::size_t l
 void cxxbridge1$194$node_ffi_str(::NodeFFI *node, ::rust::String *return$) noexcept;
 } // extern "C"
 
+namespace std {
+template <> struct hash<::NodeFFI> {
+  ::std::size_t operator()(::NodeFFI const &self) const noexcept {
+    return ::cxxbridge1$194$NodeFFI$operator$hash(self);
+  }
+};
+} // namespace std
+
 bool NodeFFI::operator==(NodeFFI const &rhs) const noexcept {
   return cxxbridge1$194$NodeFFI$operator$eq(*this, rhs);
 }
 
 bool NodeFFI::operator!=(NodeFFI const &rhs) const noexcept {
-  return cxxbridge1$194$NodeFFI$operator$ne(*this, rhs);
+  return !(*this == rhs);
 }
 
 ::rust::Vec<::RecExprFFI> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
