@@ -2,6 +2,7 @@ use crate::ffi::FFI;
 use crate::ffi::bridge::{CostFn, MimKind, RecExprFFI, RuleSet};
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
+use regex::Regex;
 use slotted_egraphs::*;
 
 pub mod analysis;
@@ -43,7 +44,7 @@ define_language! {
         Extract(AppliedId, AppliedId) = "extract",
         // (insert <tuple> <index> <value>)
         Insert(AppliedId, AppliedId, AppliedId) = "insert",
-        // (rule <name> <meta_var> <lhs> <rhs> <guard>)
+        // (rule <name> <meta-var-cons> <lhs> <rhs> <guard>)
         Rule(AppliedId, AppliedId, AppliedId, AppliedId, AppliedId) = "rule",
         // (inj <type> <value>)
         Inj(AppliedId, AppliedId) = "inj",
@@ -87,8 +88,18 @@ define_language! {
 
         // STRUCTURAL
 
+        // This is used to represent the meta variables introduced by rule declarations
+        // without clashing with the 'var' nodes using slots.
+        // (metavar <name> <type>)
+        MetaVar(AppliedId, AppliedId) = "metavar",
+
+        // A root-level sexpr (in most cases this will be a closed/top-level continuation)
+        // We introduce a node for this to avoid having to write (can extern main ...) to bind
+        // named, top-level constructs and can instead write (root extern main (con ...)).
+        // This allows us to omit names from lambda definitions entirely so we can get the full
+        // benefits of slotted-egraphs while still having a binder for such constructs.
         // (root <extern> <name> <definition>)
-        // Root(AppliedId, AppliedId, AppliedId)
+        Root(AppliedId, AppliedId, AppliedId) = "root",
 
         // This is needed so we can bind a lambda variable to both its filter and body
         // and also bind a let variable to both its definition and its expression:
@@ -118,11 +129,9 @@ pub(crate) fn equality_saturate_ffi(
 }
 
 pub(crate) fn pretty(sexpr: &str, _line_len: usize) -> String {
-    let normalized = sexpr.replace("\r\n", "\n");
-    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
-    sexprs.retain(|s| !s.trim().is_empty());
-    let mut res = String::new();
+    let sexprs = split_sexprs(sexpr);
 
+    let mut res = String::new();
     for (i, sexpr) in sexprs.iter().enumerate() {
         let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
         res.push_str(&parsed.to_string());
@@ -136,17 +145,25 @@ pub(crate) fn pretty(sexpr: &str, _line_len: usize) -> String {
     res
 }
 
+fn split_sexprs(sexpr: &str) -> Vec<String> {
+    let normalized = sexpr.replace("\r\n", "\n");
+
+    normalized
+        .split("\n\n")
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .collect()
+}
+
 fn equality_saturate_internal(
     sexpr: &str,
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
 ) -> Vec<RecExpr<MimSlotted>> {
-    let normalized = sexpr.replace("\r\n", "\n");
-    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
-    sexprs.retain(|s| !s.trim().is_empty());
+    let mut sexprs = split_sexprs(sexpr);
 
     let mut rules = get_rules(rulesets);
-
     convert_rules(&mut sexprs, &mut rules);
 
     match cost_fn {
@@ -156,7 +173,7 @@ fn equality_saturate_internal(
 }
 
 fn rewrite_sexprs<C, F>(
-    sexprs: Vec<&str>,
+    sexprs: Vec<String>,
     rules: Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>,
     cost_fn: F,
 ) -> Vec<RecExpr<MimSlotted>>
@@ -183,7 +200,10 @@ where
     rewritten_sexprs
 }
 
-fn convert_rules(sexprs: &mut Vec<&str>, rules: &mut Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>) {
+fn convert_rules(
+    sexprs: &mut Vec<String>,
+    rules: &mut Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>,
+) {
     sexprs.retain(|sexpr| {
         let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
 
@@ -197,23 +217,25 @@ fn convert_rules(sexprs: &mut Vec<&str>, rules: &mut Vec<Rewrite<MimSlotted, Mim
             }
 
             let mut meta_vars: Vec<String> = Vec::new();
-            for node in flattened.nodes {
-                if node.kind == MimKind::Var {
-                    meta_vars.push(node.symbol.clone());
+            for node in &flattened.nodes {
+                if node.kind == MimKind::MetaVar {
+                    let name = &flattened.nodes[node.children[0] as usize];
+                    meta_vars.push(name.symbol.clone());
                 }
             }
 
-            let mut lhs_rexpr = parsed.children[2].clone();
-            inject_meta_vars(&meta_vars, &mut lhs_rexpr);
+            let lhs_rexpr = &parsed.children[2];
+            let rhs_rexpr = &parsed.children[3];
 
-            let mut rhs_rexpr = parsed.children[3].clone();
-            inject_meta_vars(&meta_vars, &mut rhs_rexpr);
+            let mut pat = format!("{}", re_to_pattern(lhs_rexpr));
+            inject_meta_vars(&meta_vars, &mut pat);
+            let mut outpat = format!("{}", re_to_pattern(rhs_rexpr));
+            inject_meta_vars(&meta_vars, &mut outpat);
 
-            let pat = format!("{}", re_to_pattern(&lhs_rexpr));
-            let outpat = format!("{}", re_to_pattern(&rhs_rexpr));
             let rule: Rewrite<MimSlotted, MimSlottedAnalysis> =
                 Rewrite::new(rule_name, &pat, &outpat);
             rules.push(rule);
+
             false
         } else {
             true
@@ -221,12 +243,27 @@ fn convert_rules(sexprs: &mut Vec<&str>, rules: &mut Vec<Rewrite<MimSlotted, Mim
     });
 }
 
-fn inject_meta_vars(meta_vars: &Vec<String>, rec_expr: &mut RecExpr<MimSlotted>) {
-    // for (_id, node) in rec_rexpr.items_mut() {
-    //     if let MimSlotted::Symbol(s) = node
-    //         && meta_vars.contains(s)
-    //     {
-    //         s.insert(0, '?')
-    //     }
-    // }
+fn inject_meta_vars(meta_vars: &[String], pattern: &mut String) {
+    // We differentiate between meta vars with prefix "pat_" and meta vars with prefix "slot_".
+    // As the names suggest, the first kind are pattern vars and the second are slots
+
+    let re = Regex::new(r"(pat|slot)_([_A-Za-z0-9]+)").unwrap();
+
+    let res = re.replace_all(pattern, |caps: &regex::Captures| {
+        let kind = &caps[1];
+        let name = &caps[2];
+
+        let full_name = format!("{}_{}", kind, name);
+        if !meta_vars.contains(&full_name) {
+            return full_name;
+        }
+
+        match kind {
+            "pat" => format!("?{}", name),
+            "slot" => format!("(var ${})", name),
+            _ => unreachable!(),
+        }
+    });
+
+    *pattern = res.into_owned();
 }

@@ -74,14 +74,14 @@
                                   (scope
                                     (extract (var $f255) (lit 2 (idx (lit 3 Nat))))
                                     (let
-                                      $f243
+                                      $f244
                                       (scope
                                         (app
                                           (app (app %core.wrap.add (lit i32 Nat)) (lit 0 Nat))
                                           (tuple (cons (var $f251) (cons (var $f247) nil))))
                                         (app
                                           (var $f256)
-                                          (tuple (cons (var $f252) (cons (var $f249) (cons (var $f243) nil)))))))))))))))
+                                          (tuple (cons (var $f252) (cons (var $f249) (cons (var $f244) nil)))))))))))))))
                     (let
                       $f250
                       (scope
@@ -104,9 +104,9 @@
                                       (extract (tuple (cons (var $f254) (cons (var $f253) nil))) (var $f246))
                                       (var $f241))))))))))))))))
         (let
-          $f244
+          $f243
           (scope
             (extract (extract (var $f257) (lit ff Bool)) (lit 0 (idx (lit 3 Nat))))
             (app
               (var $f256)
-              (tuple (cons (var $f244) (cons (lit 0 I32) (cons (lit 0 I32) nil)))))))))))
+              (tuple (cons (var $f243) (cons (lit 0 I32) (cons (lit 0 I32) nil)))))))))))

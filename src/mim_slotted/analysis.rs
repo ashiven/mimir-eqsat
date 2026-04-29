@@ -1,7 +1,7 @@
 use crate::mim_slotted::MimSlotted;
 use slotted_egraphs::*;
 
-#[derive(Default, Clone)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct MimSlottedAnalysis;
 
 impl Analysis<MimSlotted> for MimSlottedAnalysis {

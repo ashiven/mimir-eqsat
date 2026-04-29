@@ -1,8 +1,10 @@
+use std::fmt::Pointer;
 use std::fs;
 
 use crate::ffi::bridge::{CostFn, RuleSet};
 use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
+use crate::mim_slotted::convert_rules;
 use crate::mim_slotted::get_rules;
 use crate::{equality_saturate_slotted, pretty_ffi};
 use slotted_egraphs::*;
@@ -48,6 +50,8 @@ fn parse_loop_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&loop_slotted);
 }
 
+// TODO: regex replace all $id in _rw.slotted and in pretty_ffi(nodes, LINE_LEN)
+// so we compare for equality apart from slot names
 #[test]
 fn eqsat_loop_slotted() {
     let loop_slotted =
@@ -108,6 +112,46 @@ fn eqsat_pow_slotted() {
         fs::read_to_string("examples/pow_rw.slotted").expect("Failed to read pow_rw.slotted");
     let nodes = equality_saturate_slotted(&pow_slotted, vec![RuleSet::Standard], CostFn::AstSize);
     assert_eq!(pretty_ffi(nodes, LINE_LEN), pow_slotted_rw);
+}
+
+#[test]
+fn convert_custom_rule() {
+    let rule = "
+(rule 
+    foo
+    (cons
+        (metavar
+            pat_a_22735
+            Nat)
+    (cons
+        (metavar
+            slot_b_22734
+            Nat)
+    nil))
+    (app
+        %core.nat.add
+        (tuple
+            (cons
+                (app
+                    %core.nat.sub
+                    (tuple
+                        (cons
+                            slot_b_22734
+                        (cons
+                            pat_a_22735
+                        nil))))
+            (cons
+                pat_a_22735
+            nil))))
+    slot_b_22734
+    (lit tt Bool))
+";
+
+    let mut sexprs = vec![rule.to_string()];
+    let mut rules = Vec::new();
+    convert_rules(&mut sexprs, &mut rules);
+
+    let _rule = &rules[0];
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs

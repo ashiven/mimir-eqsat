@@ -11,6 +11,7 @@ crate-type = ["rlib", "staticlib"]
 slotted-egraphs = { version = "0.0.36", features = ["explanations"] }
 egg = "0.11.0"
 cxx = "1.0"
+regex = "1.12.3"
 
 [build-dependencies]
 cxx-build = "1.0"
