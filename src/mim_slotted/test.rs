@@ -1,4 +1,4 @@
-use std::fmt::Pointer;
+use regex::Regex;
 use std::fs;
 
 use crate::ffi::bridge::{CostFn, RuleSet};
@@ -50,16 +50,21 @@ fn parse_loop_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&loop_slotted);
 }
 
-// TODO: regex replace all $id in _rw.slotted and in pretty_ffi(nodes, LINE_LEN)
-// so we compare for equality apart from slot names
 #[test]
 fn eqsat_loop_slotted() {
     let loop_slotted =
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
+    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Standard], CostFn::AstSize);
+
+    let loop_slotted = pretty_ffi(nodes, LINE_LEN);
     let loop_slotted_rw =
         fs::read_to_string("examples/loop_rw.slotted").expect("Failed to read loop_rw.slotted");
-    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Standard], CostFn::AstSize);
-    assert_eq!(pretty_ffi(nodes, LINE_LEN), loop_slotted_rw);
+
+    let slot_re = Regex::new(r"\$[_A-Za-z0-9]+").unwrap();
+    let loop_slotted = slot_re.replace_all(&loop_slotted, "slot");
+    let loop_slotted_rw = slot_re.replace_all(&loop_slotted_rw, "slot");
+
+    assert_eq!(loop_slotted, loop_slotted_rw);
 }
 
 #[test]
@@ -73,11 +78,18 @@ fn parse_import_slotted() {
 fn eqsat_import_slotted() {
     let import_slotted =
         fs::read_to_string("examples/import.slotted").expect("Failed to read import.slotted");
-    let import_slotted_rw =
-        fs::read_to_string("examples/import_rw.slotted").expect("Failed to read import_rw.slotted");
     let nodes =
         equality_saturate_slotted(&import_slotted, vec![RuleSet::Standard], CostFn::AstSize);
-    assert_eq!(pretty_ffi(nodes, LINE_LEN), import_slotted_rw);
+
+    let import_slotted = pretty_ffi(nodes, LINE_LEN);
+    let import_slotted_rw =
+        fs::read_to_string("examples/import_rw.slotted").expect("Failed to read import_rw.slotted");
+
+    let slot_re = Regex::new(r"\$[_A-Za-z0-9]+").unwrap();
+    let import_slotted = slot_re.replace_all(&import_slotted, "slot");
+    let import_slotted_rw = slot_re.replace_all(&import_slotted_rw, "slot");
+
+    assert_eq!(import_slotted, import_slotted_rw);
 }
 
 #[test]
@@ -87,6 +99,7 @@ fn parse_fun_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&fun_slotted);
 }
 
+// TODO:
 #[test]
 fn eqsat_fun_slotted() {
     let fun_slotted =
@@ -104,6 +117,7 @@ fn parse_pow_slotted() {
     let _parsed: Vec<RecExpr<MimSlotted>> = parse_sexprs(&pow_slotted);
 }
 
+// TODO:
 #[test]
 fn eqsat_pow_slotted() {
     let pow_slotted =
@@ -151,7 +165,7 @@ fn convert_custom_rule() {
     let mut rules = Vec::new();
     convert_rules(&mut sexprs, &mut rules);
 
-    let _rule = &rules[0];
+    assert_eq!(rules.len(), 1);
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
