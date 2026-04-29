@@ -8,7 +8,7 @@ use std::fs;
 
 fn main() {
     let example = fs::read_to_string("./examples/import.slotted").expect("Failed to read file.");
-    let nodes = equality_saturate_slotted(&example, vec![RuleSet::Default], CostFn::AstSize);
+    let nodes = equality_saturate_slotted(&example, vec![RuleSet::Standard], CostFn::AstSize);
 
     print!("{}", pretty_ffi(nodes, 80));
 }

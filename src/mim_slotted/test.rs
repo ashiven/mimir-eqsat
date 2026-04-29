@@ -22,23 +22,23 @@ fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
 const LINE_LEN: usize = 80;
 
 #[test]
-fn get_ruleset_default() {
-    let default = get_rules(vec![RuleSet::Default]);
-    assert_ne!(default.len(), 0);
+fn get_ruleset_standard() {
+    let standard = get_rules(vec![RuleSet::Standard]);
+    assert_ne!(standard.len(), 0);
 }
 
 #[test]
 fn let_var_same() {
     let a = "(let $foo (scope (lit 1 Nat) (var $foo)))";
     let b = "(lit 1 Nat)";
-    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
+    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
 #[test]
 fn bind_con_var_add0() {
     let a = "(con extern foo Nat $arg (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil))))))";
     let b = "(con extern foo Nat $arg (scope (lit ff Bool) (var $arg)))";
-    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Default]), 1);
+    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn eqsat_loop_slotted() {
         fs::read_to_string("examples/loop.slotted").expect("Failed to read loop.slotted");
     let loop_slotted_rw =
         fs::read_to_string("examples/loop_rw.slotted").expect("Failed to read loop_rw.slotted");
-    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    let nodes = equality_saturate_slotted(&loop_slotted, vec![RuleSet::Standard], CostFn::AstSize);
     assert_eq!(pretty_ffi(nodes, LINE_LEN), loop_slotted_rw);
 }
 
@@ -71,7 +71,8 @@ fn eqsat_import_slotted() {
         fs::read_to_string("examples/import.slotted").expect("Failed to read import.slotted");
     let import_slotted_rw =
         fs::read_to_string("examples/import_rw.slotted").expect("Failed to read import_rw.slotted");
-    let nodes = equality_saturate_slotted(&import_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    let nodes =
+        equality_saturate_slotted(&import_slotted, vec![RuleSet::Standard], CostFn::AstSize);
     assert_eq!(pretty_ffi(nodes, LINE_LEN), import_slotted_rw);
 }
 
@@ -88,7 +89,7 @@ fn eqsat_fun_slotted() {
         fs::read_to_string("examples/fun.slotted").expect("Failed to read fun.slotted");
     let fun_slotted_rw =
         fs::read_to_string("examples/fun_rw.slotted").expect("Failed to read fun_rw.slotted");
-    let nodes = equality_saturate_slotted(&fun_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    let nodes = equality_saturate_slotted(&fun_slotted, vec![RuleSet::Standard], CostFn::AstSize);
     assert_eq!(pretty_ffi(nodes, LINE_LEN), fun_slotted_rw);
 }
 
@@ -105,7 +106,7 @@ fn eqsat_pow_slotted() {
         fs::read_to_string("examples/pow.slotted").expect("Failed to read pow.slotted");
     let pow_slotted_rw =
         fs::read_to_string("examples/pow_rw.slotted").expect("Failed to read pow_rw.slotted");
-    let nodes = equality_saturate_slotted(&pow_slotted, vec![RuleSet::Default], CostFn::AstSize);
+    let nodes = equality_saturate_slotted(&pow_slotted, vec![RuleSet::Standard], CostFn::AstSize);
     assert_eq!(pretty_ffi(nodes, LINE_LEN), pow_slotted_rw);
 }
 

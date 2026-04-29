@@ -3,7 +3,7 @@ use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use slotted_egraphs::Rewrite;
 
-pub mod default;
+pub mod standard;
 
 pub fn get_rules(rulesets: Vec<RuleSet>) -> Vec<Rewrite<MimSlotted, MimSlottedAnalysis>> {
     let mut rules = Vec::new();
@@ -11,7 +11,7 @@ pub fn get_rules(rulesets: Vec<RuleSet>) -> Vec<Rewrite<MimSlotted, MimSlottedAn
     #[allow(clippy::single_match)]
     for ruleset in rulesets {
         match ruleset {
-            RuleSet::Default => rules.extend(default::rules()),
+            RuleSet::Standard => rules.extend(standard::rules()),
             _ => (),
         }
     }

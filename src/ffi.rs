@@ -15,7 +15,7 @@ pub mod bridge {
         Core,
         Math,
         // Slotted
-        Default,
+        Standard,
     }
 
     #[derive(Debug)]
