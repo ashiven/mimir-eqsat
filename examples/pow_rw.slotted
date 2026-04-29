@@ -45,72 +45,72 @@
   intern
   pow_22617
   (sigma (cons I32 (cons (cn I32) nil)))
-  $f200
+  $f182
   (scope
     (lit ff Bool)
     (let
-      $f199
+      $f181
       (scope
         (con
           intern
           pow_else_22627
           (sigma nil)
-          $f198
+          $f180
           (scope
             (lit ff Bool)
             (let
-              $f197
+              $f179
               (scope
                 (con
                   intern
                   pow_cont_22635
                   I32
-                  $f190
+                  $f172
                   (scope
                     (lit ff Bool)
                     (let
-                      $f186
+                      $f168
                       (scope
-                        (extract (var $f200) (lit tt Bool))
+                        (extract (var $f182) (lit tt Bool))
                         (app
-                          (var $f186)
+                          (var $f168)
                           (app
                             (app (app %core.wrap.mul (lit i32 Nat)) (lit 0 Nat))
-                            (tuple (cons (lit 3 I32) (cons (var $f190) nil)))))))))
+                            (tuple (cons (lit 3 I32) (cons (var $f172) nil)))))))))
                 (let
-                  $f193
+                  $f175
                   (scope
-                    (extract (var $f200) (lit ff Bool))
+                    (extract (var $f182) (lit ff Bool))
                     (let
-                      $f188
+                      $f170
                       (scope
                         (app
                           (app (app %core.wrap.add (lit i32 Nat)) (lit 0 Nat))
-                          (tuple (cons (lit 4294967295 I32) (cons (var $f193) nil))))
-                        (app pow_22617 (tuple (cons (var $f188) (cons (var $f197) nil))))))))))))
+                          (tuple (cons (lit 4294967295 I32) (cons (var $f175) nil))))
+                        (app pow_22617 (tuple (cons (var $f170) (cons (var $f179) nil))))))))))))
         (let
-          $f196
+          $f178
           (scope
             (con
               intern
               pow_then_22646
               (sigma nil)
-              $f184
+              $f166
               (scope
                 (lit ff Bool)
                 (let
-                  $f183
-                  (scope (extract (var $f200) (lit tt Bool)) (app (var $f183) (lit 1 I32))))))
+                  $f165
+                  (scope (extract (var $f182) (lit tt Bool)) (app (var $f165) (lit 1 I32))))))
             (let
-              $f192
+              $f174
               (scope
-                (extract (var $f200) (lit ff Bool))
+                (extract (var $f182) (lit ff Bool))
                 (let
-                  $f187
+                  $f169
                   (scope
                     (app
                       (app %core.icmp.xyglE (lit i32 Nat))
-                      (tuple (cons (lit 0 I32) (cons (var $f192) nil))))
+                      (tuple (cons (lit 0 I32) (cons (var $f174) nil))))
                     (app
-                      (extract (tuple (cons (var $f199) (cons (var $f196) nil))) (var $f187))
+                      (extract (tuple (cons (var $f181) (cons (var $f178) nil))) (var $f169))
                       (tuple nil))))))))))))
