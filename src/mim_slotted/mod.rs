@@ -166,15 +166,17 @@ where
 {
     let mut rewritten_sexprs: Vec<RecExpr<MimSlotted>> = Vec::new();
 
-    for sexpr in sexprs {
-        let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default()
-            .with_expr(&RecExpr::parse(sexpr).unwrap());
+    let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default();
+    for sexpr in &sexprs {
+        let rec_expr = RecExpr::parse(sexpr).unwrap();
+        runner = runner.with_expr(&rec_expr);
+    }
 
-        let _report = runner.run(&rules);
+    let _report = runner.run(&rules);
 
-        let extractor = Extractor::new(&runner.egraph, cost_fn());
-        let best_expr = extractor.extract(&runner.roots[0], &runner.egraph);
-
+    let extractor = Extractor::new(&runner.egraph, cost_fn());
+    for i in 0..sexprs.len() {
+        let best_expr = extractor.extract(&runner.roots[i], &runner.egraph);
         rewritten_sexprs.push(best_expr);
     }
 
