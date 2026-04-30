@@ -804,14 +804,15 @@ std::size_t align_of() {
 enum class RuleSet : ::std::uint8_t;
 enum class CostFn : ::std::uint8_t;
 enum class MimKind : ::std::uint8_t;
-struct MimNode;
-struct RewriteResult;
+struct NodeFFI;
+struct RecExprFFI;
 
 #ifndef CXXBRIDGE1_ENUM_RuleSet
 #define CXXBRIDGE1_ENUM_RuleSet
 enum class RuleSet : ::std::uint8_t {
   Core = 0,
   Math = 1,
+  Standard = 2,
 };
 #endif // CXXBRIDGE1_ENUM_RuleSet
 
@@ -854,43 +855,51 @@ enum class MimKind : ::std::uint8_t {
   Hole = 25,
   Type = 26,
   Reform = 27,
-  Cons = 28,
-  Nil = 29,
-  Num = 30,
-  Symbol = 31,
+  MetaVar = 28,
+  Root = 29,
+  Scope = 30,
+  Cons = 31,
+  Nil = 32,
+  Num = 33,
+  Symbol = 34,
 };
 #endif // CXXBRIDGE1_ENUM_MimKind
 
-#ifndef CXXBRIDGE1_STRUCT_MimNode
-#define CXXBRIDGE1_STRUCT_MimNode
-struct MimNode final {
+#ifndef CXXBRIDGE1_STRUCT_NodeFFI
+#define CXXBRIDGE1_STRUCT_NodeFFI
+struct NodeFFI final {
   ::MimKind kind;
   ::rust::Vec<::std::uint32_t> children;
-  ::std::int64_t num CXX_DEFAULT_VALUE(0);
+  ::std::uint64_t num CXX_DEFAULT_VALUE(0);
   ::rust::String symbol;
+  ::rust::String slot;
+
+  bool operator==(NodeFFI const &) const noexcept;
+  bool operator!=(NodeFFI const &) const noexcept;
+  using IsRelocatable = ::std::true_type;
+};
+#endif // CXXBRIDGE1_STRUCT_NodeFFI
+
+#ifndef CXXBRIDGE1_STRUCT_RecExprFFI
+#define CXXBRIDGE1_STRUCT_RecExprFFI
+struct RecExprFFI final {
+  ::rust::Vec<::NodeFFI> nodes;
 
   using IsRelocatable = ::std::true_type;
 };
-#endif // CXXBRIDGE1_STRUCT_MimNode
+#endif // CXXBRIDGE1_STRUCT_RecExprFFI
 
-#ifndef CXXBRIDGE1_STRUCT_RewriteResult
-#define CXXBRIDGE1_STRUCT_RewriteResult
-struct RewriteResult final {
-  ::rust::Vec<::MimNode> value;
-
-  using IsRelocatable = ::std::true_type;
-};
-#endif // CXXBRIDGE1_STRUCT_RewriteResult
-
-::rust::Vec<::RewriteResult> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
+::rust::Vec<::RecExprFFI> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
 
 ::rust::String pretty(::rust::Str sexpr, ::std::size_t line_len) noexcept;
 
-::rust::Vec<::RewriteResult> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
+::rust::Vec<::RecExprFFI> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
 
 ::rust::String pretty_slotted(::rust::Str sexpr, ::std::size_t line_len) noexcept;
 
-::rust::String mim_node_str(::MimNode node) noexcept;
+::rust::String pretty_ffi(::rust::Vec<::RecExprFFI> sexpr, ::std::size_t line_len) noexcept;
+
+::rust::String node_ffi_str(::NodeFFI node) noexcept;
 
 #ifdef __clang__
 #pragma clang diagnostic pop
