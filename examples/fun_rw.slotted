@@ -1,31 +1,32 @@
-(con
+(root
   extern
   main
-  (sigma
-    (cons
-      (sigma
-        (cons
-          (app %mem.M (lit 0 Nat))
+  (con
+    (sigma
+      (cons
+        (sigma
           (cons
-            I32
+            (app %mem.M (lit 0 Nat))
             (cons
-              (app
-                %mem.Ptr
-                (tuple
-                  (cons
-                    (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
-                    (cons (lit 0 Nat) nil))))
-              nil))))
-      (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
-  $f29
-  (scope
-    (lit ff Bool)
-    (let
-      $f28
-      (scope
-        (extract (var $f29) (lit tt Bool))
-        (let
-          $f27
-          (scope
-            (extract (extract (var $f29) (lit ff Bool)) (lit 0 (idx (lit 3 Nat))))
-            (app (var $f28) (tuple (cons (var $f27) (cons (lit 48 I32) nil))))))))))
+              I32
+              (cons
+                (app
+                  %mem.Ptr
+                  (tuple
+                    (cons
+                      (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
+                      (cons (lit 0 Nat) nil))))
+                nil))))
+        (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+    $f29
+    (scope
+      (lit ff Bool)
+      (let
+        $f28
+        (scope
+          (extract (var $f29) (lit tt Bool))
+          (let
+            $f27
+            (scope
+              (extract (extract (var $f29) (lit ff Bool)) (lit 0 (idx (lit 3 Nat))))
+              (app (var $f28) (tuple (cons (var $f27) (cons (lit 48 I32) nil)))))))))))

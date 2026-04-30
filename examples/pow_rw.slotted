@@ -1,116 +1,110 @@
-(con
+(root
   extern
   main
-  (sigma
-    (cons
-      (sigma
-        (cons
-          (app %mem.M (lit 0 Nat))
+  (con
+    (sigma
+      (cons
+        (sigma
           (cons
-            I32
+            (app %mem.M (lit 0 Nat))
             (cons
-              (app
-                %mem.Ptr
-                (tuple
-                  (cons
-                    (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
-                    (cons (lit 0 Nat) nil))))
-              nil))))
-      (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
-  $f177
-  (scope
-    (lit ff Bool)
-    (let
-      $f176
-      (scope
-        (con
-          intern
-          return_22606
-          I32
-          $f173
-          (scope
-            (lit ff Bool)
-            (let
-              $f171
-              (scope
-                (extract (var $f177) (lit tt Bool))
-                (let
-                  $f167
-                  (scope
-                    (extract (extract (var $f177) (lit ff Bool)) (lit 0 (idx (lit 3 Nat))))
-                    (app (var $f171) (tuple (cons (var $f167) (cons (var $f173) nil))))))))))
-        (app pow_22617 (tuple (cons (lit 4 I32) (cons (var $f176) nil))))))))
+              I32
+              (cons
+                (app
+                  %mem.Ptr
+                  (tuple
+                    (cons
+                      (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
+                      (cons (lit 0 Nat) nil))))
+                nil))))
+        (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+    $f177
+    (scope
+      (lit ff Bool)
+      (let
+        $f176
+        (scope
+          (con
+            I32
+            $f174
+            (scope
+              (lit ff Bool)
+              (let
+                $f171
+                (scope
+                  (extract (var $f177) (lit tt Bool))
+                  (let
+                    $f167
+                    (scope
+                      (extract (extract (var $f177) (lit ff Bool)) (lit 0 (idx (lit 3 Nat))))
+                      (app (var $f171) (tuple (cons (var $f167) (cons (var $f174) nil))))))))))
+          (app pow_22661 (tuple (cons (lit 4 I32) (cons (var $f176) nil)))))))))
 
-(con
+(root
   intern
-  pow_22617
-  (sigma (cons I32 (cons (cn I32) nil)))
-  $f182
-  (scope
-    (lit ff Bool)
-    (let
-      $f181
-      (scope
-        (con
-          intern
-          pow_else_22627
-          (sigma nil)
-          $f180
-          (scope
-            (lit ff Bool)
-            (let
-              $f179
-              (scope
-                (con
-                  intern
-                  pow_cont_22635
-                  I32
-                  $f172
-                  (scope
-                    (lit ff Bool)
-                    (let
-                      $f168
-                      (scope
-                        (extract (var $f182) (lit tt Bool))
-                        (app
-                          (var $f168)
+  pow_22661
+  (con
+    (sigma (cons I32 (cons (cn I32) nil)))
+    $f182
+    (scope
+      (lit ff Bool)
+      (let
+        $f181
+        (scope
+          (con
+            (sigma nil)
+            $f180
+            (scope
+              (lit ff Bool)
+              (let
+                $f179
+                (scope
+                  (con
+                    I32
+                    $f172
+                    (scope
+                      (lit ff Bool)
+                      (let
+                        $f169
+                        (scope
+                          (extract (var $f182) (lit tt Bool))
                           (app
-                            (app (app %core.wrap.mul (lit i32 Nat)) (lit 0 Nat))
-                            (tuple (cons (lit 3 I32) (cons (var $f172) nil)))))))))
-                (let
-                  $f175
-                  (scope
-                    (extract (var $f182) (lit ff Bool))
-                    (let
-                      $f170
-                      (scope
-                        (app
-                          (app (app %core.wrap.add (lit i32 Nat)) (lit 0 Nat))
-                          (tuple (cons (lit 4294967295 I32) (cons (var $f175) nil))))
-                        (app pow_22617 (tuple (cons (var $f170) (cons (var $f179) nil))))))))))))
-        (let
-          $f178
-          (scope
-            (con
-              intern
-              pow_then_22646
-              (sigma nil)
-              $f166
-              (scope
-                (lit ff Bool)
-                (let
-                  $f165
-                  (scope (extract (var $f182) (lit tt Bool)) (app (var $f165) (lit 1 I32))))))
-            (let
-              $f174
-              (scope
-                (extract (var $f182) (lit ff Bool))
-                (let
-                  $f169
-                  (scope
-                    (app
-                      (app %core.icmp.xyglE (lit i32 Nat))
-                      (tuple (cons (lit 0 I32) (cons (var $f174) nil))))
-                    (app
-                      (extract (tuple (cons (var $f181) (cons (var $f178) nil))) (var $f169))
-                      (tuple nil))))))))))))
+                            (var $f169)
+                            (app
+                              (app (app %core.wrap.mul (lit i32 Nat)) (lit 0 Nat))
+                              (tuple (cons (lit 3 I32) (cons (var $f172) nil)))))))))
+                  (let
+                    $f175
+                    (scope
+                      (extract (var $f182) (lit ff Bool))
+                      (let
+                        $f170
+                        (scope
+                          (app
+                            (app (app %core.wrap.add (lit i32 Nat)) (lit 0 Nat))
+                            (tuple (cons (lit 4294967295 I32) (cons (var $f175) nil))))
+                          (app pow_22661 (tuple (cons (var $f170) (cons (var $f179) nil))))))))))))
+          (let
+            $f178
+            (scope
+              (con
+                (sigma nil)
+                $f166
+                (scope
+                  (lit ff Bool)
+                  (let
+                    $f165
+                    (scope (extract (var $f182) (lit tt Bool)) (app (var $f165) (lit 1 I32))))))
+              (let
+                $f173
+                (scope
+                  (extract (var $f182) (lit ff Bool))
+                  (let
+                    $f168
+                    (scope
+                      (app
+                        (app %core.icmp.xyglE (lit i32 Nat))
+                        (tuple (cons (lit 0 I32) (cons (var $f173) nil))))
+                      (app
+                        (extract (tuple (cons (var $f181) (cons (var $f178) nil))) (var $f168))
+                        (tuple nil)))))))))))))

@@ -26,10 +26,10 @@ define_language! {
         // Instead of (in egg): "let name equal definition in expression".
         // (let <name> <name-scope>)
         Let(Bind<AppliedId>) = "let",
-        // (lam <extern> <name> <domain-type> <codomain-type> <var-name> <var-scope>)
-        Lam(AppliedId, AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "lam",
-        // (con <extern> <name> <domain-type> <var-name> <var-scope>)
-        Con(AppliedId, AppliedId, AppliedId, Bind<AppliedId>) = "con",
+        // (lam <domain-type> <codomain-type> <var-name> <var-scope>)
+        Lam(AppliedId, AppliedId, Bind<AppliedId>) = "lam",
+        // (con <domain-type> <var-name> <var-scope>)
+        Con(AppliedId, Bind<AppliedId>) = "con",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
         // (var <name>)

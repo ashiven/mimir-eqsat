@@ -1,163 +1,164 @@
-(con extern main
-    (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
-    $_22529
-    (scope
-        (lit ff Bool)
-        (let
-            $loop_22536
-            (scope
-                (con intern loop_22536
-                    (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons I32 nil))))
-                    $_22537
-                    (scope
-                        (lit ff Bool)
-                        (let
-                            $exit_22547
-                            (scope
-                                (con intern exit_22547
-                                    (app %mem.M (lit 0 Nat))
-                                    $m_22548
-                                    (scope
-                                        (lit ff Bool)
-                                        (let
-                                            $return_22551
-                                            (scope
-                                                (extract
-                                                    (var $_22529)
-                                                    (lit tt Bool))
-                                        (let
-                                            $acc_22549
-                                            (scope
-                                                (extract
-                                                    (var $_22537)
-                                                    (lit 2 (idx (lit 3 Nat))))
-                                        (app
-                                            (var $return_22551)
-                                            (tuple
-                                                (cons
-                                                    (var $m_22548)
-                                                (cons
-                                                    (var $acc_22549)
-                                                nil))))))))))
-                        (let
-                            $body_22553
-                            (scope
-                                (con intern body_22553
-                                    (app %mem.M (lit 0 Nat))
-                                    $m_22554
-                                    (scope
-                                        (lit ff Bool)
-                                        (let
-                                            $i_22539
-                                            (scope
-                                                (extract
-                                                    (var $_22537)
-                                                    (lit 1 (idx (lit 3 Nat))))
-                                        (let
-                                            $inc_22561
-                                            (scope
-                                                (app
+(root extern main
+    (con
+        (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+        $_22508
+        (scope
+            (lit ff Bool)
+            (let
+                $loop_22515
+                (scope
+                    (con
+                        (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons I32 nil))))
+                        $_22516
+                        (scope
+                            (lit ff Bool)
+                            (let
+                                $exit_22526
+                                (scope
+                                    (con
+                                        (app %mem.M (lit 0 Nat))
+                                        $m_22527
+                                        (scope
+                                            (lit ff Bool)
+                                            (let
+                                                $return_22530
+                                                (scope
+                                                    (extract
+                                                        (var $_22508)
+                                                        (lit tt Bool))
+                                            (let
+                                                $acc_22528
+                                                (scope
+                                                    (extract
+                                                        (var $_22516)
+                                                        (lit 2 (idx (lit 3 Nat))))
+                                            (app
+                                                (var $return_22530)
+                                                (tuple
+                                                    (cons
+                                                        (var $m_22527)
+                                                    (cons
+                                                        (var $acc_22528)
+                                                    nil))))))))))
+                            (let
+                                $body_22532
+                                (scope
+                                    (con
+                                        (app %mem.M (lit 0 Nat))
+                                        $m_22533
+                                        (scope
+                                            (lit ff Bool)
+                                            (let
+                                                $i_22518
+                                                (scope
+                                                    (extract
+                                                        (var $_22516)
+                                                        (lit 1 (idx (lit 3 Nat))))
+                                            (let
+                                                $inc_22540
+                                                (scope
                                                     (app
                                                         (app
-                                                            %core.wrap.add
-                                                            (lit i32 Nat))
-                                                        (lit 0 Nat))
-                                                    (tuple
-                                                        (cons
-                                                            (lit 1 I32)
-                                                        (cons
-                                                            (var $i_22539)
-                                                        nil))))
-                                        (let
-                                            $acc_22549
-                                            (scope
-                                                (extract
-                                                    (var $_22537)
-                                                    (lit 2 (idx (lit 3 Nat))))
-                                        (let
-                                            $acc_22563
-                                            (scope
-                                                (app
+                                                            (app
+                                                                %core.wrap.add
+                                                                (lit i32 Nat))
+                                                            (lit 0 Nat))
+                                                        (tuple
+                                                            (cons
+                                                                (lit 1 I32)
+                                                            (cons
+                                                                (var $i_22518)
+                                                            nil))))
+                                            (let
+                                                $acc_22528
+                                                (scope
+                                                    (extract
+                                                        (var $_22516)
+                                                        (lit 2 (idx (lit 3 Nat))))
+                                            (let
+                                                $acc_22542
+                                                (scope
                                                     (app
                                                         (app
-                                                            %core.wrap.add
-                                                            (lit i32 Nat))
-                                                        (lit 0 Nat))
-                                                    (tuple
-                                                        (cons
-                                                            (var $i_22539)
-                                                        (cons
-                                                            (var $acc_22549)
-                                                        nil))))
-                                        (app
-                                            (var $loop_22536)
-                                            (tuple
-                                                (cons
-                                                    (var $m_22554)
-                                                (cons
-                                                    (var $inc_22561)
-                                                (cons
-                                                    (var $acc_22563)
-                                                nil)))))))))))))))
-                        (let
-                            $i_22539
-                            (scope
-                                (extract
-                                    (var $_22537)
-                                    (lit 1 (idx (lit 3 Nat))))
-                        (let
-                            $argc_22540
-                            (scope
-                                (extract
+                                                            (app
+                                                                %core.wrap.add
+                                                                (lit i32 Nat))
+                                                            (lit 0 Nat))
+                                                        (tuple
+                                                            (cons
+                                                                (var $i_22518)
+                                                            (cons
+                                                                (var $acc_22528)
+                                                            nil))))
+                                            (app
+                                                (var $loop_22515)
+                                                (tuple
+                                                    (cons
+                                                        (var $m_22533)
+                                                    (cons
+                                                        (var $inc_22540)
+                                                    (cons
+                                                        (var $acc_22542)
+                                                    nil)))))))))))))))
+                            (let
+                                $i_22518
+                                (scope
                                     (extract
-                                        (var $_22529)
-                                        (lit ff Bool))
-                                    (lit 1 (idx (lit 3 Nat))))
-                        (let
-                            $cond_22545
-                            (scope
-                                (app
+                                        (var $_22516)
+                                        (lit 1 (idx (lit 3 Nat))))
+                            (let
+                                $argc_22519
+                                (scope
+                                    (extract
+                                        (extract
+                                            (var $_22508)
+                                            (lit ff Bool))
+                                        (lit 1 (idx (lit 3 Nat))))
+                            (let
+                                $cond_22524
+                                (scope
                                     (app
-                                        %core.icmp.XygLe
-                                        (lit i32 Nat))
+                                        (app
+                                            %core.icmp.XygLe
+                                            (lit i32 Nat))
+                                        (tuple
+                                            (cons
+                                                (var $i_22518)
+                                            (cons
+                                                (var $argc_22519)
+                                            nil))))
+                            (let
+                                $mem_22517
+                                (scope
+                                    (extract
+                                        (var $_22516)
+                                        (lit 0 (idx (lit 3 Nat))))
+                            (app
+                                (extract
                                     (tuple
                                         (cons
-                                            (var $i_22539)
+                                            (var $exit_22526)
                                         (cons
-                                            (var $argc_22540)
-                                        nil))))
-                        (let
-                            $mem_22538
-                            (scope
-                                (extract
-                                    (var $_22537)
-                                    (lit 0 (idx (lit 3 Nat))))
-                        (app
-                            (extract
-                                (tuple
-                                    (cons
-                                        (var $exit_22547)
-                                    (cons
-                                        (var $body_22553)
-                                    nil)))
-                                (var $cond_22545))
-                            (var $mem_22538))))))))))))))))
-        (let
-            $mem_22531
-            (scope
-                (extract
+                                            (var $body_22532)
+                                        nil)))
+                                    (var $cond_22524))
+                                (var $mem_22517))))))))))))))))
+            (let
+                $mem_22510
+                (scope
                     (extract
-                        (var $_22529)
-                        (lit ff Bool))
-                    (lit 0 (idx (lit 3 Nat))))
-        (app
-            (var $loop_22536)
-            (tuple
-                (cons
-                    (var $mem_22531)
-                (cons
-                    (lit 0 I32)
-                (cons
-                    (lit 0 I32)
-                nil)))))))))))
+                        (extract
+                            (var $_22508)
+                            (lit ff Bool))
+                        (lit 0 (idx (lit 3 Nat))))
+            (app
+                (var $loop_22515)
+                (tuple
+                    (cons
+                        (var $mem_22510)
+                    (cons
+                        (lit 0 I32)
+                    (cons
+                        (lit 0 I32)
+                    nil))))))))))))
 

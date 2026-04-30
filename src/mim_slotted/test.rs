@@ -52,8 +52,8 @@ fn let_var_same() {
 
 #[test]
 fn bind_con_var_add0() {
-    let a = "(con extern foo Nat $arg (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil))))))";
-    let b = "(con extern foo Nat $arg (scope (lit ff Bool) (var $arg)))";
+    let a = "(root extern foo (con Nat $arg (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil)))))))";
+    let b = "(root extern foo (con Nat $arg (scope (lit ff Bool) (var $arg))))";
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
