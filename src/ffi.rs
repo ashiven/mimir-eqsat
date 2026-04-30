@@ -438,10 +438,26 @@ impl RecExprFFI {
             // Some nodes introduce or use slots which don't
             // have their own nodes so we insert them manually.
             match node.kind {
-                MimKind::Let => vec.insert(1, Sexpr::String(node.slot.clone())),
-                MimKind::Lam => vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone())),
-                MimKind::Con => vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone())),
-                MimKind::Var => vec.insert(1, Sexpr::String(node.slot.clone())),
+                MimKind::Let => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Lam => {
+                    if !node.slot.is_empty() {
+                        vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Con => {
+                    if !node.slot.is_empty() {
+                        vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Var => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
                 _ => (),
             }
             Sexpr::List(vec)
