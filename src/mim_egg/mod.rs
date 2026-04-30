@@ -79,7 +79,7 @@ define_language! {
     }
 }
 
-pub(crate) fn equality_saturate_ffi(
+pub(crate) fn equality_saturate(
     sexpr: &str,
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,

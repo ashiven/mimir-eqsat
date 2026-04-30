@@ -5,7 +5,7 @@ mod mim_egg;
 mod mim_slotted;
 
 pub fn equality_saturate(sexpr: &str, rulesets: Vec<RuleSet>, cost_fn: CostFn) -> Vec<RecExprFFI> {
-    mim_egg::equality_saturate_ffi(sexpr, rulesets, cost_fn)
+    mim_egg::equality_saturate(sexpr, rulesets, cost_fn)
 }
 
 pub fn pretty(sexpr: &str, line_len: usize) -> String {
@@ -17,7 +17,7 @@ pub fn equality_saturate_slotted(
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
 ) -> Vec<RecExprFFI> {
-    mim_slotted::equality_saturate_ffi(sexpr, rulesets, cost_fn)
+    mim_slotted::equality_saturate(sexpr, rulesets, cost_fn)
 }
 
 pub fn pretty_slotted(sexpr: &str, line_len: usize) -> String {
