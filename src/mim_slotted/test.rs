@@ -6,7 +6,7 @@ use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::convert_rules;
 use crate::mim_slotted::get_rules;
-use crate::{equality_saturate_slotted, pretty_ffi};
+use crate::{eqsat_slotted, pretty_ffi};
 use slotted_egraphs::*;
 
 fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
@@ -23,7 +23,7 @@ fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
 
 fn eqsat_equals(file: &str, file_rw: &str) {
     let slotted = fs::read_to_string(file).expect("Failed to read file.slotted");
-    let nodes = equality_saturate_slotted(&slotted, vec![], CostFn::AstSize);
+    let nodes = eqsat_slotted(&slotted, vec![], CostFn::AstSize);
 
     let slotted = pretty_ffi(nodes, LINE_LEN);
     let slotted_rw = fs::read_to_string(file_rw).expect("Failed to read file_rw.slotted");

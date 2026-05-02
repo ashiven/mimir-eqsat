@@ -94,7 +94,7 @@ define_language! {
         MetaVar(AppliedId, AppliedId) = "metavar",
 
         // A root-level sexpr (in most cases this will be a closed/top-level continuation)
-        // We introduce a node for this to avoid having to write (can extern main ...) to bind
+        // We introduce a node for this to avoid having to write (con extern main ...) to bind
         // named, top-level constructs and can instead write (root extern main (con ...)).
         // This allows us to omit names from lambda definitions entirely so we can get the full
         // benefits of slotted-egraphs while still having a binder for such constructs.

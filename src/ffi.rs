@@ -1,6 +1,6 @@
 use crate::mim_egg::Mim;
 use crate::mim_slotted::MimSlotted;
-use crate::{equality_saturate, equality_saturate_slotted, node_ffi_str, pretty, pretty_slotted};
+use crate::{eqsat_egg, eqsat_slotted, node_ffi_str, pretty_egg, pretty_slotted};
 use bridge::{MimKind, NodeFFI, RecExprFFI};
 use egg::{Id, RecExpr};
 use slotted_egraphs::RecExpr as RecExprSlotted;
@@ -79,18 +79,10 @@ pub mod bridge {
     }
 
     extern "Rust" {
-        fn equality_saturate(
-            sexpr: &str,
-            rulesets: Vec<RuleSet>,
-            cost_fn: CostFn,
-        ) -> Vec<RecExprFFI>;
-        fn pretty(sexpr: &str, line_len: usize) -> String;
+        fn eqsat_egg(sexpr: &str, rulesets: Vec<RuleSet>, cost_fn: CostFn) -> Vec<RecExprFFI>;
+        fn pretty_egg(sexpr: &str, line_len: usize) -> String;
 
-        fn equality_saturate_slotted(
-            sexpr: &str,
-            rulesets: Vec<RuleSet>,
-            cost_fn: CostFn,
-        ) -> Vec<RecExprFFI>;
+        fn eqsat_slotted(sexpr: &str, rulesets: Vec<RuleSet>, cost_fn: CostFn) -> Vec<RecExprFFI>;
         fn pretty_slotted(sexpr: &str, line_len: usize) -> String;
 
         fn pretty_ffi(sexpr: Vec<RecExprFFI>, line_len: usize) -> String;
