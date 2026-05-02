@@ -889,11 +889,11 @@ struct RecExprFFI final {
 };
 #endif // CXXBRIDGE1_STRUCT_RecExprFFI
 
-::rust::Vec<::RecExprFFI> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
+::rust::Vec<::RecExprFFI> eqsat_egg(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
 
-::rust::String pretty(::rust::Str sexpr, ::std::size_t line_len) noexcept;
+::rust::String pretty_egg(::rust::Str sexpr, ::std::size_t line_len) noexcept;
 
-::rust::Vec<::RecExprFFI> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
+::rust::Vec<::RecExprFFI> eqsat_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept;
 
 ::rust::String pretty_slotted(::rust::Str sexpr, ::std::size_t line_len) noexcept;
 

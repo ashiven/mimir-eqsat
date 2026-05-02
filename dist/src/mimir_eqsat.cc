@@ -923,11 +923,11 @@ extern "C" {
 bool cxxbridge1$194$NodeFFI$operator$eq(NodeFFI const &, NodeFFI const &) noexcept;
 ::std::size_t cxxbridge1$194$NodeFFI$operator$hash(NodeFFI const &) noexcept;
 
-void cxxbridge1$194$equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RecExprFFI> *return$) noexcept;
+void cxxbridge1$194$eqsat_egg(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RecExprFFI> *return$) noexcept;
 
-void cxxbridge1$194$pretty(::rust::Str sexpr, ::std::size_t line_len, ::rust::String *return$) noexcept;
+void cxxbridge1$194$pretty_egg(::rust::Str sexpr, ::std::size_t line_len, ::rust::String *return$) noexcept;
 
-void cxxbridge1$194$equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RecExprFFI> *return$) noexcept;
+void cxxbridge1$194$eqsat_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> *rulesets, ::CostFn cost_fn, ::rust::Vec<::RecExprFFI> *return$) noexcept;
 
 void cxxbridge1$194$pretty_slotted(::rust::Str sexpr, ::std::size_t line_len, ::rust::String *return$) noexcept;
 
@@ -952,23 +952,23 @@ bool NodeFFI::operator!=(NodeFFI const &rhs) const noexcept {
   return !(*this == rhs);
 }
 
-::rust::Vec<::RecExprFFI> equality_saturate(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
+::rust::Vec<::RecExprFFI> eqsat_egg(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
   ::rust::ManuallyDrop<::rust::Vec<::RuleSet>> rulesets$(::std::move(rulesets));
   ::rust::MaybeUninit<::rust::Vec<::RecExprFFI>> return$;
-  cxxbridge1$194$equality_saturate(sexpr, &rulesets$.value, cost_fn, &return$.value);
+  cxxbridge1$194$eqsat_egg(sexpr, &rulesets$.value, cost_fn, &return$.value);
   return ::std::move(return$.value);
 }
 
-::rust::String pretty(::rust::Str sexpr, ::std::size_t line_len) noexcept {
+::rust::String pretty_egg(::rust::Str sexpr, ::std::size_t line_len) noexcept {
   ::rust::MaybeUninit<::rust::String> return$;
-  cxxbridge1$194$pretty(sexpr, line_len, &return$.value);
+  cxxbridge1$194$pretty_egg(sexpr, line_len, &return$.value);
   return ::std::move(return$.value);
 }
 
-::rust::Vec<::RecExprFFI> equality_saturate_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
+::rust::Vec<::RecExprFFI> eqsat_slotted(::rust::Str sexpr, ::rust::Vec<::RuleSet> rulesets, ::CostFn cost_fn) noexcept {
   ::rust::ManuallyDrop<::rust::Vec<::RuleSet>> rulesets$(::std::move(rulesets));
   ::rust::MaybeUninit<::rust::Vec<::RecExprFFI>> return$;
-  cxxbridge1$194$equality_saturate_slotted(sexpr, &rulesets$.value, cost_fn, &return$.value);
+  cxxbridge1$194$eqsat_slotted(sexpr, &rulesets$.value, cost_fn, &return$.value);
   return ::std::move(return$.value);
 }
 
