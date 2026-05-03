@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-LIB_NAME="mimir_eqsat"
+LIB_NAME="eqsat_rs"
 TARGET_DIR="target"
 DIST_DIR="dist"
 WINDBG_CONFIG=".cargo/windbg-config.toml"

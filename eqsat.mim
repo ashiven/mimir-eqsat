@@ -88,7 +88,7 @@ axm %eqsat.AstDepth: %eqsat.CostFun;
 /// ### %%eqsat.rulesets
 ///
 /// Configures the equality saturation engine to use the specified rulesets
-/// that are implemented in github.com/ashiven/mimir-eqsat/src/[mim_egg|mim_slotted]/rulesets
+/// that are implemented in github.com/ashiven/eqsat/src/[mim_egg|mim_slotted]/rulesets
 ///
 axm %eqsat.rulesets: {n: Nat} → «n; %eqsat.Ruleset» → %eqsat.Ruleset;
 ///

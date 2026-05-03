@@ -66,23 +66,23 @@ rust::String pretty_ffi(rust::Vec<RecExprFFI> sexprs, size_t line_len);
 
 There are multiple methods of integrating this library into an existing C++ project. The following lists the simplest one.
 
-**1. Add `mimir-eqsat` as a submodule to your project**
+**1. Add `eqsat` as a submodule to your project**
 
 ```bash
-git submodule add https://github.com/ashiven/mimir-eqsat external/mimir-eqsat
-git add external/mimir-eqsat
-git commit -m "Add mimir-eqsat submodule"
+git submodule add https://github.com/ashiven/eqsat external/eqsat
+git add external/eqsat
+git commit -m "Add eqsat submodule"
 ```
 
 **2. Add the following to your `CMakeLists.txt`**
 
 ```cmake
-include(${PROJECT_SOURCE_DIR}/external/mimir-eqsat/dist/cmake/mimir-eqsat.cmake)
+include(${PROJECT_SOURCE_DIR}/external/eqsat/dist/cmake/eqsat-rs.cmake)
 configure_file(
-    "${PROJECT_SOURCE_DIR}/external/mimir-eqsat/dist/include/mimir_eqsat.h"
-    "${CMAKE_BINARY_DIR}/include/rust/mimir_eqsat.h" # choose a path and name for the header
+    "${PROJECT_SOURCE_DIR}/external/eqsat/dist/include/eqsat_rs.h"
+    "${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h" # choose a path and name for the header
 )
-target_link_libraries(target PRIVATE mimir-eqsat)
+target_link_libraries(target PRIVATE eqsat-rs)
 ```
 
 ## Updating
@@ -90,9 +90,9 @@ target_link_libraries(target PRIVATE mimir-eqsat)
 To update the submodule to a particular release, simply do the following:
 
 ```bash
-cd external/mimir-eqsat
+cd external/eqsat
 git pull
 cd ../..
-git add external/mimir-eqsat
-git commit -m "Update mimir-eqsat submodule"
+git add external/eqsat
+git commit -m "Update eqsat submodule"
 ```

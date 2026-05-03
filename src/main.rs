@@ -1,5 +1,5 @@
 #[allow(unused_imports)]
-use mimir_eqsat::{
+use eqsat_rs::{
     eqsat_egg, eqsat_slotted,
     ffi::bridge::{CostFn, RuleSet},
     pretty_ffi,
