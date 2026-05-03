@@ -1,6 +1,7 @@
 // RUN: %mim %s -o -
 plugin core;
 plugin eqsat;
+import pipeline;
 
 fun extern _impl(): %eqsat.Impl =
     return %eqsat.slotted;

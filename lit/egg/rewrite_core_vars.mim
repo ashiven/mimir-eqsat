@@ -1,7 +1,7 @@
 // RUN: %mim %s -o -
 plugin core;
 plugin eqsat;
-
+import pipeline;
 
 rule foo (a: Nat, b: Nat) : (%core.nat.add (a, (%core.nat.sub (b, a)))) => b;
 

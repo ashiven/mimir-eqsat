@@ -1,6 +1,7 @@
 // RUN: %mim %s -o -
 plugin core;
 plugin eqsat;
+import pipeline;
 
 // If you want to use the 'slotted-egraphs' implementation
 // instead of 'egg' just define the config function below.

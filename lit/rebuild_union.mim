@@ -2,6 +2,7 @@
 // RUN: sed 's/__IMPL__/slotted/' %s > %t && %mim %t -o -
 
 plugin eqsat;
+import pipeline;
 
 fun extern _impl(): %eqsat.Impl =
     return %eqsat.__IMPL__;

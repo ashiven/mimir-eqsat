@@ -1,6 +1,7 @@
 // RUN: %mim %s -o -
 plugin core;
 plugin eqsat;
+import pipeline;
 
 // This is not a mathematically correct rewrite but it serves to demonstrate extraction by term-size.
 // With this rewrite:

@@ -1,6 +1,7 @@
 // RUN: %mim %s -o -
 plugin core;
 plugin eqsat;
+import pipeline;
 
 fun extern _rulesets(): %eqsat.Ruleset =
     return (%eqsat.rulesets (
