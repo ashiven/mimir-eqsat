@@ -1,6 +1,6 @@
 ## MimIR EqSat
 
-This repository contains the [equality saturation](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) implementations for [MimIR](https://github.com/AnyDSL/MimIR).
+This repository contains the [equality saturation](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) implementations for [MimIR](https://github.com/mimir/mimir).
 
 ## Provided Methods
 
