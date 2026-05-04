@@ -64,9 +64,9 @@ rust::String pretty_ffi(rust::Vec<RecExprFFI> sexprs, size_t line_len);
 
 ## Installation
 
-If you want to use the `eqsat` plugin, simply do the following:
+If you want to install this plugin, simply follow the instructions below:
 
-**1. Clone the `MimIR` repository if you haven't yet**
+**1. Clone the `mimir` repository if you haven't yet**
 
 ```bash
 git clone --recursive https://github.com/mimir/mimir.git
