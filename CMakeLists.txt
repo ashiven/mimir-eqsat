@@ -32,23 +32,6 @@ file(MAKE_DIRECTORY "${BUILD_DIR}/src")
 file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
 
 # ------------------------------------------------------------
-# Build step (single source of truth)
-# ------------------------------------------------------------
-add_custom_command(
-    OUTPUT ${EQSAT_STAMP}
-    COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
-    COMMAND ${CMAKE_COMMAND} -E touch ${EQSAT_STAMP}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
-    COMMENT "Building eqsat-rs via build.sh"
-    VERBATIM
-)
-
-add_custom_target(eqsat-rs-build ALL
-    DEPENDS ${EQSAT_STAMP}
-)
-
-# ------------------------------------------------------------
 # Pick platform-specific libraries (IMPORTANT: only current OS)
 # ------------------------------------------------------------
 if (WIN32)
@@ -67,6 +50,29 @@ else()
     ${EQSAT_RS_LIB_LINUX_DBG}
   )
 endif()
+
+# ------------------------------------------------------------
+# Build step (single source of truth)
+# ------------------------------------------------------------
+add_custom_command(
+    OUTPUT
+        ${EQSAT_RS_INC}
+        ${EQSAT_RS_SRC}
+        ${EQSAT_RS_LIBS}
+
+    COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
+    COMMENT "Building eqsat-rs via build.sh"
+    VERBATIM
+)
+
+add_custom_target(eqsat-rs-build ALL
+    DEPENDS
+        ${EQSAT_RS_INC}
+        ${EQSAT_RS_SRC}
+        ${EQSAT_RS_LIBS}
+)
 
 # ------------------------------------------------------------
 # Imported library (no build logic inside)
