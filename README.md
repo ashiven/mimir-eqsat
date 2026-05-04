@@ -64,35 +64,31 @@ rust::String pretty_ffi(rust::Vec<RecExprFFI> sexprs, size_t line_len);
 
 ## Installation
 
-There are multiple methods of integrating this library into an existing C++ project. The following lists the simplest one.
+If you want to use the `eqsat` plugin, simply do the following:
 
-**1. Add `eqsat` as a submodule to your project**
-
-```bash
-git submodule add https://github.com/ashiven/eqsat external/eqsat
-git add external/eqsat
-git commit -m "Add eqsat submodule"
-```
-
-**2. Add the following to your `CMakeLists.txt`**
-
-```cmake
-include(${PROJECT_SOURCE_DIR}/external/eqsat/dist/cmake/eqsat-rs.cmake)
-configure_file(
-    "${PROJECT_SOURCE_DIR}/external/eqsat/dist/include/eqsat_rs.h"
-    "${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h" # choose a path and name for the header
-)
-target_link_libraries(target PRIVATE eqsat-rs)
-```
-
-## Updating
-
-To update the submodule to a particular release, simply do the following:
+**1. Clone the `MimIR` repository if you haven't yet**
 
 ```bash
-cd external/eqsat
-git pull
-cd ../..
-git add external/eqsat
-git commit -m "Update eqsat submodule"
+git clone --recursive https://github.com/mimir/mimir.git
+```
+
+**2. Clone the `eqsat` repository into `mimir/extra`**
+
+```bash
+cd mimir/extra
+git clone https://github.com/ashiven/eqsat.git
+cd ..
+```
+
+**3. Ensure that Rust and Cargo are installed**
+
+```bash
+curl https://sh.rustup.rs -sSf | sh
+```
+
+**4. Build the project according to the [instructions](https://mimir.github.io/index.html#autotoc_md92)**
+
+```bash
+cmake -S . -B build -DBUILD_TESTING=ON -DMIM_BUILD_EXAMPLES=ON
+cmake --build build -j$(nproc)
 ```
