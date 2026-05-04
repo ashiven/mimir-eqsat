@@ -12,7 +12,7 @@ set(BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
 
 set(EQSAT_STAMP ${BUILD_DIR}/eqsat.stamp)
 
-set(EQSAT_RS_INC ${BUILD_DIR}/include/eqsat_rs.h)
+set(EQSAT_RS_INCLUDE ${BUILD_DIR}/include/eqsat_rs.h)
 set(EQSAT_RS_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
 
 set(EQSAT_RS_LIB_WIN_REL ${BUILD_DIR}/lib/windows/release/eqsat_rs.lib)
@@ -25,14 +25,14 @@ set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/release/libeqsat_rs.a)
 set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/debug/libeqsat_rs.a)
 
 # ------------------------------------------------------------
-# Ensure directories exist
+# Ensure build dirs exist
 # ------------------------------------------------------------
 file(MAKE_DIRECTORY "${BUILD_DIR}/include")
 file(MAKE_DIRECTORY "${BUILD_DIR}/src")
 file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
 
 # ------------------------------------------------------------
-# Pick platform-specific libraries (IMPORTANT: only current OS)
+# Pick platform-specific libraries
 # ------------------------------------------------------------
 if (WIN32)
   set(EQSAT_RS_LIBS
@@ -52,11 +52,11 @@ else()
 endif()
 
 # ------------------------------------------------------------
-# Build step (single source of truth)
+# Build static libraries
 # ------------------------------------------------------------
 add_custom_command(
     OUTPUT
-        ${EQSAT_RS_INC}
+        ${EQSAT_RS_INCLUDE}
         ${EQSAT_RS_SRC}
         ${EQSAT_RS_LIBS}
 
@@ -69,13 +69,13 @@ add_custom_command(
 
 add_custom_target(eqsat-rs-build ALL
     DEPENDS
-        ${EQSAT_RS_INC}
+        ${EQSAT_RS_INCLUDE}
         ${EQSAT_RS_SRC}
         ${EQSAT_RS_LIBS}
 )
 
 # ------------------------------------------------------------
-# Imported library (no build logic inside)
+# Configure eqsat-rs library
 # ------------------------------------------------------------
 add_library(eqsat-rs STATIC IMPORTED GLOBAL)
 
@@ -141,3 +141,9 @@ target_include_directories(mim_eqsat
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
+
+# ------------------------------------------------------------
+# Valgrind override
+# ------------------------------------------------------------
+set(VALGRIND_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/valgrind.supp")
+set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/valgrind.supp")
