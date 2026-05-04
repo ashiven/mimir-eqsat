@@ -44,9 +44,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure
+        working-directory: mimir
         shell: cmd
         run: |
-          cmake -E copy mimir/bin/FileCheck-x86_64-win.exe mimir/bin/FileCheck
+          cmake -E copy bin/FileCheck-x86_64-win.exe mimir/bin/FileCheck
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           set CC=cl.exe
           set CXX=cl.exe
