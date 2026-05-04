@@ -5,20 +5,52 @@ if(NOT COMMAND add_mim_plugin)
   find_package(mim REQUIRED)
 endif()
 
+# ------------------------------------------------------------
+# Paths
+# ------------------------------------------------------------
 set(BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
+
+set(EQSAT_STAMP ${BUILD_DIR}/eqsat.stamp)
+
+set(EQSAT_RS_INC ${BUILD_DIR}/include/eqsat_rs.h)
+set(EQSAT_RS_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
+
+set(EQSAT_RS_LIB_WIN_REL ${BUILD_DIR}/lib/windows/release/eqsat_rs.lib)
+set(EQSAT_RS_LIB_WIN_DBG ${BUILD_DIR}/lib/windows/debug/eqsat_rs.lib)
+
+set(EQSAT_RS_LIB_MACOS_REL ${BUILD_DIR}/lib/macos/release/libeqsat_rs.a)
+set(EQSAT_RS_LIB_MACOS_DBG ${BUILD_DIR}/lib/macos/debug/libeqsat_rs.a)
+
+set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/release/libeqsat_rs.a)
+set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/debug/libeqsat_rs.a)
+
+# ------------------------------------------------------------
+# Ensure directories exist
+# ------------------------------------------------------------
 file(MAKE_DIRECTORY "${BUILD_DIR}/include")
 file(MAKE_DIRECTORY "${BUILD_DIR}/src")
 file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
 
-set(EQSAT_RS_INC ${BUILD_DIR}/include/eqsat_rs.h)
-set(EQSAT_RS_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
-set(EQSAT_RS_LIB_WIN_REL ${BUILD_DIR}/lib/windows/release/eqsat_rs.lib)
-set(EQSAT_RS_LIB_WIN_DBG ${BUILD_DIR}/lib/windows/debug/eqsat_rs.lib)
-set(EQSAT_RS_LIB_MACOS_REL ${BUILD_DIR}/lib/macos/release/libeqsat_rs.a)
-set(EQSAT_RS_LIB_MACOS_DBG ${BUILD_DIR}/lib/macos/debug/libeqsat_rs.a)
-set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/release/libeqsat_rs.a)
-set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/debug/libeqsat_rs.a)
+# ------------------------------------------------------------
+# Build step (single source of truth)
+# ------------------------------------------------------------
+add_custom_command(
+    OUTPUT ${EQSAT_STAMP}
+    COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
+    COMMAND ${CMAKE_COMMAND} -E touch ${EQSAT_STAMP}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
+    COMMENT "Building eqsat-rs via build.sh"
+    VERBATIM
+)
 
+add_custom_target(eqsat-rs-build ALL
+    DEPENDS ${EQSAT_STAMP}
+)
+
+# ------------------------------------------------------------
+# Pick platform-specific libraries (IMPORTANT: only current OS)
+# ------------------------------------------------------------
 if (WIN32)
   set(EQSAT_RS_LIBS
     ${EQSAT_RS_LIB_WIN_REL}
@@ -36,27 +68,11 @@ else()
   )
 endif()
 
-add_custom_command(
-    OUTPUT ${EQSAT_RS_INC} ${EQSAT_RS_SRC} ${EQSAT_RS_LIBS}
-    COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
-    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
-    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-)
-add_custom_target(eqsat-rs-build
-    DEPENDS ${EQSAT_RS_INC} ${EQSAT_RS_SRC} ${EQSAT_RS_LIBS}
-)
+# ------------------------------------------------------------
+# Imported library (no build logic inside)
+# ------------------------------------------------------------
+add_library(eqsat-rs STATIC IMPORTED GLOBAL)
 
-set(EQSAT_RS_INC_OUT "${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h")
-add_custom_command(
-  OUTPUT "${EQSAT_RS_INC_OUT}"
-  COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/rust"
-  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EQSAT_RS_INC}" "${EQSAT_RS_INC_OUT}"
-  DEPENDS eqsat-rs-build "${EQSAT_RS_INC}"
-  VERBATIM
-)
-add_custom_target(eqsat-rs-stage-headers DEPENDS "${EQSAT_RS_INC_OUT}")
-
-add_library(eqsat-rs STATIC IMPORTED)
 add_dependencies(eqsat-rs eqsat-rs-build)
 
 set_target_properties(eqsat-rs PROPERTIES
@@ -99,6 +115,9 @@ else()
 
 endif()
 
+# ------------------------------------------------------------
+# Plugin
+# ------------------------------------------------------------
 add_mim_plugin(eqsat
     SOURCES
         plug/eqsat.cpp
@@ -109,7 +128,9 @@ add_mim_plugin(eqsat
         eqsat-rs
     INSTALL
 )
-add_dependencies(mim_eqsat eqsat-rs eqsat-rs-build eqsat-rs-stage-headers)
+
+add_dependencies(mim_eqsat eqsat-rs-build)
+
 target_include_directories(mim_eqsat
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
