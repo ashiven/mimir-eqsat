@@ -77,7 +77,6 @@ add_dependencies(eqsat-rs eqsat-rs-build)
 
 set_target_properties(eqsat-rs PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${BUILD_DIR}/include"
-  INTERFACE_SOURCES "${BUILD_DIR}/src/eqsat_rs.cc"
 )
 
 if (WIN32)
