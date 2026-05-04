@@ -42,7 +42,7 @@ add_custom_command(
     DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
 )
-add_custom_target(eqsat-rs-build ALL
+add_custom_target(eqsat-rs-build
     DEPENDS ${EQSAT_RS_INC} ${EQSAT_RS_SRC} ${EQSAT_RS_LIBS}
 )
 
@@ -109,7 +109,7 @@ add_mim_plugin(eqsat
         eqsat-rs
     INSTALL
 )
-add_dependencies(mim_eqsat eqsat-rs-build)
+add_dependencies(mim_eqsat eqsat-rs eqsat-rs-build eqsat-rs-stage-headers)
 target_include_directories(mim_eqsat
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
