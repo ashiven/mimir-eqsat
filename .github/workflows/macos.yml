@@ -55,13 +55,13 @@ jobs:
                 -DPython3_EXECUTABLE=mimir/.venv/bin/python3
 
       - name: Build
-        run: cmake --build build -v
+        run: cmake --build build -j $(nproc) -v
 
       - name: Run lit test suite
         working-directory: mimir/build
         run: |
           export PATH=mimir/bin:$PATH
-          cmake --build build -v --target lit
+          cmake --build build -j $(nproc) -v --target lit
 
       - name: Test
         working-directory: mimir/build
