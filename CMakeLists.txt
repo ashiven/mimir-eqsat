@@ -10,8 +10,6 @@ endif()
 # ------------------------------------------------------------
 set(BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
 
-set(EQSAT_STAMP ${BUILD_DIR}/eqsat.stamp)
-
 set(EQSAT_RS_INCLUDE ${BUILD_DIR}/include/eqsat_rs.h)
 set(EQSAT_RS_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
 
