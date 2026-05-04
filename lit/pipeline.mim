@@ -3,7 +3,6 @@ import eqsat;
 
 lam extern _compile(): %compile.Phase =
     %compile.phases ff (
-        %eqsat.eqsat_phase,
         %compile.pass2phase %compile.scalarize_pass,
         %compile.pass2phase (%compile.eta_red_pass ff),
         %compile.pass2phase %compile.tail_rec_elim_pass,
@@ -21,6 +20,7 @@ lam extern _compile(): %compile.Phase =
             )
         ),
         %compile.internal_cleanup_phase,
+        %eqsat.eqsat_phase,
         %compile.pass2phase %compile.lam_spec_pass,
         %compile.branch_normalize_phase,
         %compile.ret_wrap_phase,

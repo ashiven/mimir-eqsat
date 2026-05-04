@@ -6,14 +6,29 @@ if(NOT COMMAND add_mim_plugin)
 endif()
 
 set(BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
+file(MAKE_DIRECTORY "${BUILD_DIR}/include")
+file(MAKE_DIRECTORY "${BUILD_DIR}/src")
+file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
+
 set(EQSAT_RS_INC ${BUILD_DIR}/include/eqsat_rs.h)
 set(EQSAT_RS_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
 add_custom_command(
     OUTPUT ${EQSAT_RS_INC} ${EQSAT_RS_SRC}
     COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
     DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
+    WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
 )
 add_custom_target(eqsat-rs-build DEPENDS ${EQSAT_RS_INC} ${EQSAT_RS_SRC})
+
+set(EQSAT_RS_INC_OUT "${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h")
+add_custom_command(
+  OUTPUT "${EQSAT_RS_INC_OUT}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/rust"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EQSAT_RS_INC}" "${EQSAT_RS_INC_OUT}"
+  DEPENDS eqsat-rs-build "${EQSAT_RS_INC}"
+  VERBATIM
+)
+add_custom_target(eqsat-rs-stage-headers DEPENDS "${EQSAT_RS_INC_OUT}")
 
 add_library(eqsat-rs STATIC IMPORTED)
 add_dependencies(eqsat-rs eqsat-rs-build)
@@ -57,11 +72,6 @@ else()
   )
 
 endif()
-
-configure_file(
-    "${BUILD_DIR}/include/eqsat_rs.h"
-    "${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h"
-)
 
 add_mim_plugin(eqsat
     SOURCES

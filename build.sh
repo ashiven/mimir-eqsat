@@ -20,7 +20,7 @@ mkdir -p "$BUILD_DIR/lib/macos"
 mkdir -p "$BUILD_DIR/lib/macos/debug"
 mkdir -p "$BUILD_DIR/lib/macos/release"
 
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+if [[ "$OSTYPE" == "msys"* || "$OSTYPE" == "win32"* || "$OSTYPE" == "cygwin"* ]]; then
   echo "Building windows debug"
   cargo build --config "$WINDBG_CONFIG"
 
