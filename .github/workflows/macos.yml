@@ -1,0 +1,70 @@
+name: macos
+
+on:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+jobs:
+  build-and-test:
+    name: Build and test ${{matrix.build-type}} mode
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        build-type: [Debug, Release]
+
+    steps:
+      - name: Clone recursively
+        uses: actions/checkout@v4
+        with:
+          repository: mimir/mimir
+          path: mimir
+          submodules: recursive
+
+      - name: Clone eqsat plugin
+        uses: actions/checkout@v4
+        with:
+          path: mimir/extra/eqsat
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Python
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install lit psutil
+
+      - name: Install LLVM and add to PATH
+        run: |
+          brew install llvm
+          echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+
+      - name: Setup ccache
+        uses: Chocobo1/setup-ccache-action@v1
+        with:
+          ccache_options: max_size=500M
+          override_cache_key: mac-latest-ccache-${{matrix.build-type}}
+
+      - name: Configure
+        run: |
+          cmake -B build                               \
+                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}                    \
+                -DBUILD_TESTING=ON -DMIM_BUILD_EXAMPLES=ON                   \
+                -DMIM_LIT_TIMEOUT=300                                        \
+                -DPython3_EXECUTABLE=mimir/.venv/bin/python3
+
+      - name: Build
+        run: cmake --build build -v
+
+      - name: Run lit test suite
+        working-directory: mimir/build
+        run: |
+          export PATH=mimir/bin:$PATH
+          cmake --build build -v --target lit
+
+      - name: Test
+        working-directory: mimir/build
+        run: |
+          export PATH=mimir/bin:$PATH
+          ctest --verbose -C ${{matrix.build-type}} --output-on-failure
