@@ -12,13 +12,37 @@ file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
 
 set(EQSAT_RS_INC ${BUILD_DIR}/include/eqsat_rs.h)
 set(EQSAT_RS_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
+set(EQSAT_RS_LIB_WIN_REL ${BUILD_DIR}/lib/windows/release/eqsat_rs.lib)
+set(EQSAT_RS_LIB_WIN_DBG ${BUILD_DIR}/lib/windows/debug/eqsat_rs.lib)
+set(EQSAT_RS_LIB_MACOS_REL ${BUILD_DIR}/lib/macos/release/libeqsat_rs.a)
+set(EQSAT_RS_LIB_MACOS_DBG ${BUILD_DIR}/lib/macos/debug/libeqsat_rs.a)
+set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/libeqsat_rs.a)
+set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/libeqsat_rs.a)
 add_custom_command(
-    OUTPUT ${EQSAT_RS_INC} ${EQSAT_RS_SRC}
+    OUTPUT
+      ${EQSAT_RS_INC}
+      ${EQSAT_RS_SRC}
+      ${EQSAT_RS_LIB_WIN_REL}
+      ${EQSAT_RS_LIB_WIN_DBG}
+      ${EQSAT_RS_LIB_MACOS_REL}
+      ${EQSAT_RS_LIB_MACOS_DBG}
+      ${EQSAT_RS_LIB_LINUX_REL}
+      ${EQSAT_RS_LIB_LINUX_DBG}
     COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
     DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
 )
-add_custom_target(eqsat-rs-build DEPENDS ${EQSAT_RS_INC} ${EQSAT_RS_SRC})
+add_custom_target(eqsat-rs-build ALL
+    DEPENDS
+      ${EQSAT_RS_INC}
+      ${EQSAT_RS_SRC}
+      ${EQSAT_RS_LIB_WIN_REL}
+      ${EQSAT_RS_LIB_WIN_DBG}
+      ${EQSAT_RS_LIB_MACOS_REL}
+      ${EQSAT_RS_LIB_MACOS_DBG}
+      ${EQSAT_RS_LIB_LINUX_REL}
+      ${EQSAT_RS_LIB_LINUX_DBG}
+)
 
 set(EQSAT_RS_INC_OUT "${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h")
 add_custom_command(
@@ -40,10 +64,10 @@ set_target_properties(eqsat-rs PROPERTIES
 
 if (WIN32)
   set_target_properties(eqsat-rs PROPERTIES
-    IMPORTED_LOCATION_DEBUG "${BUILD_DIR}/lib/windows/debug/eqsat_rs.lib"
-    IMPORTED_LOCATION_RELEASE "${BUILD_DIR}/lib/windows/release/eqsat_rs.lib"
-    IMPORTED_LOCATION_RELWITHDEBINFO "${BUILD_DIR}/lib/windows/release/eqsat_rs.lib"
-    IMPORTED_LOCATION_MINSIZEREL "${BUILD_DIR}/lib/windows/release/eqsat_rs.lib"
+    IMPORTED_LOCATION_DEBUG ${EQSAT_RS_LIB_WIN_DBG}
+    IMPORTED_LOCATION_RELEASE ${EQSAT_RS_LIB_WIN_REL}
+    IMPORTED_LOCATION_RELWITHDEBINFO ${EQSAT_RS_LIB_WIN_REL}
+    IMPORTED_LOCATION_MINSIZEREL ${EQSAT_RS_LIB_WIN_REL}
   )
 
   target_link_libraries(eqsat-rs INTERFACE
@@ -52,10 +76,10 @@ if (WIN32)
 
 elseif(APPLE)
   set_target_properties(eqsat-rs PROPERTIES
-    IMPORTED_LOCATION_DEBUG "${BUILD_DIR}/lib/macos/debug/libeqsat_rs.a"
-    IMPORTED_LOCATION_RELEASE "${BUILD_DIR}/lib/macos/release/libeqsat_rs.a"
-    IMPORTED_LOCATION_RELWITHDEBINFO "${BUILD_DIR}/lib/macos/release/libeqsat_rs.a"
-    IMPORTED_LOCATION_MINSIZEREL "${BUILD_DIR}/lib/macos/release/libeqsat_rs.a"
+    IMPORTED_LOCATION_DEBUG ${EQSAT_RS_LIB_MACOS_DBG}
+    IMPORTED_LOCATION_RELEASE ${EQSAT_RS_LIB_MACOS_REL}
+    IMPORTED_LOCATION_RELWITHDEBINFO ${EQSAT_RS_LIB_MACOS_REL}
+    IMPORTED_LOCATION_MINSIZEREL ${EQSAT_RS_LIB_MACOS_REL}
   )
 
   target_link_libraries(eqsat-rs INTERFACE
@@ -65,10 +89,10 @@ elseif(APPLE)
 
 else()
   set_target_properties(eqsat-rs PROPERTIES
-    IMPORTED_LOCATION_DEBUG "${BUILD_DIR}/lib/linux/debug/libeqsat_rs.a"
-    IMPORTED_LOCATION_RELEASE "${BUILD_DIR}/lib/linux/release/libeqsat_rs.a"
-    IMPORTED_LOCATION_RELWITHDEBINFO "${BUILD_DIR}/lib/linux/release/libeqsat_rs.a"
-    IMPORTED_LOCATION_MINSIZEREL "${BUILD_DIR}/lib/linux/release/libeqsat_rs.a"
+    IMPORTED_LOCATION_DEBUG ${EQSAT_RS_LIB_LINUX_DBG}
+    IMPORTED_LOCATION_RELEASE ${EQSAT_RS_LIB_LINUX_REL}
+    IMPORTED_LOCATION_RELWITHDEBINFO ${EQSAT_RS_LIB_LINUX_REL}
+    IMPORTED_LOCATION_MINSIZEREL ${EQSAT_RS_LIB_LINUX_REL}
   )
 
 endif()
