@@ -62,3 +62,9 @@ add_mim_plugin(eqsat
         eqsat-rs
     INSTALL
 )
+
+target_include_directories(mim_eqsat
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)

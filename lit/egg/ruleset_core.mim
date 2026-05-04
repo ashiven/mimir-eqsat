@@ -1,4 +1,4 @@
-// RUN: %mim %s -o -
+// RUN: MIM_PLUGIN_PATH=%S %mim %s -o -
 plugin core;
 plugin eqsat;
 import pipeline;
