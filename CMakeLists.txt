@@ -18,30 +18,32 @@ set(EQSAT_RS_LIB_MACOS_REL ${BUILD_DIR}/lib/macos/release/libeqsat_rs.a)
 set(EQSAT_RS_LIB_MACOS_DBG ${BUILD_DIR}/lib/macos/debug/libeqsat_rs.a)
 set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/release/libeqsat_rs.a)
 set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/debug/libeqsat_rs.a)
+
+if (WIN32)
+  set(EQSAT_RS_LIBS
+    ${EQSAT_RS_LIB_WIN_REL}
+    ${EQSAT_RS_LIB_WIN_DBG}
+  )
+elseif(APPLE)
+  set(EQSAT_RS_LIBS
+    ${EQSAT_RS_LIB_MACOS_REL}
+    ${EQSAT_RS_LIB_MACOS_DBG}
+  )
+else()
+  set(EQSAT_RS_LIBS
+    ${EQSAT_RS_LIB_LINUX_REL}
+    ${EQSAT_RS_LIB_LINUX_DBG}
+  )
+endif()
+
 add_custom_command(
-    OUTPUT
-      ${EQSAT_RS_INC}
-      ${EQSAT_RS_SRC}
-      ${EQSAT_RS_LIB_WIN_REL}
-      ${EQSAT_RS_LIB_WIN_DBG}
-      ${EQSAT_RS_LIB_MACOS_REL}
-      ${EQSAT_RS_LIB_MACOS_DBG}
-      ${EQSAT_RS_LIB_LINUX_REL}
-      ${EQSAT_RS_LIB_LINUX_DBG}
+    OUTPUT ${EQSAT_RS_INC} ${EQSAT_RS_SRC} ${EQSAT_RS_LIBS}
     COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
     DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
 )
 add_custom_target(eqsat-rs-build ALL
-    DEPENDS
-      ${EQSAT_RS_INC}
-      ${EQSAT_RS_SRC}
-      ${EQSAT_RS_LIB_WIN_REL}
-      ${EQSAT_RS_LIB_WIN_DBG}
-      ${EQSAT_RS_LIB_MACOS_REL}
-      ${EQSAT_RS_LIB_MACOS_DBG}
-      ${EQSAT_RS_LIB_LINUX_REL}
-      ${EQSAT_RS_LIB_LINUX_DBG}
+    DEPENDS ${EQSAT_RS_INC} ${EQSAT_RS_SRC} ${EQSAT_RS_LIBS}
 )
 
 set(EQSAT_RS_INC_OUT "${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h")
@@ -107,7 +109,7 @@ add_mim_plugin(eqsat
         eqsat-rs
     INSTALL
 )
-
+add_dependencies(mim_eqsat eqsat-rs-build)
 target_include_directories(mim_eqsat
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
