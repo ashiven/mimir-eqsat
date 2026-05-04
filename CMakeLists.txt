@@ -16,8 +16,8 @@ set(EQSAT_RS_LIB_WIN_REL ${BUILD_DIR}/lib/windows/release/eqsat_rs.lib)
 set(EQSAT_RS_LIB_WIN_DBG ${BUILD_DIR}/lib/windows/debug/eqsat_rs.lib)
 set(EQSAT_RS_LIB_MACOS_REL ${BUILD_DIR}/lib/macos/release/libeqsat_rs.a)
 set(EQSAT_RS_LIB_MACOS_DBG ${BUILD_DIR}/lib/macos/debug/libeqsat_rs.a)
-set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/libeqsat_rs.a)
-set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/libeqsat_rs.a)
+set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/release/libeqsat_rs.a)
+set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/debug/libeqsat_rs.a)
 add_custom_command(
     OUTPUT
       ${EQSAT_RS_INC}
