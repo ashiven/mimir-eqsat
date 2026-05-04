@@ -32,7 +32,7 @@ file(MAKE_DIRECTORY "${BUILD_DIR}/src")
 file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
 
 # ------------------------------------------------------------
-# Pick platform-specific libraries
+# Pick platform-specific libs
 # ------------------------------------------------------------
 if (WIN32)
   set(EQSAT_RS_LIBS
@@ -52,7 +52,7 @@ else()
 endif()
 
 # ------------------------------------------------------------
-# Build static libraries
+# Build static libs and ffi header
 # ------------------------------------------------------------
 add_custom_command(
     OUTPUT
