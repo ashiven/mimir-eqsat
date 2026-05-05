@@ -161,3 +161,12 @@ set(CTEST_MEMORYCHECK_COMMAND_OPTIONS
     "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/extra/eqsat/valgrind.supp"
     CACHE STRING "CTest options" FORCE
 )
+
+find_program(MEMORYCHECK_COMMAND valgrind)
+
+if(MIM_LIT_WITH_VALGRIND)
+  set(LIT_VALGRIND_COMMANDLINE
+    "${MEMORYCHECK_COMMAND} ${VALGRIND_COMMAND_OPTIONS} ")
+else()
+  set(LIT_VALGRIND_COMMANDLINE "")
+endif()
