@@ -67,13 +67,15 @@ jobs:
       - name: Run lit test suite
         working-directory: mimir
         run: |
-          export PATH=$(pwd)/bin:$(pwd)/.venv/bin:$PATH
           source .venv/bin/activate
+          export PATH=$(pwd)/bin:$(pwd)/.venv/bin:$PATH
+          python -m pip show lit
           cmake --build build -v --target lit
 
       - name: Test
         working-directory: mimir
         run: |
-          export PATH=$(pwd)/bin:$(pwd)/.venv/bin:$PATH
           source .venv/bin/activate
+          export PATH=$(pwd)/bin:$(pwd)/.venv/bin:$PATH
+          python -m pip show lit
           ctest --test-dir build --verbose -C ${{matrix.build-type}} --output-on-failure
