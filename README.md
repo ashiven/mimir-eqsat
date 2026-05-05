@@ -150,6 +150,123 @@ cmake -S . -B build -DBUILD_TESTING=ON -DMIM_BUILD_EXAMPLES=ON
 cmake --build build -j$(nproc)
 ```
 
+## Rulesets
+
+You may want to define a set of rewrite-rules that are more complex than the syntactic rewrite-rules
+that can be defined in **MimIR**. In this case, you should follow this implementation guide on adding
+a set of rules directly in **egg** or **slotted-egraphs**. (The example defines a ruleset for **egg**)
+
+**1. First you should fork and then clone this repository**
+
+```bash
+-- After forking:
+git clone https://github.com/your-username/eqsat.git
+```
+
+**2. Define a set of rules in `src/mim_egg/rulesets/myrules.rs`**
+
+```rust
+use crate::mim_egg::Mim;
+use crate::mim_egg::analysis::MimAnalysis;
+use egg::{Rewrite, Pattern};
+
+pub fn rules() -> Vec<Rewrite<Mim, MimAnalysis>> {
+    let rules = vec![
+        my_rule(),
+    ];
+    rules
+}
+
+fn my_rule() -> Rewrite<Mim, MimAnalysis> {
+    let pat: Pattern<Mim> = "(app %foo.bar ?baz)".parse().unwrap();
+    let outpat: Pattern<Mim> = "?baz".parse().unwrap();
+    Rewrite::new("my_rule", pat, outpat).unwrap()
+}
+```
+
+**3. Add your ruleset to the RuleSet enum in `src/ffi.rs`**
+
+```rust
+// ...
+#[cxx::bridge]
+pub mod bridge {
+    #[derive(Debug)]
+    enum RuleSet {
+        // Egg
+        Core,
+        MyRules,
+        // Slotted
+        Standard,
+    }
+// ...
+```
+
+**4. Ensure that your ruleset is registered in `src/mim_egg/rulesets/mod.rs`**
+
+```rust
+use crate::RuleSet;
+use crate::mim_egg::Mim;
+use crate::mim_egg::analysis::MimAnalysis;
+use egg::Rewrite;
+
+pub mod core;
+// Add the module:
+pub mod myrules;
+
+pub fn get_rules(rulesets: Vec<RuleSet>) -> Vec<Rewrite<Mim, MimAnalysis>> {
+    let mut rules = Vec::new();
+    for ruleset in rulesets {
+        match ruleset {
+            RuleSet::Core => rules.extend(core::rules()),
+            // Add the ruleset:
+            RuleSet::MyRules => rules.extend(myrules::rules()),
+            _ => (),
+        }
+    }
+    rules
+}
+```
+
+**5. Add your ruleset as a new axiom to `eqsat.mim`**
+
+```
+/// ...
+/// ## Rulesets
+///
+/// ### Egg
+///
+axm %eqsat.core: %eqsat.Ruleset;
+axm %eqsat.myrules: %eqsat.Ruleset;
+///
+/// ### Slotted
+///
+axm %eqsat.standard: %eqsat.Ruleset;
+/// ...
+```
+
+**6. Patch the rewrite phase in `plug/phase/rewrite_egg.cpp`**
+
+```cpp
+std::pair<rust::Vec<RuleSet>, CostFn> EggRewrite::import_config() {
+    // ...
+    rust::Vec<RuleSet> rulesets;
+    CostFn cost_fn = CostFn::AstSize;
+    for (auto lam : lams) {
+        auto body = lam->as<Lam>()->body();
+        if (auto body_app = body->isa<App>()) {
+            if (auto ruleset_config = Axm::isa<eqsat::rulesets>(body_app->arg())) {
+                for (auto ruleset : ruleset_config->args())
+                    if (Axm::isa<eqsat::core>(ruleset))
+                        rulesets.push_back(RuleSet::Core);
+                    // Add this:
+                    else if (Axm::isa<eqsat::myrules>(ruleset))
+                        rulesets.push_back(RuleSet::MyRules);
+                    else
+                        assert(false && "Provided ruleset does not exist for egg");
+    // ...
+}
+```
+
 ## Provided Methods
 
 There are two separate implementations in [egg](https://github.com/egraphs-good/egg) and [slotted-egraphs](https://github.com/memoryleak47/slotted-egraphs) that expose the following methods:
