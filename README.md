@@ -15,7 +15,7 @@
 
 </div>
 
-## About 
+## About
 
 **Equality Saturation** is a compiler optimization technique that utilizes [E-Graphs](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) to represent every possible way of equivalently rewriting a program and find the most optimal version of it, thereby solving the [Phase-Ordering Problem](https://www2.imm.dtu.dk/pubdb/edoc/imm5406.pdf).
 This repository contains **Equality Saturation** implementations in [egg](https://github.com/egraphs-good/egg) and [slotted-egraphs](https://github.com/memoryleak47/slotted-egraphs) as a plugin for the [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) compiler intermediate representation [MimIR](https://github.com/mimir/mimir).
@@ -172,7 +172,7 @@ a set of rules directly in **egg** or **slotted-egraphs**. (The example defines 
 **1. First you should fork and then clone this repository**
 
 ```bash
--- After forking:
+# After forking:
 git clone https://github.com/your-username/eqsat.git
 ```
 
