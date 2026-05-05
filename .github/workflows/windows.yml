@@ -60,6 +60,9 @@ jobs:
         with:
           version: "21.1.8"
 
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Build
         working-directory: mimir
         shell: cmd
