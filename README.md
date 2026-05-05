@@ -4,11 +4,11 @@ This repository contains the [equality saturation](https://en.wikipedia.org/wiki
 
 ## Usage
 
-You may use this plugin through `MimIR`'s C++ API or its textual representation `Mim`.
+You may use this plugin through the `MimIR` C++ API or its textual representation `Mim`.
 
 ### Using `eqsat` through `Mim`
 
-Consider the following lightweight example to get you started with configuring the plugin and performing a simple rewrite via equality saturation:
+Consider the following lightweight example to get you started with configuring the plugin and performing a simple rewrite:
 
 ```
 plugin core;
