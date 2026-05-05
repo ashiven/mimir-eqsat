@@ -75,6 +75,7 @@ add_custom_target(eqsat-rs-build
 # ------------------------------------------------------------
 # Stage ffi header into rust include dir
 # ------------------------------------------------------------
+set(STAGED_HEADER ${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h)
 add_custom_target(eqsat-rs-header
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/rust
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${EQSAT_RS_INCLUDE} ${STAGED_HEADER}
