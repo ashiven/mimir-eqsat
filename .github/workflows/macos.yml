@@ -31,7 +31,10 @@ jobs:
 
       - name: Set up Python
         working-directory: mimir
-        run: python3 -m pip install lit psutil
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install lit psutil
+          echo "$(pwd)/.venv/bin" >> GITHUB_PATH
 
       - name: Install LLVM and add to PATH
         run: |
