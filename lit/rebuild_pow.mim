@@ -2,11 +2,11 @@
 // RUN: sed 's/__IMPL__/slotted/' %s > %t && MIM_PLUGIN_PATH=%S %mim %t -o -
 
 plugin core;
-plugin eqsat;
-import pipeline;
-
-fun extern _impl(): %eqsat.Impl =
-    return %eqsat.__IMPL__;
+// plugin eqsat;
+// import pipeline;
+// 
+// fun extern _impl(): %eqsat.Impl =
+//     return %eqsat.__IMPL__;
 
 fun pow(a b: I32): I32 =
     con pow_cont(v: I32) =
