@@ -54,23 +54,27 @@ jobs:
             -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined,leak,bounds -fsanitize-address-use-after-scope -fno-omit-frame-pointer -fno-sanitize=vptr" \
             -DBUILD_TESTING=ON                                                                                                                         \
             -DMIM_BUILD_EXAMPLES=ON                                                                                                                    \
+            -DMIM_FILECHECK=/usr/bin/FileCheck-20                                                                                                      \
             -DMIM_LIT_TIMEOUT=300
 
       - name: Configure Release
+        working-directory: mimir
         if: matrix.build-type == 'Release'
         run: |
-          CC=gcc-14 CXX=g++-14 cmake -B build \
+          CC=gcc-14 CXX=g++-14 cmake -B build                       \
             -DCMAKE_BUILD_TYPE=${{matrix.build-type}}               \
             -DBUILD_TESTING=ON                                      \
             -DMIM_BUILD_EXAMPLES=ON                                 \
+            -DMIM_FILECHECK=/usr/bin/FileCheck-20                   \
             -DMIM_LIT_WITH_VALGRIND=ON                              \
             -DMIM_LIT_TIMEOUT=300
 
       - name: Build
+        working-directory: mimir
         run: cmake --build build -v
 
       - name: Run lit test suite
-        working-directory: mimir/build
+        working-directory: mimir
         run: cmake --build build -v --target lit
 
       - name: Test w/o Valgrind

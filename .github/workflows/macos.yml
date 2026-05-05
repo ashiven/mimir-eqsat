@@ -30,6 +30,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Set up Python
+        working-directory: mimir
         run: |
           python3 -m venv .venv
           source .venv/bin/activate
@@ -38,7 +39,9 @@ jobs:
       - name: Install LLVM and add to PATH
         run: |
           brew install llvm
-          echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+          LLVM_PREFIX=$(brew --prefix llvm)
+          echo "LLVM_PREFIX=${LLVM_PREFIX}" >> $GITHUB_ENV
+          echo "${LLVM_PREFIX}/bin" >> $GITHUB_PATH
 
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
@@ -47,24 +50,28 @@ jobs:
           override_cache_key: mac-latest-ccache-${{matrix.build-type}}
 
       - name: Configure
+        working-directory: mimir
         run: |
-          cmake -B build                               \
+          CC="${LLVM_PREFIX}/bin/clang" CXX="${LLVM_PREFIX}/bin/clang++"     \
+          cmake -B build                                                     \
                 -DCMAKE_BUILD_TYPE=${{matrix.build-type}}                    \
                 -DBUILD_TESTING=ON -DMIM_BUILD_EXAMPLES=ON                   \
+                -DMIM_FILECHECK=${LLVM_PREFIX}/bin/FileCheck                 \
                 -DMIM_LIT_TIMEOUT=300                                        \
-                -DPython3_EXECUTABLE=mimir/.venv/bin/python3
+                -DPython3_EXECUTABLE=.venv/bin/python3
 
       - name: Build
+        working-directory: mimir
         run: cmake --build build -j $(nproc) -v
 
       - name: Run lit test suite
-        working-directory: mimir/build
+        working-directory: mimir
         run: |
-          export PATH=mimir/bin:$PATH
+          export PATH=bin:$PATH
           cmake --build build -j $(nproc) -v --target lit
 
       - name: Test
-        working-directory: mimir/build
+        working-directory: mimir
         run: |
-          export PATH=mimir/bin:$PATH
-          ctest --verbose -C ${{matrix.build-type}} --output-on-failure
+          export PATH=bin:$PATH
+          ctest --test-dir build --verbose -C ${{matrix.build-type}} --output-on-failure
