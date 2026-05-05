@@ -11,13 +11,10 @@ Consider the following lightweight examples to get you started.
 
 ```cpp
 #include <fstream>
-
 #include <mim/driver.h>
-
 #include <mim/ast/parser.h>
 #include <mim/pass/optimize.h>
 #include <mim/util/sys.h>
-
 #include <mim/plug/eqsat/eqsat.h>
 
 using namespace mim;
