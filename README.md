@@ -1,6 +1,20 @@
-## MimIR EqSat
+<p align="center">
+  <h2 align="center">EqSat</h2>
+</p>
 
-This repository contains the [equality saturation](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) implementations for [MimIR](https://github.com/mimir/mimir).
+<p align="center">
+  Equality Saturation in MimIR
+</p>
+
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Release](https://img.shields.io/github/v/release/ashiven/eqsat)](https://github.com/ashiven/eqsat/releases)
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/ashiven/eqsat)](https://github.com/ashiven/eqsat/issues)
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/ashiven/eqsat)](https://github.com/ashiven/eqsat/pulls)
+
+</div>
+
 
 ## Usage
 
