@@ -154,5 +154,10 @@ target_include_directories(mim_eqsat
 # ------------------------------------------------------------
 # Valgrind override
 # ------------------------------------------------------------
-set(VALGRIND_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/extra/eqsat/valgrind.supp")
-set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/extra/eqsat/valgrind.supp")
+set(VALGRIND_COMMAND_OPTIONS
+    "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/extra/eqsat/valgrind.supp"
+    CACHE STRING "Valgrind options" FORCE)
+set(CTEST_MEMORYCHECK_COMMAND_OPTIONS
+    "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/extra/eqsat/valgrind.supp"
+    CACHE STRING "CTest options" FORCE
+)
