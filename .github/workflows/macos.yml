@@ -62,13 +62,13 @@ jobs:
 
       - name: Build
         working-directory: mimir
-        run: cmake --build build -j $(nproc) -v
+        run: cmake --build build -v
 
       - name: Run lit test suite
         working-directory: mimir
         run: |
           export PATH=bin:$PATH
-          cmake --build build -j $(nproc) -v --target lit
+          cmake --build build -v --target lit
 
       - name: Test
         working-directory: mimir
