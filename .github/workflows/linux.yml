@@ -36,7 +36,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-14 g++-14 valgrind llvm-20-tools clang-20
-          sudo pip install lit psutiln/FileCheck-20 /usr/local/bin/FileCheck
+          sudo pip install lit psutil
 
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
