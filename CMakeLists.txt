@@ -65,11 +65,29 @@ add_custom_command(
     VERBATIM
 )
 
-add_custom_target(eqsat-rs-build ALL
+add_custom_target(eqsat-rs-build
     DEPENDS
         ${EQSAT_RS_INCLUDE}
         ${EQSAT_RS_SRC}
         ${EQSAT_RS_LIBS}
+)
+
+# ------------------------------------------------------------
+# Stage header into rust include dir
+# ------------------------------------------------------------
+set(STAGED_HEADER
+    ${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h)
+
+add_custom_command(
+    OUTPUT ${STAGED_HEADER}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/rust
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${EQSAT_RS_INCLUDE} ${STAGED_HEADER}
+    DEPENDS eqsat-rs-build ${EQSAT_RS_INCLUDE}
+    COMMENT "Staging Rust header"
+)
+
+add_custom_target(eqsat-rs-header
+    DEPENDS ${STAGED_HEADER}
 )
 
 # ------------------------------------------------------------
@@ -132,7 +150,7 @@ add_mim_plugin(eqsat
     INSTALL
 )
 
-add_dependencies(mim_eqsat eqsat-rs-build)
+add_dependencies(mim_eqsat eqsat-rs-header)
 
 target_include_directories(mim_eqsat
     PUBLIC
