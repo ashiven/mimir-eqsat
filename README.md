@@ -116,7 +116,9 @@ fun extern _rulesets(): %eqsat.RuleSet =
     return %eqsat.rulesets ( %eqsat.standard );
 
 // You can also define your own syntactic rewrite-rules in `MimIR`.
-rule foo (x: Nat) = %core.nat.add (x, 0) => x;
+// To differentiate between slots: "(var $x)" and patterns: "?x" you should
+// prefix variables with "slot_" or "pat_" when using the slotted implementation.
+rule foo (slot_x: Nat) = %core.nat.add (slot_x, 0) => slotx;
 
 // And then tell the eqsat plugin to use them for term rewriting.
 fun extern _rules(): %eqsat.Rules =
