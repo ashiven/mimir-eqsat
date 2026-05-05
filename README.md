@@ -54,11 +54,11 @@ int main(int, char**) {
         foo.set_rhs(rhs);
         foo.set_guard(w.lit_tt());
 
-        // Use the provided macros to quickly define config functions
-        EQSAT_IMPL(w, eqsat::slotted);
-        EQSAT_COST_FUN(w, eqsat::AstSize);
-        EQSAT_RULESETS(w, {eqsat::standard});
-        EQSAT_RULES(w, {foo});
+        // Use the provided methods to quickly define config functions
+        eqsat_impl(w, eqsat::slotted);
+        eqsat_cost_fun(w, eqsat::AstSize);
+        eqsat_rulesets(w, {eqsat::standard});
+        eqsat_rules(w, {foo});
 
         // fun extern main(x: Nat): Nat =
         //     return %core.nat.add (x, 0);
@@ -112,7 +112,7 @@ fun extern _cost_fun(): %eqsat.CostFun =
 //
 // To see the existing rulesets, have a look at `src\mim_[egg|slotted]\rulesets`.
 // To implement and use your own ruleset, follow the instructions under **Adding rulesets**.
-fun extern _rulesets(): %eqsat.RuleSet =
+fun extern _rulesets(): %eqsat.Ruleset =
     return %eqsat.rulesets ( %eqsat.standard );
 
 // You can also define your own syntactic rewrite-rules in `MimIR`.
