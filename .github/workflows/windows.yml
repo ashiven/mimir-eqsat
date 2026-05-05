@@ -15,14 +15,14 @@ jobs:
 
     steps:
       - name: Clone recursively
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: mimir/mimir
           path: mimir
           submodules: recursive
 
       - name: Clone eqsat plugin
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: mimir/extra/eqsat
 
@@ -53,20 +53,18 @@ jobs:
           set CXX=cl.exe
           python -c "import sys; import os; print(os.path.dirname(sys.executable))" > tmpPath
           set /p PYTHON_PATH= < tmpPath
-          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_TESTING=ON -DMIM_BUILD_EXAMPLES=ON -DPython3_ROOT_DIR=%PYTHON_PATH% -DMIM_LIT_TIMEOUT=300
+          cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.build-type}} -DBUILD_TESTING=ON -DMIM_BUILD_EXAMPLES=ON -DPython3_ROOT_DIR=%PYTHON_PATH% -DMIM_FILECHECK=bin/FileCheck-x86_64-win.exe -DMIM_LIT_TIMEOUT=300
 
       - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v1.6.0
+        uses: KyleMayes/install-llvm-action@v2.0.9
         with:
-          version: "14.0.0"
+          version: "21.1.8"
 
       - name: Build
         working-directory: mimir
         shell: cmd
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          set PATH=C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64;%PATH%
-          set LINK=
           cmake --build build -v
 
       - name: Run lit test suite
