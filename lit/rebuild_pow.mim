@@ -2,6 +2,9 @@
 // RUN: sed 's/__IMPL__/slotted/' %s > %t && MIM_PLUGIN_PATH=%S %mim %t -o -
 
 plugin core;
+// TODO: There is some bug with is_mutually_recursive/is_directly_recursive
+// in the sexpr backend why pow isn't recognized as recursive -> stack overflow
+//
 // plugin eqsat;
 // import pipeline;
 // 
