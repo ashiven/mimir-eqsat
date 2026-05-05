@@ -23,6 +23,13 @@ set(EQSAT_RS_LIB_LINUX_REL ${BUILD_DIR}/lib/linux/release/libeqsat_rs.a)
 set(EQSAT_RS_LIB_LINUX_DBG ${BUILD_DIR}/lib/linux/debug/libeqsat_rs.a)
 
 # ------------------------------------------------------------
+# Ensure build dirs exist
+# ------------------------------------------------------------
+file(MAKE_DIRECTORY "${BUILD_DIR}/include")
+file(MAKE_DIRECTORY "${BUILD_DIR}/src")
+file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
+
+# ------------------------------------------------------------
 # Build static libs and ffi header
 # ------------------------------------------------------------
 add_custom_target(eqsat-rs-build
