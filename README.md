@@ -56,6 +56,69 @@ fun extern main(x: Nat): Nat =
 
 ### Using `eqsat` through the C++ API
 
+```cpp
+#include <fstream>
+
+#include <mim/driver.h>
+
+#include <mim/ast/parser.h>
+#include <mim/pass/optimize.h>
+#include <mim/util/sys.h>
+
+#include <mim/plug/eqsat/eqsat.h>
+
+using namespace mim;
+using namespace mim::plug;
+
+int main(int, char**) {
+    try {
+        Driver driver;
+        auto& w = driver.world();
+        driver.log().set(&std::cerr).set(Log::Level::Debug);
+        ast::load_plugins(w, View<std::string>{"compile", "core", "opt", "eqsat"});
+
+        // rule foo (x: Nat) = %core.nat.add (x, 0) => x;
+        auto foo = w.mut_rule(w.type_nat())->set("foo");
+        foo->var()->set("x");
+        auto lhs = w.call(core::nat::add, w.tuple(foo->var(), lit_nat(0)))
+        auto rhs = foo->var();
+        foo.set_lhs(lhs);
+        foo.set_rhs(rhs);
+        foo.set_guard(w.lit_tt());
+
+        // Use the provided macros to quickly define config functions
+        EQSAT_IMPL(w, eqsat::slotted);
+        EQSAT_COST_FUN(w, eqsat::AstSize);
+        EQSAT_RULESETS(w, {eqsat::standard});
+        EQSAT_RULES(w, {foo});
+
+        // fun extern main(x: Nat): Nat =
+        //     return %core.nat.add (x, 0);
+        auto main   = w.mut_fun({w.type_nat()}, {w.type_nat()})->set("main");
+        auto x = main->var(2, 0)->set("x");
+        auto ret               = main->var(2, 1);
+        main->app(false, ret, x);
+        main->externalize();
+
+        optimize(w);
+        std::ofstream ofs("eqsat.ll");
+        driver.backend("ll")(w, ofs);
+        ofs.close();
+
+        sys::system("clang eqsat.ll -o eqsat -Wno-override-module");
+        outln("exit code: {}", sys::system("./eqsat"));
+    } catch (const std::exception& e) {
+        errln("{}", e.what());
+        return EXIT_FAILURE;
+    } catch (...) {
+        errln("error: unknown exception");
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
+}
+```
+
 ## Installation
 
 To install this plugin simply follow the instructions below:
