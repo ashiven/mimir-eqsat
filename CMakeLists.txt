@@ -30,13 +30,46 @@ file(MAKE_DIRECTORY "${BUILD_DIR}/src")
 file(MAKE_DIRECTORY "${BUILD_DIR}/lib")
 
 # ------------------------------------------------------------
+# Pick platform-specific libs
+# ------------------------------------------------------------
+if (WIN32)
+  set(EQSAT_RS_LIBS
+    ${EQSAT_RS_LIB_WIN_REL}
+    ${EQSAT_RS_LIB_WIN_DBG}
+  )
+elseif(APPLE)
+  set(EQSAT_RS_LIBS
+    ${EQSAT_RS_LIB_MACOS_REL}
+    ${EQSAT_RS_LIB_MACOS_DBG}
+  )
+else()
+  set(EQSAT_RS_LIBS
+    ${EQSAT_RS_LIB_LINUX_REL}
+    ${EQSAT_RS_LIB_LINUX_DBG}
+  )
+endif()
+
+# ------------------------------------------------------------
 # Build static libs and ffi header
 # ------------------------------------------------------------
-add_custom_target(eqsat-rs-build
+add_custom_command(
+    OUTPUT
+        ${EQSAT_RS_INCLUDE}
+        ${EQSAT_RS_SRC}
+        ${EQSAT_RS_LIBS}
+
     COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
     DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
     COMMENT "Building eqsat-rs via build.sh"
+    VERBATIM
+)
+
+add_custom_target(eqsat-rs-build
+    DEPENDS
+        ${EQSAT_RS_INCLUDE}
+        ${EQSAT_RS_SRC}
+        ${EQSAT_RS_LIBS}
 )
 
 # ------------------------------------------------------------
