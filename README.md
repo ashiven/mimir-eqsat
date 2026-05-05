@@ -1,70 +1,38 @@
-## MimIR EqSat
+<p align="center">
+  <h2 align="center">eqsat</h2>
+</p>
 
-This repository contains the [equality saturation](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) implementations for [MimIR](https://github.com/mimir/mimir).
+<p align="center">
+  <b>Equality Saturation</b> in <b>MimIR</b>
+</p>
+
+<div align="center">
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Release](https://img.shields.io/github/v/release/ashiven/eqsat)](https://github.com/ashiven/eqsat/releases)
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/ashiven/eqsat)](https://github.com/ashiven/eqsat/issues)
+[![GitHub Issues or Pull Requests](https://img.shields.io/github/issues-pr/ashiven/eqsat)](https://github.com/ashiven/eqsat/pulls)
+
+</div>
+
+## About 
+
+**Equality Saturation** is a compiler optimization technique that utilizes [E-Graphs](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) to represent every possible way of equivalently rewriting a program and find the most optimal version of it, thereby solving the [Phase-Ordering Problem](https://www2.imm.dtu.dk/pubdb/edoc/imm5406.pdf).
+This repository contains **Equality Saturation** implementations in [egg](https://github.com/egraphs-good/egg) and [slotted-egraphs](https://github.com/memoryleak47/slotted-egraphs) as a plugin for the [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) compiler intermediate representation [MimIR](https://github.com/mimir/mimir).
 
 ## Usage
 
-You may use this plugin through the `MimIR` C++ API or its textual representation `Mim`.
+You may use this plugin through the **MimIR** C++ API or its textual representation **Mim**.
+Consider the following lightweight examples to get you started.
 
-### Using `eqsat` through `Mim`
-
-Consider the following lightweight example to get you started with configuring the plugin and performing a simple rewrite:
-
-```
-plugin core;
-plugin eqsat;
-
-// Here you can specify whether the plugin should use its `egg` or `slotted-egraphs` backend.
-// The default implementation when nothing gets specified is `egg`.
-fun extern _impl(): %eqsat.Impl =
-    return %eqsat.slotted;
-
-// To define the cost function that should be used for term extraction,
-// simply provide the following config function.
-//
-// Config values:
-// Egg:       AstSize (default), AstDepth
-// Slotted:   AstSize (default)
-fun extern _cost_fun(): %eqsat.CostFun =
-    return %eqsat.AstSize;
-
-// To use a set of rules directly implemented in `egg` or `slotted-egraphs`, define
-// the following config function.
-//
-// To see the existing rulesets, have a look at `src\mim_[egg|slotted]\rulesets`.
-// To implement and use your own ruleset, follow the instructions under **Adding rulesets**.
-fun extern _rulesets(): %eqsat.RuleSet =
-    return %eqsat.rulesets ( %eqsat.standard );
-
-// You can also define your own syntactic rewrite-rules in `MimIR`.
-rule foo (x: Nat) = %core.nat.add (x, 0) => x;
-
-// And then tell the eqsat plugin to use them for term rewriting.
-fun extern _rules(): %eqsat.Rules =
-    return %eqsat.rules ( foo );
-
-
-// Using your rewrite-rule 'foo', this will be rewritten to:
-//
-//    fun extern main(x: Nat): Nat =
-//        return x;
-//
-fun extern main(x: Nat): Nat =
-    return %core.nat.add (x, 0);
-
-```
-
-### Using `eqsat` through the C++ API
+### Option 1: C++ API
 
 ```cpp
 #include <fstream>
-
 #include <mim/driver.h>
-
 #include <mim/ast/parser.h>
 #include <mim/pass/optimize.h>
 #include <mim/util/sys.h>
-
 #include <mim/plug/eqsat/eqsat.h>
 
 using namespace mim;
@@ -117,6 +85,51 @@ int main(int, char**) {
 
     return EXIT_SUCCESS;
 }
+```
+
+### Option 2: Mim
+
+```
+plugin core;
+plugin eqsat;
+
+// Here you can specify whether the plugin should use its `egg` or `slotted-egraphs` backend.
+// The default implementation when nothing gets specified is `egg`.
+fun extern _impl(): %eqsat.Impl =
+    return %eqsat.slotted;
+
+// To define the cost function that should be used for term extraction,
+// simply provide the following config function.
+//
+// Config values:
+// Egg:       AstSize (default), AstDepth
+// Slotted:   AstSize (default)
+fun extern _cost_fun(): %eqsat.CostFun =
+    return %eqsat.AstSize;
+
+// To use a set of rules directly implemented in `egg` or `slotted-egraphs`, define
+// the following config function.
+//
+// To see the existing rulesets, have a look at `src\mim_[egg|slotted]\rulesets`.
+// To implement and use your own ruleset, follow the instructions under **Adding rulesets**.
+fun extern _rulesets(): %eqsat.RuleSet =
+    return %eqsat.rulesets ( %eqsat.standard );
+
+// You can also define your own syntactic rewrite-rules in `MimIR`.
+rule foo (x: Nat) = %core.nat.add (x, 0) => x;
+
+// And then tell the eqsat plugin to use them for term rewriting.
+fun extern _rules(): %eqsat.Rules =
+    return %eqsat.rules ( foo );
+
+
+// Using your rewrite-rule 'foo', this will be rewritten to:
+//
+//    fun extern main(x: Nat): Nat =
+//        return x;
+//
+fun extern main(x: Nat): Nat =
+    return %core.nat.add (x, 0);
 ```
 
 ## Installation
