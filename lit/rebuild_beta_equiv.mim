@@ -5,7 +5,7 @@ plugin core;
 plugin math;
 plugin mem;
 // plugin eqsat;
-import pipeline;
+// import pipeline;
 
 // fun extern _impl(): %eqsat.Impl =
 //     return %eqsat.__IMPL__;
