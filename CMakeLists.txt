@@ -160,11 +160,8 @@ if(MIM_LIT_WITH_VALGRIND)
   set(LIT_VALGRIND_COMMANDLINE "${MEMORYCHECK_COMMAND} ${VALGRIND_COMMAND_OPTIONS} ")
 endif()
 
-message(STATUS "configuring lit site cfg from eqsat")
 configure_file(
     ${CMAKE_SOURCE_DIR}/lit/lit.site.cfg.py.in
-    ${CMAKE_SOURCE_DIR}/lit/lit.site.cfg.py
+    ${CMAKE_BINARY_DIR}/lit/lit.site.cfg.py
     @ONLY
 )
-file(READ ${CMAKE_SOURCE_DIR}/lit/lit.site.cfg.py LIT_CFG_CONTENT)
-message(STATUS "---- lit.site.cfg.py ----\n${LIT_CFG_CONTENT}\n------------------------")
