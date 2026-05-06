@@ -155,10 +155,10 @@ target_include_directories(mim_eqsat
 # Valgrind override
 # ------------------------------------------------------------
 set(VALGRIND_COMMAND_OPTIONS
-    "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/extra/eqsat/valgrind.supp"
+    "--leak-check=full --error-exitcode=1 --suppressions=${CMAKE_SOURCE_DIR}/extra/eqsat/valgrind.supp"
     CACHE STRING "Valgrind options" FORCE)
 set(CTEST_MEMORYCHECK_COMMAND_OPTIONS
-    "--leak-check=full --error-exitcode=1 --suppressions=${PROJECT_SOURCE_DIR}/extra/eqsat/valgrind.supp"
+    "--leak-check=full --error-exitcode=1 --suppressions=${CMAKE_SOURCE_DIR}/extra/eqsat/valgrind.supp"
     CACHE STRING "CTest options" FORCE
 )
 
@@ -167,7 +167,7 @@ if(MIM_LIT_WITH_VALGRIND)
 endif()
 
 configure_file(
-    ${PROJECT_SOURCE_DIR}/lit/lit.site.cfg.py.in
-    ${PROJECT_SOURCE_DIR}/lit/lit.site.cfg.py
+    ${CMAKE_SOURCE_DIR}/lit/lit.site.cfg.py.in
+    ${CMAKE_SOURCE_DIR}/lit/lit.site.cfg.py
     @ONLY
 )
