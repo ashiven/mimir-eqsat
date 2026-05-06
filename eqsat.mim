@@ -75,6 +75,7 @@ axm %eqsat.math: %eqsat.Ruleset;
 /// ### Slotted
 ///
 axm %eqsat.standard: %eqsat.Ruleset;
+axm %eqsat.rise: %eqsat.Ruleset;
 ///
 ///
 /// ## Cost functions

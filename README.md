@@ -260,7 +260,7 @@ axm %eqsat.standard: %eqsat.Ruleset;
 /// ...
 ```
 
-**6. Patch the rewrite phase in `plug/phase/rewrite_egg.cpp`**
+**6. Patch the rewrite phase in `plug/phase/egg_rewrite.cpp`**
 
 ```cpp
 std::pair<rust::Vec<RuleSet>, CostFn> EggRewrite::import_config() {

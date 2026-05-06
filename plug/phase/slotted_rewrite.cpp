@@ -53,6 +53,8 @@ std::pair<rust::Vec<RuleSet>, CostFn> SlottedRewrite::import_config() {
                 for (auto ruleset : ruleset_config->args())
                     if (Axm::isa<eqsat::standard>(ruleset))
                         rulesets.push_back(RuleSet::Standard);
+                    else if (Axm::isa<eqsat::rise>(ruleset))
+                        rulesets.push_back(RuleSet::Rise);
                     else
                         assert(false && "Provided ruleset does not exist for slotted");
 
