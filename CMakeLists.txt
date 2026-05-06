@@ -52,6 +52,11 @@ endif()
 # ------------------------------------------------------------
 # Build static libs and ffi header
 # ------------------------------------------------------------
+file(GLOB_RECURSE EQSAT_RS_SOURCES
+    CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_LIST_DIR}/src/*.rs"
+)
+
 add_custom_command(
     OUTPUT
         ${EQSAT_RS_INCLUDE}
@@ -60,7 +65,7 @@ add_custom_command(
 
     COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
     WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh
+    DEPENDS ${CMAKE_CURRENT_LIST_DIR}/build.sh ${EQSAT_RS_SOURCES}
     COMMENT "Building eqsat-rs via build.sh"
     VERBATIM
 )
