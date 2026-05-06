@@ -10,8 +10,8 @@ endif()
 # ------------------------------------------------------------
 set(BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/build)
 
-set(EQSAT_RS_INCLUDE ${BUILD_DIR}/include/eqsat_rs.h)
-set(EQSAT_RS_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
+set(EQSAT_RS_HEADER ${BUILD_DIR}/include/eqsat_rs.h)
+set(EQSAT_RS_HEADER_SRC ${BUILD_DIR}/src/eqsat_rs.cc)
 
 set(EQSAT_RS_LIB_WIN_REL ${BUILD_DIR}/lib/windows/release/eqsat_rs.lib)
 set(EQSAT_RS_LIB_WIN_DBG ${BUILD_DIR}/lib/windows/debug/eqsat_rs.lib)
@@ -59,8 +59,8 @@ file(GLOB_RECURSE EQSAT_RS_SOURCES
 
 add_custom_command(
     OUTPUT
-        ${EQSAT_RS_INCLUDE}
-        ${EQSAT_RS_SRC}
+        ${EQSAT_RS_HEADER}
+        ${EQSAT_RS_HEADER_SRC}
         ${EQSAT_RS_LIBS}
 
     COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/build.sh
@@ -72,8 +72,8 @@ add_custom_command(
 
 add_custom_target(eqsat-rs-build
     DEPENDS
-        ${EQSAT_RS_INCLUDE}
-        ${EQSAT_RS_SRC}
+        ${EQSAT_RS_HEADER}
+        ${EQSAT_RS_HEADER_SRC}
         ${EQSAT_RS_LIBS}
 )
 
@@ -83,7 +83,7 @@ add_custom_target(eqsat-rs-build
 set(STAGED_HEADER ${CMAKE_BINARY_DIR}/include/rust/eqsat_rs.h)
 add_custom_target(eqsat-rs-header
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/include/rust
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${EQSAT_RS_INCLUDE} ${STAGED_HEADER}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${EQSAT_RS_HEADER} ${STAGED_HEADER}
     DEPENDS eqsat-rs-build
     COMMENT "Staging Rust header"
 )
