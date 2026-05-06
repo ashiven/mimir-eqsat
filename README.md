@@ -60,14 +60,14 @@ int main(int, char**) {
         eqsat_rulesets(w, {eqsat::standard});
         eqsat_rules(w, {foo});
 
-        // fun extern main(x: Nat): Nat =
-        //     return %core.nat.add (x, 0);
+        // fun extern main(x: Nat): Nat = return %core.nat.add (x, 0);
         auto main   = w.mut_fun({w.type_nat()}, {w.type_nat()})->set("main");
         auto x = main->var(2, 0)->set("x");
         auto ret               = main->var(2, 1);
         main->app(false, ret, x);
         main->externalize();
 
+        // Equality saturation is performed as part of optimization
         optimize(w);
         std::ofstream ofs("eqsat.ll");
         driver.backend("ll")(w, ofs);
