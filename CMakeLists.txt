@@ -160,6 +160,8 @@ if(MIM_LIT_WITH_VALGRIND)
   set(LIT_VALGRIND_COMMANDLINE "${MEMORYCHECK_COMMAND} ${VALGRIND_COMMAND_OPTIONS} ")
 endif()
 
+set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_BINARY_DIR})
+
 configure_file(
     ${CMAKE_SOURCE_DIR}/lit/lit.site.cfg.py.in
     ${CMAKE_BINARY_DIR}/lit/lit.site.cfg.py
