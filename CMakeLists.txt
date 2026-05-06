@@ -168,5 +168,5 @@ configure_file(
     ${CMAKE_BINARY_DIR}/lit/lit.site.cfg.py
     @ONLY
 )
-file(READ ${CMAKE_BINARY_DIR}/lit.site.cfg.py LIT_CFG_CONTENT)
+file(READ ${CMAKE_BINARY_DIR}/lit/lit.site.cfg.py LIT_CFG_CONTENT)
 message(STATUS "---- lit.site.cfg.py ----\n${LIT_CFG_CONTENT}\n------------------------")
