@@ -138,6 +138,7 @@ impl fmt::Display for NodeFFI {
             MimKind::Hole => f.write_str("hole"),
             MimKind::Type => f.write_str("type"),
             MimKind::Reform => f.write_str("reform"),
+            MimKind::TypeWrap => f.write_str("@"),
             MimKind::MetaVar => f.write_str("metavar"),
             MimKind::Root => f.write_str("root"),
             MimKind::Scope => f.write_str("scope"),
