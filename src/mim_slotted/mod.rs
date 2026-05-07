@@ -185,6 +185,14 @@ where
 
     let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default();
     for sexpr in &sexprs {
+        // TODO: Here we want to first extract_type_annotations(RecExpr<MimSlotted>)->RecExpr<MimSlotted>, TypeInfo
+        // and then perform equality saturation on an egraph with type information added to each eclass
+        // as analysis data which gets maintained during equality saturation
+        //
+        let typed_rec_expr: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        let (_untyped_rec_expr, _type_info) = extract_type_annotations(&typed_rec_expr);
+        // eg.add_with_type_info(untyped_rec_expr, type_info);
+
         let rec_expr = RecExpr::parse(sexpr).unwrap();
         runner = runner.with_expr(&rec_expr);
     }
@@ -194,10 +202,25 @@ where
     let extractor = Extractor::new(&runner.egraph, cost_fn());
     for i in 0..sexprs.len() {
         let best_expr = extractor.extract(&runner.roots[i], &runner.egraph);
+
+        // TODO: Here we want to first insert_type_annotations(RecExpr<MimSlotted>, TypeInfo)->RecExpr<MimSlotted>
+        // and then return the rewritten sexpr with type annotations
+
         rewritten_sexprs.push(best_expr);
     }
 
     rewritten_sexprs
+}
+
+type TypeExpr = RecExpr<MimSlotted>;
+type TypeInfo = Vec<Option<TypeExpr>>;
+
+// Takes a RecExpr of a type-annotated sexpr like (@ Bool (lit ff))
+// and returns an untyped RecExpr (lit ff) and a vec of the corresponding types: {Some(Bool)}
+fn extract_type_annotations(
+    typed_rec_expr: &RecExpr<MimSlotted>,
+) -> (RecExpr<MimSlotted>, TypeInfo) {
+    (RecExpr::<MimSlotted>::parse("").unwrap(), vec![None])
 }
 
 fn convert_rules(
