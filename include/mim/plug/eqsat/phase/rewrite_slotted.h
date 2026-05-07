@@ -16,14 +16,14 @@ namespace mim::plug::eqsat {
 const bool DEBUG        = false;
 const bool DEBUG_SCOPES = false;
 
-class SlottedRewrite : public Phase, public Rewriter {
+class RewriteSlotted : public Phase, public Rewriter {
 public:
-    SlottedRewrite(World& world, std::string name)
+    RewriteSlotted(World& world, std::string name)
         : Phase(world, std::move(name))
         , Rewriter(world.inherit()) {
         register_symbols();
     }
-    SlottedRewrite(World& world, flags_t annex)
+    RewriteSlotted(World& world, flags_t annex)
         : Phase(world, annex)
         , Rewriter(world.inherit()) {
         register_symbols();

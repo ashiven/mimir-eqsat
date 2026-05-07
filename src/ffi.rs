@@ -16,6 +16,7 @@ pub mod bridge {
         Math,
         // Slotted
         Standard,
+        Rise,
     }
 
     #[derive(Debug)]
@@ -54,6 +55,7 @@ pub mod bridge {
         Hole,
         Type,
         Reform,
+        TypeWrap,
         MetaVar,
         Root,
         Scope,
@@ -136,6 +138,7 @@ impl fmt::Display for NodeFFI {
             MimKind::Hole => f.write_str("hole"),
             MimKind::Type => f.write_str("type"),
             MimKind::Reform => f.write_str("reform"),
+            MimKind::TypeWrap => f.write_str("@"),
             MimKind::MetaVar => f.write_str("metavar"),
             MimKind::Root => f.write_str("root"),
             MimKind::Scope => f.write_str("scope"),
@@ -326,6 +329,7 @@ impl FFIInner for MimSlotted {
             MimSlotted::Hole(..) => new_node_ffi(MimKind::Hole, children, None, None, None),
             MimSlotted::Type(..) => new_node_ffi(MimKind::Type, children, None, None, None),
             MimSlotted::Reform(..) => new_node_ffi(MimKind::Type, children, None, None, None),
+            MimSlotted::TypeWrap(..) => new_node_ffi(MimKind::TypeWrap, children, None, None, None),
             MimSlotted::MetaVar(..) => new_node_ffi(MimKind::MetaVar, children, None, None, None),
             MimSlotted::Root(..) => new_node_ffi(MimKind::Root, children, None, None, None),
             MimSlotted::Scope(..) => new_node_ffi(MimKind::Scope, children, None, None, None),

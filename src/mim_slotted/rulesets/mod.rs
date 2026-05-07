@@ -3,6 +3,7 @@ use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use slotted_egraphs::Rewrite;
 
+pub mod rise;
 pub mod standard;
 
 pub fn get_rules(rulesets: Vec<RuleSet>) -> Vec<Rewrite<MimSlotted, MimSlottedAnalysis>> {
@@ -12,6 +13,7 @@ pub fn get_rules(rulesets: Vec<RuleSet>) -> Vec<Rewrite<MimSlotted, MimSlottedAn
     for ruleset in rulesets {
         match ruleset {
             RuleSet::Standard => rules.extend(standard::rules()),
+            RuleSet::Rise => rules.extend(rise::rules()),
             _ => (),
         }
     }
