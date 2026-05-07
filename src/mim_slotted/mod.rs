@@ -88,6 +88,17 @@ define_language! {
 
         // STRUCTURAL
 
+        // We use this to annotate every term in the sexpr with a type as in (@ Bool (lit tt))
+        // The sexprs we initially receive from the sexpr backend will be wrapped in types if we
+        // provide the compiler flag --sexpr-include-types. However, we will not work with type-wrapped
+        // sexprs during equality saturation as types are expected to be invariant per eclass.
+        // We instead parse an initial typed RecExpr from which we extract all the type information
+        // and then create an untyped RecExpr. The extracted type information will be added to
+        // the egraph as analysis data that is merged upon eclass merges.
+        // However, we have to reannotate the untyped RecExpr after equality saturation because
+        // the rewrite phase requires type information for reconstruction.
+        TypeWrap(AppliedId, AppliedId) = "@",
+
         // This is used to represent the meta variables introduced by rule declarations
         // without clashing with the 'var' nodes using slots.
         // (metavar <name> <type>)
