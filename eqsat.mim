@@ -108,5 +108,5 @@ axm %eqsat.rules: {n: Nat, Ts: «n; *»} → «i: n; Ts#i» → %eqsat.Rules;
 /// ### Phases
 ///
 axm %eqsat.eqsat_phase: %compile.Phase;
-axm %eqsat.egg_rewrite: %compile.Phase;
-axm %eqsat.slotted_rewrite: %compile.Phase;
+axm %eqsat.rewrite_egg: %compile.Phase;
+axm %eqsat.rewrite_slotted: %compile.Phase;

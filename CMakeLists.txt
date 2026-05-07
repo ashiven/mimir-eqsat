@@ -141,8 +141,8 @@ add_mim_plugin(eqsat
     SOURCES
         plug/eqsat.cpp
         plug/phase/eqsat_phase.cpp
-        plug/phase/egg_rewrite.cpp
-        plug/phase/slotted_rewrite.cpp
+        plug/phase/rewrite_egg.cpp
+        plug/phase/rewrite_slotted.cpp
     PRIVATE
         eqsat-rs
     INSTALL

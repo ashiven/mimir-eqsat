@@ -1,7 +1,7 @@
 #include <cstdint>
 
 #include <mim/plug/eqsat/eqsat.h>
-#include <mim/plug/eqsat/phase/slotted_rewrite.h>
+#include <mim/plug/eqsat/phase/rewrite_slotted.h>
 
 #include "mim/def.h"
 #include "mim/driver.h"
@@ -10,7 +10,7 @@
 
 namespace mim::plug::eqsat {
 
-void SlottedRewrite::start() {
+void RewriteSlotted::start() {
     auto [rulesets, cost_fn] = import_config();
 
     // We are assuming that the core plugin and its backends have been loaded at this point
@@ -30,7 +30,7 @@ void SlottedRewrite::start() {
     swap(old_world(), new_world());
 }
 
-std::pair<rust::Vec<RuleSet>, CostFn> SlottedRewrite::import_config() {
+std::pair<rust::Vec<RuleSet>, CostFn> RewriteSlotted::import_config() {
     // Internalize config lambdas (with signature [] -> %eqsat.Ruleset | %eqsat.CostFun | %eqsat.Impl)
     DefVec lams;
     for (auto def : old_world().externals().mutate()) {
@@ -71,7 +71,7 @@ std::pair<rust::Vec<RuleSet>, CostFn> SlottedRewrite::import_config() {
     return {rulesets, cost_fn};
 }
 
-void SlottedRewrite::init(rust::Vec<RecExprFFI> rec_exprs) {
+void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
     size_t rec_expr_idx = 0;
     for (auto rec_expr : rec_exprs) {
         reset_loc();
@@ -87,7 +87,7 @@ void SlottedRewrite::init(rust::Vec<RecExprFFI> rec_exprs) {
     }
 }
 
-const Def* SlottedRewrite::init(uint32_t id) {
+const Def* RewriteSlotted::init(uint32_t id) {
     auto node = get_node_unsafe(id);
     enter_scope(node);
 
@@ -107,7 +107,7 @@ const Def* SlottedRewrite::init(uint32_t id) {
 }
 
 // (axm <name> <type>)
-const Def* SlottedRewrite::init_axm(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::init_axm(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     auto name = get_symbol(node.children[0]);
     if (DEBUG) std::cout << "\n";
@@ -122,7 +122,7 @@ const Def* SlottedRewrite::init_axm(uint32_t id, NodeFFI node) {
 }
 
 // (root <extern> <name> <definition>)
-const Def* SlottedRewrite::init_root(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::init_root(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
     auto name = get_symbol(node.children[1]);
@@ -140,7 +140,7 @@ const Def* SlottedRewrite::init_root(uint32_t id, NodeFFI node) {
 }
 
 // (let $name (scope <definition> <expression>))
-const Def* SlottedRewrite::init_let(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::init_let(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
     auto name       = get_slot(id);
@@ -166,7 +166,7 @@ const Def* SlottedRewrite::init_let(uint32_t id, NodeFFI node) {
 }
 
 // (con <domain-type> $var-name (scope <filter> <body>))
-const Def* SlottedRewrite::init_con(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::init_con(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
     // TODO: Polymorphic lambdas
@@ -191,7 +191,7 @@ const Def* SlottedRewrite::init_con(uint32_t id, NodeFFI node) {
     return new_con;
 }
 
-void SlottedRewrite::convert(rust::Vec<RecExprFFI> rec_exprs) {
+void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
     size_t rec_expr_idx = 0;
     for (auto rec_expr : rec_exprs) {
         reset_loc();
@@ -207,7 +207,7 @@ void SlottedRewrite::convert(rust::Vec<RecExprFFI> rec_exprs) {
     }
 }
 
-const Def* SlottedRewrite::convert(uint32_t id, bool recurse) {
+const Def* RewriteSlotted::convert(uint32_t id, bool recurse) {
     auto node = get_node_unsafe(id);
 
     enter_scope(node);
@@ -259,7 +259,7 @@ const Def* SlottedRewrite::convert(uint32_t id, bool recurse) {
 }
 
 // (root <extern> <name> <definition>)
-const Def* SlottedRewrite::convert_root(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_root(uint32_t id, NodeFFI node) {
     auto is_extern = get_symbol(node.children[0]);
     auto def       = get_def(node.children[1]);
 
@@ -285,7 +285,7 @@ const Def* SlottedRewrite::convert_root(uint32_t id, NodeFFI node) {
 }
 
 // (let $name (scope <definition> <expression>))
-const Def* SlottedRewrite::convert_let(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_let(uint32_t id, NodeFFI node) {
     auto name_scope = get_node(MimKind::Scope, node.children[0]);
     if (DEBUG_SCOPES) std::cout << "\n";
     enter_scope(name_scope, true);
@@ -313,14 +313,14 @@ const Def* SlottedRewrite::convert_let(uint32_t id, NodeFFI node) {
 }
 
 // (con <domain-type> $var-name (scope <filter> <body>))
-const Def* SlottedRewrite::convert_con(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_con(uint32_t id, NodeFFI node) {
     // Real conversion happens in convert_root and convert_let because we need a name to get to the Def
     auto con = get_def(id);
     return con;
 }
 
 // (app <callee> <arg>)
-const Def* SlottedRewrite::convert_app(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_app(uint32_t id, NodeFFI node) {
     auto callee  = get_def(node.children[0]);
     auto arg     = get_def(node.children[1]);
     auto new_app = new_world().app(callee, arg);
@@ -328,13 +328,13 @@ const Def* SlottedRewrite::convert_app(uint32_t id, NodeFFI node) {
 }
 
 // (var $name)
-const Def* SlottedRewrite::convert_var(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_var(uint32_t id, NodeFFI node) {
     auto var = get_def(id);
     return var;
 }
 
 // (lit <val> <type>)
-const Def* SlottedRewrite::convert_lit(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_lit(uint32_t id, NodeFFI node) {
     auto lit_def = get_def(node.children[0]);
     if (lit_def) return lit_def;
 
@@ -345,7 +345,7 @@ const Def* SlottedRewrite::convert_lit(uint32_t id, NodeFFI node) {
 }
 
 // (pack <arity> <body>)
-const Def* SlottedRewrite::convert_pack(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_pack(uint32_t id, NodeFFI node) {
     auto arity    = get_def(node.children[0]);
     auto body     = get_def(node.children[1]);
     auto new_pack = new_world().pack(arity, body);
@@ -353,7 +353,7 @@ const Def* SlottedRewrite::convert_pack(uint32_t id, NodeFFI node) {
 }
 
 // (tuple <elem-cons>)
-const Def* SlottedRewrite::convert_tuple(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_tuple(uint32_t id, NodeFFI node) {
     auto elem_ids = get_cons_flat(node.children[0]);
 
     DefVec elems;
@@ -366,7 +366,7 @@ const Def* SlottedRewrite::convert_tuple(uint32_t id, NodeFFI node) {
 }
 
 // (extract <tuple> <index>)
-const Def* SlottedRewrite::convert_extract(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_extract(uint32_t id, NodeFFI node) {
     auto tuple       = get_def(node.children[0]);
     auto index       = get_def(node.children[1]);
     auto new_extract = new_world().extract(tuple, index);
@@ -374,7 +374,7 @@ const Def* SlottedRewrite::convert_extract(uint32_t id, NodeFFI node) {
 }
 
 // (ins <tuple> <index> <value>)
-const Def* SlottedRewrite::convert_insert(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_insert(uint32_t id, NodeFFI node) {
     auto tuple      = get_def(node.children[0]);
     auto index      = get_def(node.children[1]);
     auto value      = get_def(node.children[2]);
@@ -383,7 +383,7 @@ const Def* SlottedRewrite::convert_insert(uint32_t id, NodeFFI node) {
 }
 
 // (inj <type> <value>)
-const Def* SlottedRewrite::convert_inj(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_inj(uint32_t id, NodeFFI node) {
     auto type    = get_def(node.children[0]);
     auto value   = get_def(node.children[1]);
     auto new_inj = new_world().inj(type, value);
@@ -391,7 +391,7 @@ const Def* SlottedRewrite::convert_inj(uint32_t id, NodeFFI node) {
 }
 
 // (merge <type> <value-cons>)
-const Def* SlottedRewrite::convert_merge(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_merge(uint32_t id, NodeFFI node) {
     auto type = get_def(node.children[0]);
 
     auto value_ids = get_cons_flat(node.children[1]);
@@ -405,7 +405,7 @@ const Def* SlottedRewrite::convert_merge(uint32_t id, NodeFFI node) {
 }
 
 // (match <op-cons>)
-const Def* SlottedRewrite::convert_match(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_match(uint32_t id, NodeFFI node) {
     auto op_ids = get_cons_flat(node.children[0]);
 
     DefVec ops;
@@ -418,7 +418,7 @@ const Def* SlottedRewrite::convert_match(uint32_t id, NodeFFI node) {
 }
 
 // (proxy <type> <pass> <tag> <op-cons>)
-const Def* SlottedRewrite::convert_proxy(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_proxy(uint32_t id, NodeFFI node) {
     auto type = get_def(node.children[0]);
     auto pass = get_num(node.children[1]);
     auto tag  = get_num(node.children[2]);
@@ -434,7 +434,7 @@ const Def* SlottedRewrite::convert_proxy(uint32_t id, NodeFFI node) {
 }
 
 // (join <type-cons>)
-const Def* SlottedRewrite::convert_join(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_join(uint32_t id, NodeFFI node) {
     auto type_ids = get_cons_flat(node.children[0]);
 
     DefVec types;
@@ -447,7 +447,7 @@ const Def* SlottedRewrite::convert_join(uint32_t id, NodeFFI node) {
 }
 
 // (meet <type-cons>)
-const Def* SlottedRewrite::convert_meet(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_meet(uint32_t id, NodeFFI node) {
     auto type_ids = get_cons_flat(node.children[0]);
 
     DefVec types;
@@ -460,21 +460,21 @@ const Def* SlottedRewrite::convert_meet(uint32_t id, NodeFFI node) {
 }
 
 // (bot <type>)
-const Def* SlottedRewrite::convert_bot(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_bot(uint32_t id, NodeFFI node) {
     auto type    = get_def(node.children[0]);
     auto new_bot = new_world().bot(type);
     return new_bot;
 }
 
 // (top <type>)
-const Def* SlottedRewrite::convert_top(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_top(uint32_t id, NodeFFI node) {
     auto type    = get_def(node.children[0]);
     auto new_top = new_world().top(type);
     return new_top;
 }
 
 // (arr <arity> <body>)
-const Def* SlottedRewrite::convert_arr(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
     auto arity   = get_def(node.children[0]);
     auto body    = get_def(node.children[1]);
     auto new_arr = new_world().arr(arity, body);
@@ -482,7 +482,7 @@ const Def* SlottedRewrite::convert_arr(uint32_t id, NodeFFI node) {
 }
 
 // (sigma <type-cons>)
-const Def* SlottedRewrite::convert_sigma(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
     auto type_ids = get_cons_flat(node.children[0]);
 
     DefVec types;
@@ -496,14 +496,14 @@ const Def* SlottedRewrite::convert_sigma(uint32_t id, NodeFFI node) {
 }
 
 // (cn <domain>)
-const Def* SlottedRewrite::convert_cn(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_cn(uint32_t id, NodeFFI node) {
     auto domain = get_def(node.children[0]);
     auto new_cn = new_world().cn(domain);
     return new_cn;
 }
 
 // (pi <domain> <codomain>)
-const Def* SlottedRewrite::convert_pi(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
     auto domain   = get_def(node.children[0]);
     auto codomain = get_def(node.children[1]);
     auto new_pi   = new_world().pi(domain, codomain);
@@ -511,31 +511,31 @@ const Def* SlottedRewrite::convert_pi(uint32_t id, NodeFFI node) {
 }
 
 // (idx <size>)
-const Def* SlottedRewrite::convert_idx(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_idx(uint32_t id, NodeFFI node) {
     auto size    = get_def(node.children[0]);
     auto new_idx = new_world().type_idx(size);
     return new_idx;
 }
 
 // (hole <type>)
-const Def* SlottedRewrite::convert_hole(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_hole(uint32_t id, NodeFFI node) {
     auto type_    = get_def(node.children[0]);
     auto new_hole = new_world().mut_hole(type_);
     return new_hole;
 }
 
 // (type <level>)
-const Def* SlottedRewrite::convert_type(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_type(uint32_t id, NodeFFI node) {
     auto level    = get_def(node.children[0]);
     auto new_type = new_world().type(level);
     return new_type;
 }
 
 // <u64>
-const Def* SlottedRewrite::convert_num(uint32_t id, NodeFFI node) { return nullptr; }
+const Def* RewriteSlotted::convert_num(uint32_t id, NodeFFI node) { return nullptr; }
 
 // <string>
-const Def* SlottedRewrite::convert_symbol(uint32_t id, NodeFFI node) {
+const Def* RewriteSlotted::convert_symbol(uint32_t id, NodeFFI node) {
     auto def = get_def(id);
     return def;
 }

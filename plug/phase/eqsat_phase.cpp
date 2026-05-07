@@ -1,7 +1,7 @@
 #include <mim/plug/eqsat/eqsat.h>
-#include <mim/plug/eqsat/phase/egg_rewrite.h>
 #include <mim/plug/eqsat/phase/eqsat_phase.h>
-#include <mim/plug/eqsat/phase/slotted_rewrite.h>
+#include <mim/plug/eqsat/phase/rewrite_egg.h>
+#include <mim/plug/eqsat/phase/rewrite_slotted.h>
 
 namespace mim::plug::eqsat {
 
@@ -27,11 +27,11 @@ void EqsatPhase::start() {
     }
 
     if (slotted) {
-        SlottedRewrite slotted_rewrite(world(), "slotted_rewrite");
-        slotted_rewrite.start();
+        RewriteSlotted rewrite_slotted(world(), "rewrite_slotted");
+        rewrite_slotted.start();
     } else {
-        EggRewrite egg_rewrite(world(), "egg_rewrite");
-        egg_rewrite.start();
+        RewriteEgg rewrite_egg(world(), "rewrite_egg");
+        rewrite_egg.start();
     }
 }
 
