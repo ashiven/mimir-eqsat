@@ -26,16 +26,14 @@ define_language! {
         // Instead of (in egg): "let name equal definition in expression".
         // (let <name> <name-scope>)
         Let(Bind<AppliedId>) = "let",
-        // (lam <domain-type> <codomain-type> <var-name> <var-scope>)
-        Lam(AppliedId, AppliedId, Bind<AppliedId>) = "lam",
-        // (con <domain-type> <var-name> <var-scope>)
-        Con(AppliedId, Bind<AppliedId>) = "con",
+        // (lam <var-name> <var-scope>)
+        Lam(Bind<AppliedId>) = "lam",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
         // (var <name>)
         Var(Slot) = "var",
-        // (lit <value> <type>)
-        Lit(AppliedId, AppliedId) = "lit",
+        // (lit <value>)
+        Lit(AppliedId) = "lit",
         // (pack <arity> <body>)
         Pack(AppliedId, AppliedId) = "pack",
         // (tuple <elem-cons>)
@@ -200,8 +198,8 @@ where
         // and then perform equality saturation on an egraph with type information added to each eclass
         // as analysis data which gets maintained during equality saturation
         //
-        let typed_rec_expr: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
-        let (_untyped_rec_expr, _type_info) = extract_type_annotations(&typed_rec_expr);
+        // let typed_rec_expr: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        // let (_untyped_rec_expr, _type_info) = extract_type_annotations(&typed_rec_expr);
         // eg.add_with_type_info(untyped_rec_expr, type_info);
 
         let rec_expr = RecExpr::parse(sexpr).unwrap();

@@ -284,15 +284,8 @@ impl FFIInner for MimSlotted {
                 None,
                 Some(format!("{}", bind.slot)),
             ),
-            MimSlotted::Lam(.., bind) => new_node_ffi(
+            MimSlotted::Lam(bind) => new_node_ffi(
                 MimKind::Lam,
-                children,
-                None,
-                None,
-                Some(format!("{}", bind.slot)),
-            ),
-            MimSlotted::Con(.., bind) => new_node_ffi(
-                MimKind::Con,
                 children,
                 None,
                 None,

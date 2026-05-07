@@ -1,6 +1,7 @@
 use regex::Regex;
 use std::fs;
 
+use crate::ffi::FFI;
 use crate::ffi::bridge::{CostFn, RuleSet};
 use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
@@ -26,7 +27,9 @@ fn eqsat_equals(file: &str, file_rw: &str) {
     let nodes = eqsat_slotted(&slotted, vec![], CostFn::AstSize);
 
     let slotted = pretty_ffi(nodes, LINE_LEN);
-    let slotted_rw = fs::read_to_string(file_rw).expect("Failed to read file_rw.slotted");
+    let slotted_rw = fs::read_to_string(file_rw)
+        .expect("Failed to read file_rw.slotted")
+        .replace("\r\n", "\n");
 
     let slot_re = Regex::new(r"\$[_A-Za-z0-9]+").unwrap();
     let slotted = slot_re.replace_all(&slotted, "slot");
@@ -45,15 +48,15 @@ fn get_ruleset_standard() {
 
 #[test]
 fn let_var_same() {
-    let a = "(let $foo (scope (lit 1 Nat) (var $foo)))";
-    let b = "(lit 1 Nat)";
+    let a = "(let $foo (scope (lit 1) (var $foo)))";
+    let b = "(lit 1)";
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
 #[test]
 fn bind_con_var_add0() {
-    let a = "(root extern foo (con Nat $arg (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil)))))))";
-    let b = "(root extern foo (con Nat $arg (scope (lit ff Bool) (var $arg))))";
+    let a = "(root extern foo (lam $arg (scope (lit ff) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0) nil)))))))";
+    let b = "(root extern foo (lam $arg (scope (lit ff) (var $arg))))";
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
@@ -143,6 +146,27 @@ fn convert_custom_rule() {
     convert_rules(&mut sexprs, &mut rules);
 
     assert_eq!(rules.len(), 1);
+}
+
+#[test]
+fn extract_type_info() {
+    let annotated = "
+(root extern add_lit
+    (@ (cn (cn I8))
+    (lam
+        $return_22296
+        (scope
+            (@ Bool
+            (lit ff))
+            (@ (bot (type (lit 0 Univ)))
+            (app
+                (@ (cn I8)
+                (var $return_22296))
+                (@ I8
+                (lit 6))))))))";
+
+    let parsed: RecExpr<MimSlotted> = RecExpr::parse(annotated).unwrap();
+    println!("{}", parsed.to_ffi().pretty(80));
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
