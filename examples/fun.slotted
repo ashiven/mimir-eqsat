@@ -1,29 +1,43 @@
 (root extern main
-    (con
-        (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
-        $_25446
+    (@ (cn (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil))))
+    (lam
+        $_25260
         (scope
-            (lit ff Bool)
+            (@ Bool
+            (lit ff Bool))
             (let
-                $return_25451
+                $return_25265
                 (scope
+                    (@ (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil))))
                     (extract
-                        (var $_25446)
-                        (lit tt Bool))
+                        (@ (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+                        (var $_25260))
+                        (@ Bool
+                        (lit tt Bool))))
             (let
-                $mem_25448
+                $mem_25262
                 (scope
+                    (@ (app %mem.M (lit 0 Nat))
                     (extract
+                        (@ (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil))))
                         (extract
-                            (var $_25446)
-                            (lit ff Bool))
-                        (lit 0 (idx (lit 3 Nat))))
+                            (@ (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+                            (var $_25260))
+                            (@ Bool
+                            (lit ff Bool))))
+                        (@ (idx (lit 3 Nat))
+                        (lit 0 (idx (lit 3 Nat))))))
+            (@ (bot (type (lit 0 Univ)))
             (app
-                (var $return_25451)
+                (@ (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil))))
+                (var $return_25265))
+                (@ (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
                 (tuple
                     (cons
-                        (var $mem_25448)
+                        (@ (app %mem.M (lit 0 Nat))
+                        (var $mem_25262))
                     (cons
-                        (lit 48 I32)
-                    nil)))))))))))
+                        (@ I32
+                        (lit 48 I32))
+                    nil))))))))))))))
 
