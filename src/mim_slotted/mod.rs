@@ -15,25 +15,18 @@ define_language! {
     pub enum MimSlotted {
         // TERMS
 
-        // NOTE: Bind<AppliedId> is apparently a wrapper for a pattern like "(bind $1 (expr $1))" whose
-        // first child defines a slot while its second child defines some pattern using the slot.
-        // This lead to a whole lot of confusion because it means that a pattern like "(let $1 (var $1) ?e)"
-        // contains this bind node implicitly as if it was defined as "(let (bind $1 (var $1)) ?e)"
-        // and therefore we would have to define Let(Bind<AppliedId>, AppliedId) instead of
-        // Let(Bind<AppliedId>, AppliedId, AppliedId) as I initially assumed
-
-        // This now reads as: "let definition equal name in scope containing definition and expression".
-        // Instead of (in egg): "let name equal definition in expression".
-        // (let <name> <name-scope>)
+        // (let $name (scope <definition> <expr>))
         Let(Bind<AppliedId>) = "let",
-        // (lam <var-name> <var-scope>)
+        // (lam $var-name (scope <filter> <body>))
         Lam(Bind<AppliedId>) = "lam",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
         // (var <name>)
         Var(Slot) = "var",
-        // (lit <value>)
-        Lit(AppliedId) = "lit",
+        // A literal can also be a type as in (lit 0 Univ) so we can't really
+        // rely on type-annotations alone because we decided not to type-annotate types.
+        // (lit <value> <type>)
+        Lit(AppliedId, AppliedId) = "lit",
         // (pack <arity> <body>)
         Pack(AppliedId, AppliedId) = "pack",
         // (tuple <elem-cons>)
@@ -221,15 +214,69 @@ where
     rewritten_sexprs
 }
 
-type TypeExpr = RecExpr<MimSlotted>;
-type TypeInfo = Vec<Option<TypeExpr>>;
+// type TypeExpr = RecExpr<MimSlotted>;
+// type TypeInfo = Vec<Option<TypeExpr>>;
+//
+// // Takes a RecExpr of a type-annotated sexpr like (@ Bool (lit ff))
+// // and returns an untyped RecExpr (lit ff) and a vec of the corresponding types: {Some(Bool)}
+// fn extract_type_annotations(
+//     typed_rec_expr: &RecExpr<MimSlotted>,
+// ) -> (RecExpr<MimSlotted>, TypeInfo) {
+//     fn strip(rec_expr: &RecExpr<MimSlotted>, type_info: &mut TypeInfo) -> RecExpr<MimSlotted> {
+//         if let MimSlotted::TypeWrap(..) = rec_expr.node {
+//             let type_expr = rec_expr.children[0].clone();
+//             let expr = &rec_expr.children[1];
+//             let stripped = strip(expr, type_info);
+//             type_info.push(Some(type_expr));
+//             return stripped;
+//         }
+//
+//         let new_children = rec_expr
+//             .children
+//             .iter()
+//             .map(|c| strip(c, type_info))
+//             .collect();
+//
+//         type_info.push(None);
+//
+//         RecExpr {
+//             node: rec_expr.node.clone(),
+//             children: new_children,
+//         }
+//     }
+//
+//     let mut type_info: TypeInfo = vec![];
+//     let untyped_rec_expr = strip(typed_rec_expr, &mut type_info);
+//     (untyped_rec_expr, type_info)
+// }
 
-// Takes a RecExpr of a type-annotated sexpr like (@ Bool (lit ff))
-// and returns an untyped RecExpr (lit ff) and a vec of the corresponding types: {Some(Bool)}
-fn extract_type_annotations(
-    typed_rec_expr: &RecExpr<MimSlotted>,
-) -> (RecExpr<MimSlotted>, TypeInfo) {
-    (RecExpr::<MimSlotted>::parse("").unwrap(), vec![None])
+type TypeExpr = RecExpr<MimSlotted>;
+
+#[derive(Debug)]
+struct TypedRecExpr {
+    node: MimSlotted,
+    children: Vec<TypedRecExpr>,
+    type_: Option<TypeExpr>,
+}
+
+fn extract_type_annotations(rec_expr: &RecExpr<MimSlotted>) -> TypedRecExpr {
+    if let MimSlotted::TypeWrap(..) = rec_expr.node {
+        let type_expr = rec_expr.children[0].clone();
+        let expr = &rec_expr.children[1];
+        let mut stripped = extract_type_annotations(expr);
+        stripped.type_ = Some(type_expr);
+        return stripped;
+    }
+
+    TypedRecExpr {
+        node: rec_expr.node.clone(),
+        children: rec_expr
+            .children
+            .iter()
+            .map(extract_type_annotations)
+            .collect(),
+        type_: None,
+    }
 }
 
 fn convert_rules(
