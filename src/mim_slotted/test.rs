@@ -6,7 +6,7 @@ use crate::ffi::bridge::{CostFn, RuleSet};
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::convert_rules;
 use crate::mim_slotted::get_rules;
-use crate::mim_slotted::{MimSlotted, extract_type_annotations};
+use crate::mim_slotted::{MimSlotted, add_expr_typed, extract_type_annotations};
 use crate::{eqsat_slotted, pretty_ffi};
 use slotted_egraphs::*;
 
@@ -170,14 +170,22 @@ fn extract_type_info() {
                 (lit 6 I8))))))))";
 
     let annotated: RecExpr<MimSlotted> = RecExpr::parse(annotated).unwrap();
-    // println!("{}", annotated.to_ffi().pretty(80));
-
     let typed = extract_type_annotations(&annotated);
-    // println!("{:#?}", typed);
 
-    // let (untyped, type_info) = extract_type_annotations(&typed);
-    // println!("{}", untyped.to_ffi().pretty(80));
-    // println!("{:#?}", type_info);
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
+    let typed_id = add_expr_typed(&mut eg, typed);
+
+    let enodes = eg.enodes_applied(&typed_id);
+    let typed = enodes
+        .first()
+        .expect("Failed to find typed rec expr in egraph");
+
+    let lam_type = eg
+        .analysis_data(typed.applied_id_occurrences()[2].id)
+        .type_
+        .clone();
+
+    assert_eq!(lam_type, Some(RecExpr::parse("(cn (cn I8))").unwrap()));
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs

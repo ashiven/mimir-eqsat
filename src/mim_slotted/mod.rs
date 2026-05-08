@@ -214,45 +214,9 @@ where
     rewritten_sexprs
 }
 
-// type TypeExpr = RecExpr<MimSlotted>;
-// type TypeInfo = Vec<Option<TypeExpr>>;
-//
-// // Takes a RecExpr of a type-annotated sexpr like (@ Bool (lit ff))
-// // and returns an untyped RecExpr (lit ff) and a vec of the corresponding types: {Some(Bool)}
-// fn extract_type_annotations(
-//     typed_rec_expr: &RecExpr<MimSlotted>,
-// ) -> (RecExpr<MimSlotted>, TypeInfo) {
-//     fn strip(rec_expr: &RecExpr<MimSlotted>, type_info: &mut TypeInfo) -> RecExpr<MimSlotted> {
-//         if let MimSlotted::TypeWrap(..) = rec_expr.node {
-//             let type_expr = rec_expr.children[0].clone();
-//             let expr = &rec_expr.children[1];
-//             let stripped = strip(expr, type_info);
-//             type_info.push(Some(type_expr));
-//             return stripped;
-//         }
-//
-//         let new_children = rec_expr
-//             .children
-//             .iter()
-//             .map(|c| strip(c, type_info))
-//             .collect();
-//
-//         type_info.push(None);
-//
-//         RecExpr {
-//             node: rec_expr.node.clone(),
-//             children: new_children,
-//         }
-//     }
-//
-//     let mut type_info: TypeInfo = vec![];
-//     let untyped_rec_expr = strip(typed_rec_expr, &mut type_info);
-//     (untyped_rec_expr, type_info)
-// }
-
 type TypeExpr = RecExpr<MimSlotted>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct TypedRecExpr {
     node: MimSlotted,
     children: Vec<TypedRecExpr>,
@@ -277,6 +241,26 @@ fn extract_type_annotations(rec_expr: &RecExpr<MimSlotted>) -> TypedRecExpr {
             .collect(),
         type_: None,
     }
+}
+
+fn add_expr_typed(
+    eg: &mut EGraph<MimSlotted, MimSlottedAnalysis>,
+    rec_expr: TypedRecExpr,
+) -> AppliedId {
+    let mut node = rec_expr.node;
+    let mut child_ids = node.applied_id_occurrences_mut();
+
+    for (i, child) in rec_expr.children.into_iter().enumerate() {
+        *(child_ids[i]) = add_expr_typed(eg, child);
+    }
+
+    let eclass_applied_id = eg.add(node);
+
+    let eclass_id = eclass_applied_id.id;
+    let analysis_data = eg.analysis_data_mut(eclass_id);
+    analysis_data.type_ = rec_expr.type_;
+
+    eclass_applied_id
 }
 
 fn convert_rules(
