@@ -23,8 +23,6 @@ define_language! {
         App(AppliedId, AppliedId) = "app",
         // (var <name>)
         Var(Slot) = "var",
-        // A literal can also be a type as in (lit 0 Univ) so we can't really
-        // rely on type-annotations alone because we decided not to type-annotate types.
         // (lit <value> <type>)
         Lit(AppliedId, AppliedId) = "lit",
         // (pack <arity> <body>)

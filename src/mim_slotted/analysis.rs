@@ -55,7 +55,35 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
 
     fn make(eg: &EGraph<MimSlotted, Self>, enode: &MimSlotted) -> Self::Data {
         match enode {
-            // typeof[(lam $x (scope <filter> <body>))] = typeof($x) -> typeof(body)
+            // typeof[(let $name (scope <definition> <expr>))] = typeof(<expr>)
+            MimSlotted::Let(name_bind) => {
+                let name_scope_id = eg.find_applied_id(&name_bind.elem);
+                let enodes = eg.enodes_applied(&name_scope_id);
+                let name_scope = enodes.first().unwrap_or_else(|| {
+                    eg.dump();
+                    panic!(
+                        "Failed to get name scope node at id: {}",
+                        name_scope_id.id.0
+                    )
+                });
+
+                let scope_child_ids = name_scope.applied_id_occurrences();
+                let expr_id = scope_child_ids.get(1).expect("Failed to get expr id");
+
+                // typeof(expr)
+                if let Some(expr_type) = eg.analysis_data(expr_id.id).type_.clone() {
+                    AnalysisData {
+                        type_: Some(expr_type.clone()),
+                    }
+                }
+                // Hole[typeof(expr)]
+                else {
+                    AnalysisData {
+                        type_: Some(hole()),
+                    }
+                }
+            }
+            // typeof[(lam $x (scope <filter> <body>))] = Pi(typeof($x), typeof(<body>))
             MimSlotted::Lam(var_bind) => {
                 let var_scope_id = eg.find_applied_id(&var_bind.elem);
                 let enodes = eg.enodes_applied(&var_scope_id);
@@ -85,7 +113,7 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
                     }
                 }
             }
-            // typeof[(app <callee> <arg>)] = typeof(callee-codomain)
+            // typeof[(app <callee> <arg>)] = typeof(<callee-codomain>)
             MimSlotted::App(callee, _arg) => {
                 let callee_type = eg.analysis_data(callee.id).type_.clone();
                 // typeof(callee-codomain)
@@ -106,20 +134,24 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
                     }
                 }
             }
-            // TODO: Make types for other variants
+            // I guess we should always give var a hole type because all vars
+            // are represented with the same var eclass and therefore we can't
+            // associate the different variables' types with this eclass.
+            // So we should just hope that the mim compiler will be able to
+            // resolve all of these var holes itself.
+            //
+            // typeof[(var $x)] = Hole(*)
+            MimSlotted::Var(_slot) => AnalysisData {
+                type_: Some(hole()),
+            },
+            // typeof[(lit <val> <type>)] = type
+            MimSlotted::Lit(_val, type_) => {
+                let type_id = eg.find_applied_id(type_);
+                let type_ = eg.get_syn_expr(&type_id);
+                AnalysisData { type_: Some(type_) }
+            }
             /*
-            // (let $name (scope <definition> <expr>))
-            Let(Bind<AppliedId>) = "let",
-            // (lam $var-name (scope <filter> <body>))
-            Lam(Bind<AppliedId>) = "lam",
-            // (app <callee> <arg>)
-            App(AppliedId, AppliedId) = "app",
-            // (var <name>)
-            Var(Slot) = "var",
-            // A literal can also be a type as in (lit 0 Univ) so we can't really
-            // rely on type-annotations alone because we decided not to type-annotate types.
-            // (lit <value> <type>)
-            Lit(AppliedId, AppliedId) = "lit",
+            // TODO: Make types for other variants
             // (pack <arity> <body>)
             Pack(AppliedId, AppliedId) = "pack",
             // (tuple <elem-cons>)
@@ -151,6 +183,13 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
     // rewrite-rules) So whenever we are merging two eclasses associated with type-data,
     // we assume they are equivalent representations of the same type and just
     // merge the type with the smaller term-size into the eclass.
+    //
+    // TODO: I think right now we are taking over the annotations for vars
+    // but we probably shouldn't because all vars are represented with the
+    // same eclass and should therefore have a hole associated with them.
+    // Consider the case of merging a newly created var of type Hole
+    // with an existing var of type Bool, we will then not merge the Hole
+    // but keep the Bool which now leaves the second var with the wrong type.
     fn merge(l: Self::Data, r: Self::Data) -> Self::Data {
         match (l.type_, r.type_) {
             (None, None) => AnalysisData { type_: None },
