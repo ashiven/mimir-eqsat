@@ -1,5 +1,5 @@
 use crate::mim_slotted::MimSlotted;
-use crate::mim_slotted::types::{TypeData, type_make, type_merge};
+use crate::mim_slotted::types::{TypeData, make_type, merge_type};
 use slotted_egraphs::*;
 
 #[derive(Default, Clone, Debug, PartialEq)]
@@ -14,11 +14,11 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
     type Data = AnalysisData;
 
     fn make(eg: &EGraph<MimSlotted, Self>, enode: &MimSlotted) -> Self::Data {
-        type_make(eg, enode)
+        make_type(eg, enode)
     }
 
     fn merge(l: Self::Data, r: Self::Data) -> Self::Data {
-        type_merge(l, r)
+        merge_type(l, r)
     }
 
     fn modify(_eg: &mut EGraph<MimSlotted, Self>, _id: Id) {}
