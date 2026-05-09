@@ -23,22 +23,29 @@ fn term_size(type_expr: &TypeExpr) -> usize {
 // The type inference built into the mim compiler is able to later
 // infer the types of these holes from the context they appear in.
 //
-// (hole (lit 0 Univ))  --  Hole(*)
+// We could also leave the level of the type as a hole and
+// then use world.mut_hole_type() which leaves the level as a hole
+// as well and infers it later on. (not sure if we need this though)
+//
+// (hole (type (lit 0 Univ)))  --  Hole(*)
 fn hole() -> RecExpr<MimSlotted> {
     RecExpr {
         node: MimSlotted::Hole(AppliedId::null()),
         children: vec![RecExpr {
-            node: MimSlotted::Lit(AppliedId::null(), AppliedId::null()),
-            children: vec![
-                RecExpr {
-                    node: MimSlotted::Num(0),
-                    children: vec![],
-                },
-                RecExpr {
-                    node: MimSlotted::Symbol("Univ".into()),
-                    children: vec![],
-                },
-            ],
+            node: MimSlotted::Type(AppliedId::null()),
+            children: vec![RecExpr {
+                node: MimSlotted::Lit(AppliedId::null(), AppliedId::null()),
+                children: vec![
+                    RecExpr {
+                        node: MimSlotted::Num(0),
+                        children: vec![],
+                    },
+                    RecExpr {
+                        node: MimSlotted::Symbol("Univ".into()),
+                        children: vec![],
+                    },
+                ],
+            }],
         }],
     }
 }
@@ -52,7 +59,10 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
             MimSlotted::Lam(var_bind) => {
                 let var_scope_id = &var_bind.elem;
                 let enodes = eg.enodes_applied(var_scope_id);
-                let var_scope = enodes.first().expect("Failed to get var scope node");
+                let var_scope = enodes.first().unwrap_or_else(|| {
+                    eg.dump();
+                    panic!("Failed to get var scope node at id: {}", var_scope_id.id.0)
+                });
 
                 let scope_child_ids = var_scope.applied_id_occurrences();
                 let body_id = scope_child_ids.get(1).expect("Failed to get body id");
