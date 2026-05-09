@@ -194,14 +194,14 @@ fn eta_expansion_hole() {
 
     let fun_annotated = "(@ (pi Nat Bool) fun)";
     let fun_annotated: RecExpr<MimSlotted> = RecExpr::parse(fun_annotated).unwrap();
-    let fun = extract_type_annotations(&fun_annotated);
-    let fun_id = add_expr_typed(&mut eg, fun);
+    let fun_typed = extract_type_annotations(&fun_annotated);
+    let fun_typed_id = add_expr_typed(&mut eg, fun_typed);
 
     let eta_exp = "(lam $x (scope (lit ff Bool) (app fun (var $x))))";
     let eta_exp: RecExpr<MimSlotted> = RecExpr::parse(eta_exp).unwrap();
     let eta_exp_id = eg.add_expr(eta_exp);
 
-    let fun_type = eg.analysis_data(fun_id.id).type_.clone();
+    let fun_type = eg.analysis_data(fun_typed_id.id).type_.clone();
     let lam_type = eg.analysis_data(eta_exp_id.id).type_.clone();
 
     assert_eq!(fun_type, Some(RecExpr::parse("(pi Nat Bool)").unwrap()));
@@ -210,6 +210,9 @@ fn eta_expansion_hole() {
         Some(RecExpr::parse("(pi (hole (type (lit 0 Univ))) Bool)").unwrap())
     );
 }
+
+// TODO: Add tests for type analysis data created for all variants
+// (Can also group multiple variants in the same test cases)
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
 // Had to copy-paste the code below since it didn't seem to be exposed as part of the library.
