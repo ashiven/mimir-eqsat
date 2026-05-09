@@ -48,28 +48,16 @@ fn get_ruleset_standard() {
 
 #[test]
 fn let_var_same() {
-    fn let_var_same() -> Rewrite<MimSlotted, ()> {
-        let pat = "(let $1 (scope ?def (var $1)))";
-        let outpat = "?def";
-        Rewrite::new("let_var_same", pat, outpat)
-    }
-
     let a = "(let $foo (scope (lit 1 Nat) (var $foo)))";
     let b = "(lit 1 Nat)";
-    assert_reaches::<MimSlotted, ()>(a, b, &[let_var_same()], 1);
+    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
 #[test]
 fn lam_var_add0() {
-    fn core_nat_add0() -> Rewrite<MimSlotted, ()> {
-        let pat = "(app %core.nat.add (tuple (cons (var $1) (cons (lit 0 Nat) nil))))";
-        let outpat = "(var $1)";
-        Rewrite::new("core_nat_add0", pat, outpat)
-    }
-
     let a = "(root extern foo (lam $x (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $x) (cons (lit 0 Nat) nil)))))))";
     let b = "(root extern foo (lam $x (scope (lit ff Bool) (var $x))))";
-    assert_reaches::<MimSlotted, ()>(a, b, &[core_nat_add0()], 1);
+    assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
 #[test]

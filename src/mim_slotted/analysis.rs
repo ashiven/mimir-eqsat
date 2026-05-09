@@ -57,8 +57,8 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
         match enode {
             // typeof[(lam $x (scope <filter> <body>))] = typeof($x) -> typeof(body)
             MimSlotted::Lam(var_bind) => {
-                let var_scope_id = &var_bind.elem;
-                let enodes = eg.enodes_applied(var_scope_id);
+                let var_scope_id = eg.find_applied_id(&var_bind.elem);
+                let enodes = eg.enodes_applied(&var_scope_id);
                 let var_scope = enodes.first().unwrap_or_else(|| {
                     eg.dump();
                     panic!("Failed to get var scope node at id: {}", var_scope_id.id.0)
@@ -107,6 +107,40 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
                 }
             }
             // TODO: Make types for other variants
+            /*
+            // (let $name (scope <definition> <expr>))
+            Let(Bind<AppliedId>) = "let",
+            // (lam $var-name (scope <filter> <body>))
+            Lam(Bind<AppliedId>) = "lam",
+            // (app <callee> <arg>)
+            App(AppliedId, AppliedId) = "app",
+            // (var <name>)
+            Var(Slot) = "var",
+            // A literal can also be a type as in (lit 0 Univ) so we can't really
+            // rely on type-annotations alone because we decided not to type-annotate types.
+            // (lit <value> <type>)
+            Lit(AppliedId, AppliedId) = "lit",
+            // (pack <arity> <body>)
+            Pack(AppliedId, AppliedId) = "pack",
+            // (tuple <elem-cons>)
+            Tuple(AppliedId) = "tuple",
+            // (extract <tuple> <index>)
+            Extract(AppliedId, AppliedId) = "extract",
+            // (insert <tuple> <index> <value>)
+            Insert(AppliedId, AppliedId, AppliedId) = "insert",
+            // (rule <name> <meta-var-cons> <lhs> <rhs> <guard>)
+            Rule(AppliedId, AppliedId, AppliedId, AppliedId, AppliedId) = "rule",
+            // (inj <type> <value>)
+            Inj(AppliedId, AppliedId) = "inj",
+            // (merge <type> <type-cons>)
+            Merge(AppliedId, AppliedId) = "merge",
+            // (axm <name> <type>)
+            Axm(AppliedId, AppliedId) = "axm",
+            // (match <op-cons>)
+            Match(AppliedId) = "match",
+            // (proxy <type> <pass> <tag> <op-cons>)
+            Proxy(AppliedId, AppliedId, AppliedId, AppliedId) = "proxy",
+            */
             _ => AnalysisData { type_: None },
         }
     }
