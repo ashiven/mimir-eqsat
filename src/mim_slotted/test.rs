@@ -2,10 +2,11 @@ use regex::Regex;
 use std::fs;
 
 use crate::ffi::bridge::{CostFn, RuleSet};
+use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::convert_rules;
 use crate::mim_slotted::get_rules;
-use crate::mim_slotted::{MimSlotted, add_expr_typed, extract_type_annotations};
+use crate::mim_slotted::types::{add_expr_typed, extract_type_annotations};
 use crate::{eqsat_slotted, pretty_ffi};
 use slotted_egraphs::*;
 

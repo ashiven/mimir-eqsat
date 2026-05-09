@@ -1,12 +1,13 @@
 use crate::ffi::FFI;
 use crate::ffi::bridge::{CostFn, MimKind, RecExprFFI, RuleSet};
-use crate::mim_slotted::analysis::{MimSlottedAnalysis, hole};
+use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
 use regex::Regex;
 use slotted_egraphs::*;
 
 pub mod analysis;
 pub mod rulesets;
+pub mod types;
 
 #[cfg(test)]
 mod test;
@@ -210,64 +211,6 @@ where
     }
 
     rewritten_sexprs
-}
-
-type TypeExpr = RecExpr<MimSlotted>;
-
-#[derive(Debug, Clone)]
-struct TypedRecExpr {
-    node: MimSlotted,
-    children: Vec<TypedRecExpr>,
-    type_: Option<TypeExpr>,
-}
-
-fn extract_type_annotations(rec_expr: &RecExpr<MimSlotted>) -> TypedRecExpr {
-    if let MimSlotted::TypeWrap(..) = rec_expr.node {
-        let type_expr = rec_expr.children[0].clone();
-        let expr = &rec_expr.children[1];
-        let mut stripped = extract_type_annotations(expr);
-        stripped.type_ = Some(type_expr);
-
-        // Instead of the actual type, we give var nodes a hole type
-        // to be inferred later on by the mim compiler. This is because
-        // all vars are represented with the same singleton var eclass
-        // and we can't store different vars' types on this single eclass.
-        if let MimSlotted::Var(_slot) = expr.node {
-            stripped.type_ = Some(hole());
-        }
-
-        return stripped;
-    }
-
-    TypedRecExpr {
-        node: rec_expr.node.clone(),
-        children: rec_expr
-            .children
-            .iter()
-            .map(extract_type_annotations)
-            .collect(),
-        type_: None,
-    }
-}
-
-fn add_expr_typed(
-    eg: &mut EGraph<MimSlotted, MimSlottedAnalysis>,
-    rec_expr: TypedRecExpr,
-) -> AppliedId {
-    let mut node = rec_expr.node;
-    let mut child_ids = node.applied_id_occurrences_mut();
-
-    for (i, child) in rec_expr.children.into_iter().enumerate() {
-        *(child_ids[i]) = add_expr_typed(eg, child);
-    }
-
-    let eclass_applied_id = eg.add(node);
-
-    let eclass_id = eclass_applied_id.id;
-    let analysis_data = eg.analysis_data_mut(eclass_id);
-    analysis_data.type_ = rec_expr.type_;
-
-    eclass_applied_id
 }
 
 fn convert_rules(
