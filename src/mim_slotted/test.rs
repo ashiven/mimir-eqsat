@@ -1,7 +1,6 @@
 use regex::Regex;
 use std::fs;
 
-use crate::ffi::FFI;
 use crate::ffi::bridge::{CostFn, RuleSet};
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::convert_rules;
@@ -115,35 +114,34 @@ fn eqsat_pow_slotted() {
 #[test]
 fn convert_custom_rule() {
     let rule = "
-(rule 
-    foo
-    (cons
-        (metavar
-            pat_a_22735
-            Nat)
-    (cons
-        (metavar
-            slot_b_22734
-            Nat)
-    nil))
-    (app
-        %core.nat.add
-        (tuple
-            (cons
-                (app
-                    %core.nat.sub
-                    (tuple
-                        (cons
-                            slot_b_22734
-                        (cons
-                            pat_a_22735
-                        nil))))
-            (cons
+    (rule 
+        foo
+        (cons
+            (metavar
                 pat_a_22735
-            nil))))
-    slot_b_22734
-    (lit tt Bool))
-";
+                Nat)
+        (cons
+            (metavar
+                slot_b_22734
+                Nat)
+        nil))
+        (app
+            %core.nat.add
+            (tuple
+                (cons
+                    (app
+                        %core.nat.sub
+                        (tuple
+                            (cons
+                                slot_b_22734
+                            (cons
+                                pat_a_22735
+                            nil))))
+                (cons
+                    pat_a_22735
+                nil))))
+        slot_b_22734
+        (lit tt Bool))";
 
     let mut sexprs = vec![rule.to_string()];
     let mut rules = Vec::new();
@@ -155,19 +153,19 @@ fn convert_custom_rule() {
 #[test]
 fn extract_type_info() {
     let annotated = "
-(root extern add_lit
-    (@ (cn (cn I8))
-    (lam
-        $return_22296
-        (scope
-            (@ Bool
-            (lit ff Bool))
-            (@ (bot (type (lit 0 Univ)))
-            (app
-                (@ (cn I8)
-                (var $return_22296))
-                (@ I8
-                (lit 6 I8))))))))";
+    (root extern add_lit
+        (@ (cn (cn I8))
+        (lam
+            $return_22296
+            (scope
+                (@ Bool
+                (lit ff Bool))
+                (@ (bot (type (lit 0 Univ)))
+                (app
+                    (@ (cn I8)
+                    (var $return_22296))
+                    (@ I8
+                    (lit 6 I8))))))))";
 
     let annotated: RecExpr<MimSlotted> = RecExpr::parse(annotated).unwrap();
     let typed = extract_type_annotations(&annotated);
@@ -190,6 +188,11 @@ fn extract_type_info() {
 
 #[test]
 fn eta_expansion_hole() {
+    let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
+        eg.analysis_data(id.id).type_.clone()
+    };
+    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
     let fun_annotated = "(@ (pi Nat Bool) fun)";
@@ -201,18 +204,76 @@ fn eta_expansion_hole() {
     let eta_exp: RecExpr<MimSlotted> = RecExpr::parse(eta_exp).unwrap();
     let eta_exp_id = eg.add_expr(eta_exp);
 
-    let fun_type = eg.analysis_data(fun_typed_id.id).type_.clone();
-    let lam_type = eg.analysis_data(eta_exp_id.id).type_.clone();
-
-    assert_eq!(fun_type, Some(RecExpr::parse("(pi Nat Bool)").unwrap()));
+    assert_eq!(type_of(&eg, fun_typed_id), type_("(pi Nat Bool)"));
     assert_eq!(
-        lam_type,
-        Some(RecExpr::parse("(pi (hole (type (lit 0 Univ))) Bool)").unwrap())
+        type_of(&eg, eta_exp_id),
+        type_("(pi (hole (type (lit 0 Univ))) Bool)")
     );
 }
 
-// TODO: Add tests for type analysis data created for all variants
-// (Can also group multiple variants in the same test cases)
+#[test]
+fn make_types() {
+    let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
+        eg.analysis_data(id.id).type_.clone()
+    };
+    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
+
+    let lit = "(lit 10 (idx 3))";
+    let lit: RecExpr<MimSlotted> = RecExpr::parse(lit).unwrap();
+    let lit_id = eg.add_expr(lit);
+
+    assert_eq!(type_of(&eg, lit_id), type_("(idx 3)"));
+
+    let binding = "(let $x (scope (lit tt Bool) (app (lam $y (scope (lit ff Bool) (lit 10 (idx 3)))) (var $x))))";
+    let binding: RecExpr<MimSlotted> = RecExpr::parse(binding).unwrap();
+    let binding_id = eg.add_expr(binding);
+
+    assert_eq!(type_of(&eg, binding_id), type_("(idx 3)"));
+
+    let var = "(var $foo)";
+    let var: RecExpr<MimSlotted> = RecExpr::parse(var).unwrap();
+    let var_id = eg.add_expr(var);
+
+    assert_eq!(type_of(&eg, var_id), type_("(hole (type (lit 0 Univ)))"));
+
+    let app = "(app (var $foo) (var $bar))";
+    let app: RecExpr<MimSlotted> = RecExpr::parse(app).unwrap();
+    let app_id = eg.add_expr(app);
+
+    assert_eq!(type_of(&eg, app_id), type_("(hole (type (lit 0 Univ)))"));
+}
+
+#[test]
+fn var_type_hole() {
+    let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
+        eg.analysis_data(id.id).type_.clone()
+    };
+    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
+
+    let var_annotated = "(@ Bool (var $foo))";
+    let var_annotated: RecExpr<MimSlotted> = RecExpr::parse(var_annotated).unwrap();
+    let var_typed = extract_type_annotations(&var_annotated);
+    let var_annotated_id = add_expr_typed(&mut eg, var_typed);
+
+    // The annotated type for var should be overwritten with hole at this point.
+    // Since all vars are represented with the same singleton var eclass, we
+    // can't maintain the variables' types with an analysis and should hope that
+    // the mim compiler can type-infer these var holes.
+    assert_eq!(
+        type_of(&eg, var_annotated_id),
+        type_("(hole (type (lit 0 Univ)))")
+    );
+
+    let var = "(var $bar)";
+    let var: RecExpr<MimSlotted> = RecExpr::parse(var).unwrap();
+    let var_id = eg.add_expr(var);
+
+    assert_eq!(type_of(&eg, var_id), type_("(hole (type (lit 0 Univ)))"));
+}
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
 // Had to copy-paste the code below since it didn't seem to be exposed as part of the library.

@@ -28,7 +28,7 @@ fn term_size(type_expr: &TypeExpr) -> usize {
 // as well and infers it later on. (not sure if we need this though)
 //
 // (hole (type (lit 0 Univ)))  --  Hole(*)
-fn hole() -> RecExpr<MimSlotted> {
+pub(crate) fn hole() -> RecExpr<MimSlotted> {
     RecExpr {
         node: MimSlotted::Hole(AppliedId::null()),
         children: vec![RecExpr {
@@ -83,6 +83,9 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
                     }
                 }
             }
+            // TODO: Since we are working with continuation passing style I should
+            // probably give lambdas a type of Cn(Sigma(Hole(*), Cn(typeof(<body>))))
+            //
             // typeof[(lam $x (scope <filter> <body>))] = Pi(typeof($x), typeof(<body>))
             MimSlotted::Lam(var_bind) => {
                 let var_scope_id = eg.find_applied_id(&var_bind.elem);
@@ -160,18 +163,10 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
             Extract(AppliedId, AppliedId) = "extract",
             // (insert <tuple> <index> <value>)
             Insert(AppliedId, AppliedId, AppliedId) = "insert",
-            // (rule <name> <meta-var-cons> <lhs> <rhs> <guard>)
-            Rule(AppliedId, AppliedId, AppliedId, AppliedId, AppliedId) = "rule",
             // (inj <type> <value>)
             Inj(AppliedId, AppliedId) = "inj",
             // (merge <type> <type-cons>)
             Merge(AppliedId, AppliedId) = "merge",
-            // (axm <name> <type>)
-            Axm(AppliedId, AppliedId) = "axm",
-            // (match <op-cons>)
-            Match(AppliedId) = "match",
-            // (proxy <type> <pass> <tag> <op-cons>)
-            Proxy(AppliedId, AppliedId, AppliedId, AppliedId) = "proxy",
             */
             _ => AnalysisData { type_: None },
         }
@@ -182,14 +177,7 @@ impl Analysis<MimSlotted> for MimSlottedAnalysis {
     // and we do our best to correctly type terms that are newly introduced by
     // rewrite-rules) So whenever we are merging two eclasses associated with type-data,
     // we assume they are equivalent representations of the same type and just
-    // merge the type with the smaller term-size into the eclass.
-    //
-    // TODO: I think right now we are taking over the annotations for vars
-    // but we probably shouldn't because all vars are represented with the
-    // same eclass and should therefore have a hole associated with them.
-    // Consider the case of merging a newly created var of type Hole
-    // with an existing var of type Bool, we will then not merge the Hole
-    // but keep the Bool which now leaves the second var with the wrong type.
+    // merge the type with fewer holes and smaller term-size into the eclass.
     fn merge(l: Self::Data, r: Self::Data) -> Self::Data {
         match (l.type_, r.type_) {
             (None, None) => AnalysisData { type_: None },

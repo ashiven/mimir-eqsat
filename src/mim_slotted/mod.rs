@@ -1,6 +1,6 @@
 use crate::ffi::FFI;
 use crate::ffi::bridge::{CostFn, MimKind, RecExprFFI, RuleSet};
-use crate::mim_slotted::analysis::MimSlottedAnalysis;
+use crate::mim_slotted::analysis::{MimSlottedAnalysis, hole};
 use crate::mim_slotted::rulesets::get_rules;
 use regex::Regex;
 use slotted_egraphs::*;
@@ -227,6 +227,15 @@ fn extract_type_annotations(rec_expr: &RecExpr<MimSlotted>) -> TypedRecExpr {
         let expr = &rec_expr.children[1];
         let mut stripped = extract_type_annotations(expr);
         stripped.type_ = Some(type_expr);
+
+        // Instead of the actual type, we give var nodes a hole type
+        // to be inferred later on by the mim compiler. This is because
+        // all vars are represented with the same singleton var eclass
+        // and we can't store different vars' types on this single eclass.
+        if let MimSlotted::Var(_slot) = expr.node {
+            stripped.type_ = Some(hole());
+        }
+
         return stripped;
     }
 
