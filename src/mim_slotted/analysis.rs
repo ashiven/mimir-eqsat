@@ -19,12 +19,86 @@ fn term_size(type_expr: &TypeExpr) -> usize {
     size(type_expr)
 }
 
-// TODO: Merge and make for types
+// This is a placeholder for a type that is as of yet unknown.
+// The type inference built into the mim compiler is able to later
+// infer the types of these holes from the context they appear in.
+//
+// (hole (lit 0 Univ))  --  Hole(*)
+fn hole() -> RecExpr<MimSlotted> {
+    RecExpr {
+        node: MimSlotted::Hole(AppliedId::null()),
+        children: vec![RecExpr {
+            node: MimSlotted::Lit(AppliedId::null(), AppliedId::null()),
+            children: vec![
+                RecExpr {
+                    node: MimSlotted::Num(0),
+                    children: vec![],
+                },
+                RecExpr {
+                    node: MimSlotted::Symbol("Univ".into()),
+                    children: vec![],
+                },
+            ],
+        }],
+    }
+}
+
 impl Analysis<MimSlotted> for MimSlottedAnalysis {
     type Data = AnalysisData;
 
-    fn make(_eg: &EGraph<MimSlotted, Self>, _enode: &MimSlotted) -> Self::Data {
-        AnalysisData::default()
+    fn make(eg: &EGraph<MimSlotted, Self>, enode: &MimSlotted) -> Self::Data {
+        match enode {
+            // typeof[(lam $x (scope <filter> <body>))] = typeof($x) -> typeof(body)
+            MimSlotted::Lam(var_bind) => {
+                let var_scope_id = &var_bind.elem;
+                let enodes = eg.enodes_applied(var_scope_id);
+                let var_scope = enodes.first().expect("Failed to get var scope node");
+
+                let scope_child_ids = var_scope.applied_id_occurrences();
+                let body_id = scope_child_ids.get(1).expect("Failed to get body id");
+
+                // Hole[typeof(var)] -> typeof(body)
+                if let Some(body_type) = eg.analysis_data(body_id.id).type_.clone() {
+                    AnalysisData {
+                        type_: Some(RecExpr {
+                            node: MimSlotted::Pi(AppliedId::null(), AppliedId::null()),
+                            children: vec![hole(), body_type],
+                        }),
+                    }
+                // Hole[typeof(var)] -> Hole[typeof(body)]
+                } else {
+                    AnalysisData {
+                        type_: Some(RecExpr {
+                            node: MimSlotted::Pi(AppliedId::null(), AppliedId::null()),
+                            children: vec![hole(), hole()],
+                        }),
+                    }
+                }
+            }
+            // typeof[(app <callee> <arg>)] = typeof(callee-codomain)
+            MimSlotted::App(callee, _arg) => {
+                let callee_type = eg.analysis_data(callee.id).type_.clone();
+                // typeof(callee-codomain)
+                if let Some(RecExpr {
+                    node: MimSlotted::Pi(..),
+                    children: pi_childs,
+                }) = callee_type
+                {
+                    let codom_type = pi_childs.get(1).expect("Failed to get callee codomain");
+                    AnalysisData {
+                        type_: Some(codom_type.clone()),
+                    }
+                }
+                // Hole[typeof(callee-codomain)]
+                else {
+                    AnalysisData {
+                        type_: Some(hole()),
+                    }
+                }
+            }
+            // TODO: Make types for other variants
+            _ => AnalysisData { type_: None },
+        }
     }
 
     // We are making the assumption here that terms are already

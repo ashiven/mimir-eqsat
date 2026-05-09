@@ -54,9 +54,9 @@ fn let_var_same() {
 }
 
 #[test]
-fn bind_con_var_add0() {
-    let a = "(root extern foo (lam $arg (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $arg) (cons (lit 0 Nat) nil)))))))";
-    let b = "(root extern foo (lam $arg (scope (lit ff Bool) (var $arg))))";
+fn lam_var_add0() {
+    let a = "(root extern foo (lam $x (scope (lit ff Bool) (app %core.nat.add (tuple (cons (var $x) (cons (lit 0 Nat) nil)))))))";
+    let b = "(root extern foo (lam $x (scope (lit ff Bool) (var $x))))";
     assert_reaches::<MimSlotted, MimSlottedAnalysis>(a, b, &get_rules(vec![RuleSet::Standard]), 1);
 }
 
@@ -186,6 +186,29 @@ fn extract_type_info() {
         .clone();
 
     assert_eq!(lam_type, Some(RecExpr::parse("(cn (cn I8))").unwrap()));
+}
+
+#[test]
+fn eta_expansion_hole() {
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
+
+    let fun_annotated = "(@ (pi Nat Bool) fun)";
+    let fun_annotated: RecExpr<MimSlotted> = RecExpr::parse(fun_annotated).unwrap();
+    let fun = extract_type_annotations(&fun_annotated);
+    let fun_id = add_expr_typed(&mut eg, fun);
+
+    let eta_exp = "(lam $x (scope (lit ff Bool) (app fun (var $x))))";
+    let eta_exp: RecExpr<MimSlotted> = RecExpr::parse(eta_exp).unwrap();
+    let eta_exp_id = eg.add_expr(eta_exp);
+
+    let fun_type = eg.analysis_data(fun_id.id).type_.clone();
+    let lam_type = eg.analysis_data(eta_exp_id.id).type_.clone();
+
+    assert_eq!(fun_type, Some(RecExpr::parse("(pi Nat Bool)").unwrap()));
+    assert_eq!(
+        lam_type,
+        Some(RecExpr::parse("(pi (hole (lit 0 Univ)) Bool)").unwrap())
+    );
 }
 
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
