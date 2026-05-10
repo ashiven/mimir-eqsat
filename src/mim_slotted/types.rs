@@ -166,15 +166,15 @@ pub(crate) fn merge_type(l: AnalysisData, r: AnalysisData) -> AnalysisData {
     let r_size = term_size(&r.type_);
 
     if l_holes < r_holes {
-        return AnalysisData { type_: l.type_ };
+        AnalysisData { type_: l.type_ }
     } else if l_holes > r_holes {
-        return AnalysisData { type_: r.type_ };
+        AnalysisData { type_: r.type_ }
     } else if l_size < r_size {
-        return AnalysisData { type_: l.type_ };
+        AnalysisData { type_: l.type_ }
     } else if l_size > r_size {
-        return AnalysisData { type_: r.type_ };
+        AnalysisData { type_: r.type_ }
     } else {
-        return AnalysisData { type_: l.type_ };
+        AnalysisData { type_: l.type_ }
     }
 }
 
