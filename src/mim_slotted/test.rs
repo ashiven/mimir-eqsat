@@ -247,6 +247,37 @@ fn make_types() {
 }
 
 #[test]
+fn make_types_complex() {
+    let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
+        eg.analysis_data(id.id).type_.clone()
+    };
+    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
+
+    let tuple = "(tuple (cons (lit 1 Nat) (cons (lit 2 Nat) (cons (lit 3 Nat) nil))))";
+    let tuple: RecExpr<MimSlotted> = RecExpr::parse(tuple).unwrap();
+    let tuple_id = eg.add_expr(tuple);
+
+    assert_eq!(
+        type_of(&eg, tuple_id),
+        type_("(sigma (cons Nat (cons Nat (cons Nat nil))))")
+    );
+
+    let tuple_empty = "(tuple nil)";
+    let tuple_empty: RecExpr<MimSlotted> = RecExpr::parse(tuple_empty).unwrap();
+    let tuple_empty_id = eg.add_expr(tuple_empty);
+
+    assert_eq!(type_of(&eg, tuple_empty_id), type_("(sigma nil)"));
+
+    let pack = "(pack (top Nat) (lit 3 Nat))";
+    let pack: RecExpr<MimSlotted> = RecExpr::parse(pack).unwrap();
+    let pack_id = eg.add_expr(pack);
+
+    assert_eq!(type_of(&eg, pack_id), type_("(arr (top Nat) Nat)"));
+}
+
+#[test]
 fn var_type_hole() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()

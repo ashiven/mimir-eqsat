@@ -117,21 +117,21 @@ pub(crate) fn make_type(
 ) -> AnalysisData {
     match enode {
         // typeof[(let $name (scope <definition> <expr>))]  = typeof(<expr>)
-        MimSlotted::Let(..) => make_let(eg, enode),
-        // typeof[(lam $x (scope <filter> <body>))]         = Pi(typeof($x), typeof(<body>))
-        MimSlotted::Lam(..) => make_lam(eg, enode),
+        MimSlotted::Let(..) => make_let_type(eg, enode),
+        // typeof[(lam $x (scope <filter> <body>))]         = Pi(Hole(*), typeof(<body>))
+        MimSlotted::Lam(..) => make_lam_type(eg, enode),
         // typeof[(app <callee> <arg>)]                     = typeof(<callee-codomain>)
-        MimSlotted::App(..) => make_app(eg, enode),
+        MimSlotted::App(..) => make_app_type(eg, enode),
         // typeof[(var $x)]                                 = Hole(*)
-        MimSlotted::Var(..) => make_var(eg, enode),
+        MimSlotted::Var(..) => make_var_type(eg, enode),
         // typeof[(lit <val> <type>)]                       = <type>
-        MimSlotted::Lit(..) => make_lit(eg, enode),
+        MimSlotted::Lit(..) => make_lit_type(eg, enode),
+        // typeof[(pack <arity> <body>)]                    = Arr(<arity>, typeof(<body>))
+        MimSlotted::Pack(..) => make_pack_type(eg, enode),
+        // typeof[(tuple <elem-cons>)]                      = Sigma(<elem-type-cons>)
+        MimSlotted::Tuple(..) => make_tuple_type(eg, enode),
         /*
         // TODO: Make types for other variants
-        // (pack <arity> <body>)
-        Pack(AppliedId, AppliedId) = "pack",
-        // (tuple <elem-cons>)
-        Tuple(AppliedId) = "tuple",
         // (extract <tuple> <index>)
         Extract(AppliedId, AppliedId) = "extract",
         // (insert <tuple> <index> <value>)
@@ -173,7 +173,7 @@ pub(crate) fn merge_type(l: AnalysisData, r: AnalysisData) -> AnalysisData {
     }
 }
 
-fn make_let(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
+fn make_let_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
     let name_bind = if let MimSlotted::Let(name_bind) = enode {
         name_bind
     } else {
@@ -209,7 +209,7 @@ fn make_let(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> 
 
 // TODO: Since we are working with continuation passing style I should
 // probably give lambdas a type of Cn(Sigma(Hole(*), Cn(typeof(<body>))))
-fn make_lam(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
+fn make_lam_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
     let var_bind = if let MimSlotted::Lam(var_bind) = enode {
         var_bind
     } else {
@@ -245,7 +245,7 @@ fn make_lam(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> 
     }
 }
 
-fn make_app(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
+fn make_app_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
     let callee = if let MimSlotted::App(callee, _arg) = enode {
         callee
     } else {
@@ -277,13 +277,16 @@ fn make_app(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> 
 // associate the different variables' types with this eclass.
 // So we should just hope that the mim compiler will be able to
 // resolve all of these var holes itself.
-fn make_var(_eg: &EGraph<MimSlotted, MimSlottedAnalysis>, _enode: &MimSlotted) -> AnalysisData {
+fn make_var_type(
+    _eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
+    _enode: &MimSlotted,
+) -> AnalysisData {
     AnalysisData {
         type_: Some(hole()),
     }
 }
 
-fn make_lit(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
+fn make_lit_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
     let type_ = if let MimSlotted::Lit(_val, type_) = enode {
         type_
     } else {
@@ -293,4 +296,99 @@ fn make_lit(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> 
     let type_id = eg.find_applied_id(type_);
     let type_ = eg.get_syn_expr(&type_id);
     AnalysisData { type_: Some(type_) }
+}
+
+fn make_pack_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
+    let (arity, body) = if let MimSlotted::Pack(arity, body) = enode {
+        (arity, body)
+    } else {
+        panic!("Expected a pack node")
+    };
+
+    let arity_id = eg.find_applied_id(arity);
+    let arity = eg.get_syn_expr(&arity_id);
+    let body_type = eg.analysis_data(body.id).type_.clone();
+
+    // Arr(<arity>, typeof(<body>))
+    if let Some(body_type) = body_type {
+        AnalysisData {
+            type_: Some(RecExpr {
+                node: MimSlotted::Arr(AppliedId::null(), AppliedId::null()),
+                children: vec![arity, body_type],
+            }),
+        }
+    // Arr(<arity>, Hole(*))
+    } else {
+        AnalysisData {
+            type_: Some(RecExpr {
+                node: MimSlotted::Arr(AppliedId::null(), AppliedId::null()),
+                children: vec![arity, hole()],
+            }),
+        }
+    }
+}
+
+fn make_tuple_type(
+    eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
+    enode: &MimSlotted,
+) -> AnalysisData {
+    let elem_cons = if let MimSlotted::Tuple(elem_cons) = enode {
+        elem_cons
+    } else {
+        panic!("Expected a tuple node")
+    };
+
+    let elem_cons_id = eg.find_applied_id(elem_cons);
+    let enodes = eg.enodes_applied(&elem_cons_id);
+    let elem_cons = enodes.first().expect("Failed to get tuple elem cons");
+
+    let mut elem_types: Vec<Option<TypeExpr>> = Vec::new();
+
+    let mut curr_cons = elem_cons.clone();
+    while let MimSlotted::Cons(elem, next) = curr_cons {
+        let curr_elem_id = eg.find_applied_id(&elem);
+        let curr_elem_type = eg.analysis_data(curr_elem_id.id).type_.clone();
+        elem_types.push(curr_elem_type);
+
+        let enodes = eg.enodes_applied(&next);
+        let next_cons = enodes
+            .first()
+            .expect("Failed to get next elem cons")
+            .clone();
+        curr_cons = next_cons;
+    }
+
+    let mut elem_type_cons = RecExpr {
+        node: MimSlotted::Nil(),
+        children: vec![],
+    };
+
+    if elem_types.is_empty() {
+        AnalysisData {
+            type_: Some(RecExpr {
+                node: MimSlotted::Sigma(AppliedId::null()),
+                children: vec![elem_type_cons],
+            }),
+        }
+    } else {
+        while let Some(curr_elem_type) = elem_types.pop() {
+            let elem_type = if let Some(elem_type) = curr_elem_type {
+                elem_type
+            } else {
+                hole()
+            };
+
+            elem_type_cons = RecExpr {
+                node: MimSlotted::Cons(AppliedId::null(), AppliedId::null()),
+                children: vec![elem_type, elem_type_cons],
+            }
+        }
+
+        AnalysisData {
+            type_: Some(RecExpr {
+                node: MimSlotted::Sigma(AppliedId::null()),
+                children: vec![elem_type_cons],
+            }),
+        }
+    }
 }
