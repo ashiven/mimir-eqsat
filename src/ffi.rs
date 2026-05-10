@@ -1,9 +1,11 @@
 use crate::mim_egg::Mim;
+use crate::mim_egg::analysis::MimAnalysis;
 use crate::mim_slotted::MimSlotted;
+use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::{eqsat_egg, eqsat_slotted, node_ffi_str, pretty_egg, pretty_slotted};
 use bridge::{MimKind, NodeFFI, RecExprFFI};
-use egg::{Id, RecExpr};
-use slotted_egraphs::RecExpr as RecExprSlotted;
+use egg::{EGraph, Id, RecExpr};
+use slotted_egraphs::{EGraph as EGraphSlotted, RecExpr as RecExprSlotted};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -66,16 +68,17 @@ pub mod bridge {
         Symbol,
     }
 
-    #[derive(Debug, PartialEq, Hash, Eq, Clone, Default)]
+    #[derive(Debug, Hash, Default, Eq, PartialEq)]
     struct NodeFFI {
         kind: MimKind,
         children: Vec<u32>,
         num: u64,
         symbol: String,
         slot: String,
+        type_: RecExprFFI,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Hash, Default, Eq, PartialEq)]
     struct RecExprFFI {
         nodes: Vec<NodeFFI>,
     }
@@ -152,27 +155,35 @@ impl fmt::Display for NodeFFI {
 }
 
 pub trait FFI {
-    fn to_ffi(&self) -> RecExprFFI;
+    type EG;
+
+    fn to_ffi(&self, egraph: &Self::EG) -> RecExprFFI;
 }
 
 pub trait FFIInner {
-    fn to_ffi(&self) -> NodeFFI {
+    type EG;
+
+    fn to_ffi(&self, _egraph: &Self::EG) -> NodeFFI {
         Default::default()
     }
-    fn to_ffi_with_childs(&self, _children: &[usize]) -> NodeFFI {
+    fn to_ffi_with_childs(&self, _children: &[usize], _egraph: &Self::EG) -> NodeFFI {
         Default::default()
     }
 }
 
 impl FFI for RecExpr<Mim> {
-    fn to_ffi(&self) -> RecExprFFI {
-        let nodes = self.iter().map(|n| n.to_ffi()).collect();
+    type EG = EGraph<Mim, MimAnalysis>;
+
+    fn to_ffi(&self, egraph: &Self::EG) -> RecExprFFI {
+        let nodes = self.iter().map(|n| n.to_ffi(egraph)).collect();
         RecExprFFI { nodes }
     }
 }
 
 impl FFIInner for Mim {
-    fn to_ffi(&self) -> NodeFFI {
+    type EG = EGraph<Mim, MimAnalysis>;
+
+    fn to_ffi(&self, _egraph: &Self::EG) -> NodeFFI {
         fn new_node_ffi(
             kind: MimKind,
             children: &[Id],
@@ -187,6 +198,7 @@ impl FFIInner for Mim {
                 num: num.unwrap_or_default(),
                 symbol: symbol.unwrap_or_default(),
                 slot: String::new(),
+                type_: RecExprFFI { nodes: vec![] },
             }
         }
 
@@ -226,19 +238,22 @@ impl FFIInner for Mim {
 }
 
 impl FFI for RecExprSlotted<MimSlotted> {
-    fn to_ffi(&self) -> RecExprFFI {
+    type EG = EGraphSlotted<MimSlotted, MimSlottedAnalysis>;
+
+    fn to_ffi(&self, egraph: &Self::EG) -> RecExprFFI {
         fn to_ffi_internal(
             rec_expr: &RecExprSlotted<MimSlotted>,
             nodes: &mut Vec<NodeFFI>,
             added: &mut HashMap<NodeFFI, usize>,
+            egraph: &EGraphSlotted<MimSlotted, MimSlottedAnalysis>,
         ) -> usize {
             let child_ids: Vec<usize> = rec_expr
                 .children
                 .iter()
-                .map(|child| to_ffi_internal(child, nodes, added))
+                .map(|child| to_ffi_internal(child, nodes, added, egraph))
                 .collect();
 
-            let new_node = rec_expr.node.to_ffi_with_childs(&child_ids);
+            let new_node = rec_expr.node.to_ffi_with_childs(&child_ids, egraph);
 
             if added.contains_key(&new_node) {
                 return *added.get(&new_node).unwrap();
@@ -251,13 +266,15 @@ impl FFI for RecExprSlotted<MimSlotted> {
 
         let mut nodes: Vec<NodeFFI> = Vec::new();
         let mut added = HashMap::<NodeFFI, usize>::new();
-        to_ffi_internal(self, &mut nodes, &mut added);
+        to_ffi_internal(self, &mut nodes, &mut added, egraph);
         RecExprFFI { nodes }
     }
 }
 
 impl FFIInner for MimSlotted {
-    fn to_ffi_with_childs(&self, children: &[usize]) -> NodeFFI {
+    type EG = EGraphSlotted<MimSlotted, MimSlottedAnalysis>;
+
+    fn to_ffi_with_childs(&self, children: &[usize], _egraph: &Self::EG) -> NodeFFI {
         fn new_node_ffi(
             kind: MimKind,
             children: &[usize],
@@ -273,6 +290,8 @@ impl FFIInner for MimSlotted {
                 num: num.unwrap_or_default(),
                 symbol: symbol.unwrap_or_default(),
                 slot: slot.unwrap_or_default(),
+                // TODO: egraph lookup to get type info of the node
+                type_: RecExprFFI { nodes: vec![] },
             }
         }
 

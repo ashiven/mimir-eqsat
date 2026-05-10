@@ -2,6 +2,7 @@ use crate::ffi::FFI;
 use crate::ffi::bridge::{CostFn, MimKind, RecExprFFI, RuleSet};
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
+use crate::mim_slotted::types::{TypedRecExpr, add_expr_typed, extract_type_annotations};
 use regex::Regex;
 use slotted_egraphs::*;
 
@@ -123,10 +124,15 @@ pub(crate) fn equality_saturate(
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
 ) -> Vec<RecExprFFI> {
-    equality_saturate_internal(sexpr, rulesets, cost_fn)
-        .iter()
-        .map(|rec_expr: &RecExpr<MimSlotted>| rec_expr.to_ffi())
-        .collect()
+    let mut sexprs = split_sexprs(sexpr);
+
+    let mut rules = get_rules(rulesets);
+    convert_rules(&mut sexprs, &mut rules);
+
+    match cost_fn {
+        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
+        _ => panic!("Unknown cost function provided."),
+    }
 }
 
 pub(crate) fn pretty(sexpr: &str, _line_len: usize) -> String {
@@ -157,57 +163,33 @@ fn split_sexprs(sexpr: &str) -> Vec<String> {
         .collect()
 }
 
-fn equality_saturate_internal(
-    sexpr: &str,
-    rulesets: Vec<RuleSet>,
-    cost_fn: CostFn,
-) -> Vec<RecExpr<MimSlotted>> {
-    let mut sexprs = split_sexprs(sexpr);
-
-    let mut rules = get_rules(rulesets);
-    convert_rules(&mut sexprs, &mut rules);
-
-    match cost_fn {
-        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
-        _ => panic!("Unknown cost function provided."),
-    }
-}
-
 fn rewrite_sexprs<C, F>(
     sexprs: Vec<String>,
     rules: Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>,
     cost_fn: F,
-) -> Vec<RecExpr<MimSlotted>>
+) -> Vec<RecExprFFI>
 where
     C: CostFunction<MimSlotted>,
     F: Fn() -> C,
 {
-    let mut rewritten_sexprs: Vec<RecExpr<MimSlotted>> = Vec::new();
+    let mut rewritten_sexprs: Vec<RecExprFFI> = Vec::new();
 
-    let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default();
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
     for sexpr in &sexprs {
-        // TODO: Here we want to first extract_type_annotations(RecExpr<MimSlotted>)->RecExpr<MimSlotted>, TypeInfo
-        // and then perform equality saturation on an egraph with type information added to each eclass
-        // as analysis data which gets maintained during equality saturation
-        //
-        // let typed_rec_expr: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
-        // let (_untyped_rec_expr, _type_info) = extract_type_annotations(&typed_rec_expr);
-        // eg.add_with_type_info(untyped_rec_expr, type_info);
-
-        let rec_expr = RecExpr::parse(sexpr).unwrap();
-        runner = runner.with_expr(&rec_expr);
+        let annotated_rec_expr: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        let typed_rec_expr: TypedRecExpr = extract_type_annotations(&annotated_rec_expr);
+        add_expr_typed(&mut eg, typed_rec_expr);
     }
 
+    let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default();
+    runner = runner.with_egraph(eg);
     let _report = runner.run(&rules);
 
     let extractor = Extractor::new(&runner.egraph, cost_fn());
     for i in 0..sexprs.len() {
         let best_expr = extractor.extract(&runner.roots[i], &runner.egraph);
-
-        // TODO: Here we want to first insert_type_annotations(RecExpr<MimSlotted>, TypeInfo)->RecExpr<MimSlotted>
-        // and then return the rewritten sexpr with type annotations
-
-        rewritten_sexprs.push(best_expr);
+        let best_expr_ffi = best_expr.to_ffi(&runner.egraph);
+        rewritten_sexprs.push(best_expr_ffi);
     }
 
     rewritten_sexprs
@@ -222,7 +204,9 @@ fn convert_rules(
 
         // (rule <name> <meta_var> <lhs> <rhs> <guard>)
         if let MimSlotted::Rule(..) = parsed.node {
-            let flattened = parsed.to_ffi();
+            // TODO: Fix (needs egraph for type-lookup) - may be better to just lookup metavars on
+            // the RecExpr instead of its ffi version
+            // let flattened = parsed.to_ffi();
 
             let mut rule_name = "";
             if let MimSlotted::Symbol(s) = parsed.children[0].node {
@@ -230,12 +214,12 @@ fn convert_rules(
             }
 
             let mut meta_vars: Vec<String> = Vec::new();
-            for node in &flattened.nodes {
-                if node.kind == MimKind::MetaVar {
-                    let name = &flattened.nodes[node.children[0] as usize];
-                    meta_vars.push(name.symbol.clone());
-                }
-            }
+            // for node in &flattened.nodes {
+            //     if node.kind == MimKind::MetaVar {
+            //         let name = &flattened.nodes[node.children[0] as usize];
+            //         meta_vars.push(name.symbol.clone());
+            //     }
+            // }
 
             let lhs_rexpr = &parsed.children[2];
             let rhs_rexpr = &parsed.children[3];
