@@ -130,17 +130,14 @@ pub(crate) fn make_type(
         MimSlotted::Pack(..) => make_pack_type(eg, enode),
         // typeof[(tuple <elem-cons>)]                      = Sigma(<elem-type-cons>)
         MimSlotted::Tuple(..) => make_tuple_type(eg, enode),
-        /*
-        // TODO: Make types for other variants
-        // (extract <tuple> <index>)
-        Extract(AppliedId, AppliedId) = "extract",
-        // (insert <tuple> <index> <value>)
-        Insert(AppliedId, AppliedId, AppliedId) = "insert",
-        // (inj <type> <value>)
-        Inj(AppliedId, AppliedId) = "inj",
-        // (merge <type> <type-cons>)
-        Merge(AppliedId, AppliedId) = "merge",
-        */
+        // typeof[(extract <tuple> <index>)]                = typeof(<extracted-elem>)
+        MimSlotted::Extract(..) => make_extract_type(eg, enode),
+        // typeof[(insert <tuple> <index> <value>)]         = typeof(<inserted-tuple>)
+        MimSlotted::Insert(..) => make_insert_type(eg, enode),
+
+        // TODO:
+        // MimSlotted::Inj(..) = make_inj_type(eg, enode),
+        // MimSlotted::Merge(..) = make_merge_type(eg, enode),
         _ => AnalysisData { type_: None },
     }
 }
@@ -391,4 +388,28 @@ fn make_tuple_type(
             }),
         }
     }
+}
+
+fn make_extract_type(
+    eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
+    enode: &MimSlotted,
+) -> AnalysisData {
+    let (tuple, index) = if let MimSlotted::Extract(tuple, index) = enode {
+        (tuple, index)
+    } else {
+        panic!("Expected an extract node")
+    };
+    AnalysisData::default()
+}
+
+fn make_insert_type(
+    eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
+    enode: &MimSlotted,
+) -> AnalysisData {
+    let (tuple, index) = if let MimSlotted::Insert(tuple, index, value) = enode {
+        (tuple, index)
+    } else {
+        panic!("Expected an insert node")
+    };
+    AnalysisData::default()
 }

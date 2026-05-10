@@ -188,7 +188,7 @@ fn extract_type_info() {
 }
 
 #[test]
-fn eta_expansion_hole() {
+fn make_eta_expansion_hole() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
@@ -213,7 +213,7 @@ fn eta_expansion_hole() {
 }
 
 #[test]
-fn make_types() {
+fn make_types_var_lit() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
@@ -247,7 +247,7 @@ fn make_types() {
 }
 
 #[test]
-fn make_types_complex() {
+fn make_types_tuple_pack() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
@@ -278,7 +278,32 @@ fn make_types_complex() {
 }
 
 #[test]
-fn var_type_hole() {
+fn make_types_extract_insert() {
+    let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
+        eg.analysis_data(id.id).type_.clone()
+    };
+    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
+
+    let insert_tuple = "(insert (tuple (cons (lit 1 Nat) nil)) (lit ff Bool) (lit tt Bool))";
+    let insert_tuple: RecExpr<MimSlotted> = RecExpr::parse(insert_tuple).unwrap();
+    let insert_tuple_id = eg.add_expr(insert_tuple);
+
+    assert_eq!(
+        type_of(&eg, insert_tuple_id),
+        type_("(sigma (cons Nat (cons Bool nil)))")
+    );
+
+    let extract_tuple = "(extract (tuple (lit 1 Nat)) (lit 0 (idx 1)))";
+    let extract_tuple: RecExpr<MimSlotted> = RecExpr::parse(extract_tuple).unwrap();
+    let extract_tuple_id = eg.add_expr(extract_tuple);
+
+    assert_eq!(type_of(&eg, extract_tuple_id), type_("Nat"));
+}
+
+#[test]
+fn make_var_type_hole() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
