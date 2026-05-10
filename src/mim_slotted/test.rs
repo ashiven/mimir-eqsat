@@ -286,20 +286,38 @@ fn make_types_extract_insert() {
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
-    let insert_tuple = "(insert (tuple (cons (lit 1 Nat) nil)) (lit ff Bool) (lit tt Bool))";
-    let insert_tuple: RecExpr<MimSlotted> = RecExpr::parse(insert_tuple).unwrap();
-    let insert_tuple_id = eg.add_expr(insert_tuple);
+    let insert_pack = "(insert (pack (top Nat) (lit ff Bool)) (lit tt Bool) (lit ff Bool))";
+    let insert_pack: RecExpr<MimSlotted> = RecExpr::parse(insert_pack).unwrap();
+    let insert_pack_id = eg.add_expr(insert_pack);
 
     assert_eq!(
-        type_of(&eg, insert_tuple_id),
-        type_("(sigma (cons Nat (cons Bool nil)))")
+        type_of(&eg, insert_pack_id),
+        type_("(arr (top Nat) (Bool))")
     );
 
     let extract_tuple = "(extract (tuple (lit 1 Nat)) (lit 0 (idx 1)))";
     let extract_tuple: RecExpr<MimSlotted> = RecExpr::parse(extract_tuple).unwrap();
     let extract_tuple_id = eg.add_expr(extract_tuple);
 
-    assert_eq!(type_of(&eg, extract_tuple_id), type_("Nat"));
+    assert_eq!(
+        type_of(&eg, extract_tuple_id),
+        type_("(hole (type (lit 0 Univ)))")
+    );
+
+    let extract_pack = "(extract (pack (top Nat) (lit ff Bool)) (lit 0 (idx 1)))";
+    let extract_pack: RecExpr<MimSlotted> = RecExpr::parse(extract_pack).unwrap();
+    let extract_pack_id = eg.add_expr(extract_pack);
+
+    assert_eq!(type_of(&eg, extract_pack_id), type_("Bool"));
+
+    let extract_var = "(extract (var $foo) (lit 0 (idx 1)))";
+    let extract_var: RecExpr<MimSlotted> = RecExpr::parse(extract_var).unwrap();
+    let extract_var_id = eg.add_expr(extract_var);
+
+    assert_eq!(
+        type_of(&eg, extract_var_id),
+        type_("(hole (type (lit 0 Univ)))")
+    );
 }
 
 #[test]
@@ -314,14 +332,14 @@ fn make_var_type_hole() {
     let var_annotated = "(@ Bool (var $foo))";
     let var_annotated: RecExpr<MimSlotted> = RecExpr::parse(var_annotated).unwrap();
     let var_typed = extract_type_annotations(&var_annotated);
-    let var_annotated_id = add_expr_typed(&mut eg, var_typed);
+    let var_typed_id = add_expr_typed(&mut eg, var_typed);
 
     // The annotated type for var should be overwritten with hole at this point.
     // Since all vars are represented with the same singleton var eclass, we
     // can't maintain the variables' types with an analysis and should hope that
     // the mim compiler can type-infer these var holes.
     assert_eq!(
-        type_of(&eg, var_annotated_id),
+        type_of(&eg, var_typed_id),
         type_("(hole (type (lit 0 Univ)))")
     );
 

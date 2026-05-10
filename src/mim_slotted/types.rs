@@ -359,22 +359,62 @@ fn make_extract_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     enode: &MimSlotted,
 ) -> AnalysisData {
-    let (tuple, index) = if let MimSlotted::Extract(tuple, index) = enode {
+    let (tuple, _index) = if let MimSlotted::Extract(tuple, index) = enode {
         (tuple, index)
     } else {
         panic!("Expected an extract node")
     };
-    AnalysisData { type_: hole() }
+    let tuple_id = eg.find_applied_id(tuple);
+    let enodes = eg.enodes_applied(&tuple_id);
+    let tuple_node = enodes.first().expect("Expected extract tuple");
+
+    let mut extract_type = hole();
+
+    // We can easily infer the type of an extract from a pack literal but for
+    // any other extracts we can't reasonably do so, so we just return a hole.
+    // It would be possible to infer the type for more complex extracts as well
+    // but I hope it will not be needed for now.
+    if let MimSlotted::Pack(..) = tuple_node {
+        let pack_type = eg.analysis_data(tuple.id).type_.clone();
+        extract_type = if let TypeExpr {
+            node: MimSlotted::Arr(..),
+            children: arr_childs,
+        } = pack_type
+        {
+            arr_childs.get(1).expect("Expected array body").clone()
+        } else {
+            hole()
+        }
+    }
+
+    AnalysisData {
+        type_: extract_type,
+    }
 }
 
 fn make_insert_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     enode: &MimSlotted,
 ) -> AnalysisData {
-    let (tuple, index) = if let MimSlotted::Insert(tuple, index, value) = enode {
-        (tuple, index)
+    let (tuple, _index, _value) = if let MimSlotted::Insert(tuple, index, value) = enode {
+        (tuple, index, value)
     } else {
         panic!("Expected an insert node")
     };
-    AnalysisData { type_: hole() }
+    let tuple_id = eg.find_applied_id(tuple);
+    let enodes = eg.enodes_applied(&tuple_id);
+    let tuple_node = enodes.first().expect("Expected extract tuple");
+
+    let mut insert_type = hole();
+
+    // We can easily infer the type of an insert into a pack literal but for
+    // any other inserts we can't reasonably do so, so we just return a hole.
+    // It would be possible to infer the type for more complex inserts as well
+    // but I hope it will not be needed for now.
+    if let MimSlotted::Pack(..) = tuple_node {
+        let pack_type = eg.analysis_data(tuple.id).type_.clone();
+        insert_type = pack_type;
+    }
+
+    AnalysisData { type_: insert_type }
 }
