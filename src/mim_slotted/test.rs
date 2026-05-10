@@ -184,7 +184,7 @@ fn extract_type_info() {
         .type_
         .clone();
 
-    assert_eq!(lam_type, Some(RecExpr::parse("(cn (cn I8))").unwrap()));
+    assert_eq!(lam_type, RecExpr::parse("(cn (cn I8))").unwrap());
 }
 
 #[test]
@@ -192,7 +192,7 @@ fn make_eta_expansion_hole() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
-    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+    let type_ = |s: &str| RecExpr::<MimSlotted>::parse(s).unwrap();
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
@@ -217,7 +217,7 @@ fn make_types_var_lit() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
-    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+    let type_ = |s: &str| RecExpr::<MimSlotted>::parse(s).unwrap();
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
@@ -251,7 +251,7 @@ fn make_types_tuple_pack() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
-    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+    let type_ = |s: &str| RecExpr::<MimSlotted>::parse(s).unwrap();
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
@@ -282,7 +282,7 @@ fn make_types_extract_insert() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
-    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+    let type_ = |s: &str| RecExpr::<MimSlotted>::parse(s).unwrap();
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
@@ -307,7 +307,7 @@ fn make_var_type_hole() {
     let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
         eg.analysis_data(id.id).type_.clone()
     };
-    let type_ = |s: &str| Some(RecExpr::<MimSlotted>::parse(s).unwrap());
+    let type_ = |s: &str| RecExpr::<MimSlotted>::parse(s).unwrap();
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 

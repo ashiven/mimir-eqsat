@@ -5,7 +5,7 @@ use slotted_egraphs::*;
 #[derive(Default, Clone, Debug, PartialEq)]
 pub struct MimSlottedAnalysis;
 
-#[derive(Clone, Eq, PartialEq, Default)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct AnalysisData {
     pub type_: TypeData,
 }
