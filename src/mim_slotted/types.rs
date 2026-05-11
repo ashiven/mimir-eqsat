@@ -375,7 +375,23 @@ fn get_literal(lit_expr: &RecExpr<MimSlotted>) -> u64 {
     }
 }
 
-fn cons_elem_at(cons_expr: &RecExpr<MimSlotted>, index: u64) -> RecExpr<MimSlotted> {}
+fn cons_elem_at(cons_expr: &RecExpr<MimSlotted>, index: u64) -> RecExpr<MimSlotted> {
+    let mut i = 0;
+    let mut curr_cons = cons_expr;
+    while let RecExpr {
+        node: MimSlotted::Cons(..),
+        children,
+    } = curr_cons
+    {
+        let curr_elem = children.first().expect("Expected cons elem");
+        if i == index {
+            return curr_elem.clone();
+        }
+        curr_cons = children.get(1).expect("Expected next cons");
+        i += 1;
+    }
+    panic!("Cons index out of bounds");
+}
 
 fn make_extract_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
@@ -419,7 +435,6 @@ fn make_extract_type(
     }
 }
 
-// TODO: work on types not values
 fn make_insert_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     enode: &MimSlotted,
@@ -429,20 +444,36 @@ fn make_insert_type(
     } else {
         panic!("Expected an insert node")
     };
-    let tuple_id = eg.find_applied_id(tuple);
-    let enodes = eg.enodes_applied(&tuple_id);
-    let tuple_node = enodes.first().expect("Expected extract tuple");
 
-    let mut insert_type = hole();
+    let tuple_type = eg.analysis_data(tuple.id).type_.clone();
+    let index_id = eg.find_applied_id(index);
+    let index = eg.get_syn_expr(&index_id);
 
-    // We can easily infer the type of an insert into a pack literal but for
-    // any other inserts we can't reasonably do so, so we just return a hole.
-    // It would be possible to infer the type for more complex inserts as well
-    // but I hope it will not be needed for now.
-    if let MimSlotted::Pack(..) = tuple_node {
-        let pack_type = eg.analysis_data(tuple.id).type_.clone();
-        insert_type = pack_type;
+    let mut extract_type = hole();
+
+    // Extract from pack
+    if let TypeExpr {
+        node: MimSlotted::Arr(..),
+        children: arr_childs,
+    } = tuple_type
+    {
+        extract_type = arr_childs.get(1).expect("Expected array body").clone()
+    // Extract from tuple with literal index
+    } else if let TypeExpr {
+        node: MimSlotted::Sigma(..),
+        children: sigma_childs,
+    } = tuple_type
+        && let RecExpr {
+            node: MimSlotted::Lit(..),
+            ..
+        } = index
+    {
+        let sigma_elem_cons = sigma_childs.first().expect("Expected sigma elem cons");
+        let index_literal = get_literal(&index);
+        extract_type = cons_elem_at(sigma_elem_cons, index_literal);
     }
 
-    AnalysisData { type_: insert_type }
+    AnalysisData {
+        type_: extract_type,
+    }
 }

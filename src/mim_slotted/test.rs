@@ -296,14 +296,12 @@ fn make_types_extract_insert() {
         type_("(arr (top Nat) (Bool))")
     );
 
-    let extract_tuple = "(extract (tuple (lit 1 Nat)) (lit 0 (idx 1)))";
+    let extract_tuple =
+        "(extract (tuple (cons (lit 1 Nat) (cons (lit 3 (idx i32)) nil))) (lit tt Bool))";
     let extract_tuple: RecExpr<MimSlotted> = RecExpr::parse(extract_tuple).unwrap();
     let extract_tuple_id = eg.add_expr(extract_tuple);
 
-    assert_eq!(
-        type_of(&eg, extract_tuple_id),
-        type_("(hole (type (lit 0 Univ)))")
-    );
+    assert_eq!(type_of(&eg, extract_tuple_id), type_("(idx i32)"));
 
     let extract_pack = "(extract (pack (top Nat) (lit ff Bool)) (lit 0 (idx 1)))";
     let extract_pack: RecExpr<MimSlotted> = RecExpr::parse(extract_pack).unwrap();
