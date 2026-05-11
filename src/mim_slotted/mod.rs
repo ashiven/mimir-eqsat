@@ -204,22 +204,28 @@ fn convert_rules(
 
         // (rule <name> <meta_var> <lhs> <rhs> <guard>)
         if let MimSlotted::Rule(..) = parsed.node {
-            // TODO: Fix (needs egraph for type-lookup) - may be better to just lookup metavars on
-            // the RecExpr instead of its ffi version
-            // let flattened = parsed.to_ffi();
-
             let mut rule_name = "";
             if let MimSlotted::Symbol(s) = parsed.children[0].node {
                 rule_name = s.into();
             }
 
             let mut meta_vars: Vec<String> = Vec::new();
-            // for node in &flattened.nodes {
-            //     if node.kind == MimKind::MetaVar {
-            //         let name = &flattened.nodes[node.children[0] as usize];
-            //         meta_vars.push(name.symbol.clone());
-            //     }
-            // }
+            fn lookup(rec_expr: &RecExpr<MimSlotted>, meta_vars: &mut Vec<String>) {
+                if let RecExpr {
+                    node: MimSlotted::MetaVar(..),
+                    children,
+                } = rec_expr
+                {
+                    let name_expr = children.first().expect("Expected meta var name");
+                    if let MimSlotted::Symbol(s) = name_expr.node {
+                        meta_vars.push(s.to_string());
+                    } else {
+                        panic!("Expected meta var name to be a symbol");
+                    }
+                }
+                rec_expr.children.iter().for_each(|c| lookup(c, meta_vars));
+            }
+            lookup(&parsed, &mut meta_vars);
 
             let lhs_rexpr = &parsed.children[2];
             let rhs_rexpr = &parsed.children[3];
