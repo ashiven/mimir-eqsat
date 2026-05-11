@@ -287,6 +287,16 @@ fn make_types_extract_insert() {
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
+    let insert_tuple =
+        "(insert (tuple (cons (lit 1 Nat) (cons (lit 2 Nat) nil))) (lit tt Bool) (lit ff Bool))";
+    let insert_tuple: RecExpr<MimSlotted> = RecExpr::parse(insert_tuple).unwrap();
+    let insert_tuple_id = eg.add_expr(insert_tuple);
+
+    assert_eq!(
+        type_of(&eg, insert_tuple_id),
+        type_("(sigma (cons Nat (cons Bool nil)))")
+    );
+
     let insert_pack = "(insert (pack (top Nat) (lit ff Bool)) (lit tt Bool) (lit ff Bool))";
     let insert_pack: RecExpr<MimSlotted> = RecExpr::parse(insert_pack).unwrap();
     let insert_pack_id = eg.add_expr(insert_pack);

@@ -435,30 +435,55 @@ fn make_extract_type(
     }
 }
 
+fn cons_insert_at(
+    cons_expr: &RecExpr<MimSlotted>,
+    value: &RecExpr<MimSlotted>,
+    index: u64,
+) -> RecExpr<MimSlotted> {
+    let mut i = 0;
+    let mut curr_cons = cons_expr.clone();
+    let mut cursor = &mut curr_cons;
+
+    while let RecExpr {
+        node: MimSlotted::Cons(..),
+        children,
+    } = cursor
+    {
+        if i == index {
+            children[0] = value.clone();
+            return curr_cons;
+        }
+        cursor = &mut children[1];
+        i += 1;
+    }
+    panic!("Cons index out of bounds");
+}
+
 fn make_insert_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     enode: &MimSlotted,
 ) -> AnalysisData {
-    let (tuple, _index, _value) = if let MimSlotted::Insert(tuple, index, value) = enode {
+    let (tuple, index, value) = if let MimSlotted::Insert(tuple, index, value) = enode {
         (tuple, index, value)
     } else {
         panic!("Expected an insert node")
     };
 
     let tuple_type = eg.analysis_data(tuple.id).type_.clone();
+    let value_type = eg.analysis_data(value.id).type_.clone();
     let index_id = eg.find_applied_id(index);
     let index = eg.get_syn_expr(&index_id);
 
-    let mut extract_type = hole();
+    let mut insert_type = hole();
 
-    // Extract from pack
+    // Insert into pack
     if let TypeExpr {
         node: MimSlotted::Arr(..),
-        children: arr_childs,
+        ..
     } = tuple_type
     {
-        extract_type = arr_childs.get(1).expect("Expected array body").clone()
-    // Extract from tuple with literal index
+        insert_type = tuple_type
+    // Insert into tuple with literal index
     } else if let TypeExpr {
         node: MimSlotted::Sigma(..),
         children: sigma_childs,
@@ -470,10 +495,12 @@ fn make_insert_type(
     {
         let sigma_elem_cons = sigma_childs.first().expect("Expected sigma elem cons");
         let index_literal = get_literal(&index);
-        extract_type = cons_elem_at(sigma_elem_cons, index_literal);
+        let inserted_cons = cons_insert_at(sigma_elem_cons, &value_type, index_literal);
+        insert_type = TypeExpr {
+            node: MimSlotted::Sigma(AppliedId::null()),
+            children: vec![inserted_cons],
+        };
     }
 
-    AnalysisData {
-        type_: extract_type,
-    }
+    AnalysisData { type_: insert_type }
 }
