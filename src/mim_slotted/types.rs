@@ -99,19 +99,19 @@ pub(crate) fn hole_amount(type_expr: &TypeExpr) -> usize {
 // as well and infers it later on. (not sure if we need this though)
 //
 // (hole (type (lit 0 Univ)))  --  Hole(*)
-pub(crate) fn hole() -> RecExpr<MimSlotted> {
-    RecExpr {
+pub(crate) fn hole() -> TypeExpr {
+    TypeExpr {
         node: MimSlotted::Hole(AppliedId::null()),
-        children: vec![RecExpr {
+        children: vec![TypeExpr {
             node: MimSlotted::Type(AppliedId::null()),
-            children: vec![RecExpr {
+            children: vec![TypeExpr {
                 node: MimSlotted::Lit(AppliedId::null(), AppliedId::null()),
                 children: vec![
-                    RecExpr {
+                    TypeExpr {
                         node: MimSlotted::Num(0),
                         children: vec![],
                     },
-                    RecExpr {
+                    TypeExpr {
                         node: MimSlotted::Symbol("Univ".into()),
                         children: vec![],
                     },
@@ -224,7 +224,7 @@ fn make_lam_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
     let body_type = eg.analysis_data(body_id.id).type_.clone();
 
     AnalysisData {
-        type_: RecExpr {
+        type_: TypeExpr {
             node: MimSlotted::Pi(AppliedId::null(), AppliedId::null()),
             children: vec![hole(), body_type],
         },
@@ -240,7 +240,7 @@ fn make_app_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
 
     let callee_type = eg.analysis_data(callee.id).type_.clone();
 
-    if let RecExpr {
+    if let TypeExpr {
         node: MimSlotted::Pi(..),
         children: pi_childs,
     } = callee_type
@@ -290,7 +290,7 @@ fn make_pack_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotte
     let body_type = eg.analysis_data(body.id).type_.clone();
 
     AnalysisData {
-        type_: RecExpr {
+        type_: TypeExpr {
             node: MimSlotted::Arr(AppliedId::null(), AppliedId::null()),
             children: vec![arity, body_type],
         },
@@ -327,27 +327,27 @@ fn make_tuple_type(
         curr_cons = next_cons;
     }
 
-    let mut elem_type_cons = RecExpr {
+    let mut elem_type_cons = TypeExpr {
         node: MimSlotted::Nil(),
         children: vec![],
     };
 
     if elem_types.is_empty() {
         AnalysisData {
-            type_: RecExpr {
+            type_: TypeExpr {
                 node: MimSlotted::Sigma(AppliedId::null()),
                 children: vec![elem_type_cons],
             },
         }
     } else {
         while let Some(elem_type) = elem_types.pop() {
-            elem_type_cons = RecExpr {
+            elem_type_cons = TypeExpr {
                 node: MimSlotted::Cons(AppliedId::null(), AppliedId::null()),
                 children: vec![elem_type, elem_type_cons],
             }
         }
         AnalysisData {
-            type_: RecExpr {
+            type_: TypeExpr {
                 node: MimSlotted::Sigma(AppliedId::null()),
                 children: vec![elem_type_cons],
             },
@@ -355,36 +355,63 @@ fn make_tuple_type(
     }
 }
 
+fn get_literal(lit_expr: &RecExpr<MimSlotted>) -> u64 {
+    let lit_val = lit_expr.children.first().expect("Expected literal value");
+
+    if let MimSlotted::Symbol(s) = lit_val.node {
+        match s.as_str() {
+            "ff" => 0,
+            "tt" => 1,
+            "i1" => 2,
+            "i8" => 0x100,
+            "i16" => 0x10000,
+            "i32" => 0x100000000,
+            _ => panic!("Unknown literal alias"),
+        }
+    } else if let MimSlotted::Num(n) = lit_val.node {
+        n
+    } else {
+        panic!("Expected literal value to be a symbol or a number");
+    }
+}
+
+fn cons_elem_at(cons_expr: &RecExpr<MimSlotted>, index: u64) -> RecExpr<MimSlotted> {}
+
 fn make_extract_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     enode: &MimSlotted,
 ) -> AnalysisData {
-    let (tuple, _index) = if let MimSlotted::Extract(tuple, index) = enode {
+    let (tuple, index) = if let MimSlotted::Extract(tuple, index) = enode {
         (tuple, index)
     } else {
         panic!("Expected an extract node")
     };
-    let tuple_id = eg.find_applied_id(tuple);
-    let enodes = eg.enodes_applied(&tuple_id);
-    let tuple_node = enodes.first().expect("Expected extract tuple");
+    let tuple_type = eg.analysis_data(tuple.id).type_.clone();
+    let index_id = eg.find_applied_id(index);
+    let index = eg.get_syn_expr(&index_id);
 
     let mut extract_type = hole();
 
-    // We can easily infer the type of an extract from a pack literal but for
-    // any other extracts we can't reasonably do so, so we just return a hole.
-    // It would be possible to infer the type for more complex extracts as well
-    // but I hope it will not be needed for now.
-    if let MimSlotted::Pack(..) = tuple_node {
-        let pack_type = eg.analysis_data(tuple.id).type_.clone();
-        extract_type = if let TypeExpr {
-            node: MimSlotted::Arr(..),
-            children: arr_childs,
-        } = pack_type
-        {
-            arr_childs.get(1).expect("Expected array body").clone()
-        } else {
-            hole()
-        }
+    // Extract from pack
+    if let TypeExpr {
+        node: MimSlotted::Arr(..),
+        children: arr_childs,
+    } = tuple_type
+    {
+        extract_type = arr_childs.get(1).expect("Expected array body").clone()
+    // Extract from tuple with literal index
+    } else if let TypeExpr {
+        node: MimSlotted::Sigma(..),
+        children: sigma_childs,
+    } = tuple_type
+        && let RecExpr {
+            node: MimSlotted::Lit(..),
+            ..
+        } = index
+    {
+        let sigma_elem_cons = sigma_childs.first().expect("Expected sigma elem cons");
+        let index_literal = get_literal(&index);
+        extract_type = cons_elem_at(sigma_elem_cons, index_literal);
     }
 
     AnalysisData {
@@ -392,6 +419,7 @@ fn make_extract_type(
     }
 }
 
+// TODO: work on types not values
 fn make_insert_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     enode: &MimSlotted,

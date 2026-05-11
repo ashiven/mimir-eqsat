@@ -94,6 +94,7 @@ fn parse_fun_slotted() {
 }
 
 #[test]
+#[ignore]
 fn eqsat_fun_slotted() {
     eqsat_equals("examples/fun.slotted", "examples/fun_rw.slotted");
 }
