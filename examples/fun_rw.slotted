@@ -1,99 +1,16 @@
 (root
   extern
   main
-  (@
-    (cn
-      (sigma
-        (cons
-          (sigma
-            (cons
-              (app %mem.M (lit 0 Nat))
-              (cons
-                I32
-                (cons
-                  (app
-                    %mem.Ptr
-                    (tuple
-                      (cons
-                        (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
-                        (cons (lit 0 Nat) nil))))
-                  nil))))
-          (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil))))
-    (lam
-      $f31
-      (scope
-        (@ Bool (lit ff Bool))
-        (let
-          $f30
-          (scope
-            (@
-              (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil))))
-              (extract
-                (@
-                  (sigma
-                    (cons
-                      (sigma
-                        (cons
-                          (app %mem.M (lit 0 Nat))
-                          (cons
-                            I32
-                            (cons
-                              (app
-                                %mem.Ptr
-                                (tuple
-                                  (cons
-                                    (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
-                                    (cons (lit 0 Nat) nil))))
-                              nil))))
-                      (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
-                  (var $f31))
-                (@ Bool (lit tt Bool))))
-            (let
-              $f29
-              (scope
-                (@
-                  (app %mem.M (lit 0 Nat))
-                  (extract
-                    (@
-                      (sigma
-                        (cons
-                          (app %mem.M (lit 0 Nat))
-                          (cons
-                            I32
-                            (cons
-                              (app
-                                %mem.Ptr
-                                (tuple
-                                  (cons
-                                    (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
-                                    (cons (lit 0 Nat) nil))))
-                              nil))))
-                      (extract
-                        (@
-                          (sigma
-                            (cons
-                              (sigma
-                                (cons
-                                  (app %mem.M (lit 0 Nat))
-                                  (cons
-                                    I32
-                                    (cons
-                                      (app
-                                        %mem.Ptr
-                                        (tuple
-                                          (cons
-                                            (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil))))
-                                            (cons (lit 0 Nat) nil))))
-                                      nil))))
-                              (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
-                          (var $f31))
-                        (@ Bool (lit ff Bool))))
-                    (@ (idx (lit 3 Nat)) (lit 0 (idx (lit 3 Nat))))))
-                (@
-                  (bot (type (lit 0 Univ)))
-                  (app
-                    (@ (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) (var $f30))
-                    (@
-                      (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
-                      (tuple
-                        (cons (@ (app %mem.M (lit 0 Nat)) (var $f29)) (cons (@ I32 (lit 48 I32)) nil))))))))))))))
+  (lam
+    $f22
+    (scope
+      (lit ff Bool)
+      (let
+        $f21
+        (scope
+          (extract (var $f22) (lit tt Bool))
+          (let
+            $f20
+            (scope
+              (extract (extract (var $f22) (lit ff Bool)) (lit 0 (idx (lit 3 Nat))))
+              (app (var $f21) (tuple (cons (var $f20) (cons (lit 48 I32) nil)))))))))))

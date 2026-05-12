@@ -2,22 +2,20 @@ use regex::Regex;
 use std::fs;
 
 use crate::ffi::bridge::{CostFn, RuleSet};
-use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::convert_rules;
 use crate::mim_slotted::get_rules;
 use crate::mim_slotted::types::{add_expr_typed, extract_type_annotations};
+use crate::mim_slotted::{MimSlotted, split_sexprs};
 use crate::{eqsat_slotted, pretty_ffi};
 use slotted_egraphs::*;
 
 fn parse_sexprs(sexpr: &str) -> Vec<RecExpr<MimSlotted>> {
-    let normalized = sexpr.replace("\r\n", "\n");
-    let mut sexprs: Vec<&str> = normalized.split("\n\n").collect();
-    sexprs.retain(|s| !s.trim().is_empty());
+    let sexprs = split_sexprs(sexpr);
 
     let mut res = vec![];
     for sexpr in sexprs {
-        res.push(RecExpr::parse(sexpr).expect("Failed to parse RecExpr"));
+        res.push(RecExpr::parse(&sexpr).expect("Failed to parse RecExpr"));
     }
     res
 }
@@ -94,7 +92,6 @@ fn parse_fun_slotted() {
 }
 
 #[test]
-#[ignore]
 fn eqsat_fun_slotted() {
     eqsat_equals("examples/fun.slotted", "examples/fun_rw.slotted");
 }
