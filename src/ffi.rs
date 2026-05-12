@@ -2,6 +2,7 @@ use crate::mim_egg::Mim;
 use crate::mim_egg::analysis::MimAnalysis;
 use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
+use crate::mim_slotted::types::TypeExpr;
 use crate::{eqsat_egg, eqsat_slotted, node_ffi_str, pretty_egg, pretty_slotted};
 use bridge::{MimKind, NodeFFI, RecExprFFI};
 use egg::{EGraph, Id, RecExpr};
@@ -274,13 +275,14 @@ impl FFI for RecExprSlotted<MimSlotted> {
 impl FFIInner for MimSlotted {
     type EG = EGraphSlotted<MimSlotted, MimSlottedAnalysis>;
 
-    fn to_ffi_with_childs(&self, children: &[usize], _egraph: &Self::EG) -> NodeFFI {
+    fn to_ffi_with_childs(&self, children: &[usize], egraph: &Self::EG) -> NodeFFI {
         fn new_node_ffi(
             kind: MimKind,
             children: &[usize],
             num: Option<u64>,
             symbol: Option<String>,
             slot: Option<String>,
+            type_: Option<RecExprFFI>,
         ) -> NodeFFI {
             let converted_ids = children.iter().map(|id| *id as u32).collect();
 
@@ -290,10 +292,25 @@ impl FFIInner for MimSlotted {
                 num: num.unwrap_or_default(),
                 symbol: symbol.unwrap_or_default(),
                 slot: slot.unwrap_or_default(),
-                // TODO: egraph lookup to get type info of the node
-                type_: RecExprFFI { nodes: vec![] },
+                type_: type_.unwrap_or(RecExprFFI { nodes: vec![] }),
             }
         }
+
+        let eclass_id = egraph.lookup(self);
+        let type_ = if let Some(eclass_id) = eclass_id {
+            let type_ = egraph.analysis_data(eclass_id.id).type_.clone();
+            if let TypeExpr {
+                node: MimSlotted::Nil(),
+                ..
+            } = type_
+            {
+                None
+            } else {
+                Some(type_.to_ffi(egraph))
+            }
+        } else {
+            None
+        };
 
         match &self {
             MimSlotted::Let(bind) => new_node_ffi(
@@ -302,6 +319,7 @@ impl FFIInner for MimSlotted {
                 None,
                 None,
                 Some(format!("{}", bind.slot)),
+                type_,
             ),
             MimSlotted::Lam(bind) => new_node_ffi(
                 MimKind::Lam,
@@ -309,48 +327,77 @@ impl FFIInner for MimSlotted {
                 None,
                 None,
                 Some(format!("{}", bind.slot)),
+                type_,
             ),
-            MimSlotted::App(..) => new_node_ffi(MimKind::App, children, None, None, None),
+            MimSlotted::App(..) => new_node_ffi(MimKind::App, children, None, None, None, type_),
             MimSlotted::Var(slot) => new_node_ffi(
                 MimKind::Var,
                 children,
                 None,
                 None,
                 Some(format!("{}", slot)),
+                type_,
             ),
-            MimSlotted::Lit(..) => new_node_ffi(MimKind::Lit, children, None, None, None),
-            MimSlotted::Pack(..) => new_node_ffi(MimKind::Pack, children, None, None, None),
-            MimSlotted::Tuple(..) => new_node_ffi(MimKind::Tuple, children, None, None, None),
-            MimSlotted::Extract(..) => new_node_ffi(MimKind::Extract, children, None, None, None),
-            MimSlotted::Insert(..) => new_node_ffi(MimKind::Insert, children, None, None, None),
-            MimSlotted::Rule(..) => new_node_ffi(MimKind::Rule, children, None, None, None),
-            MimSlotted::Inj(..) => new_node_ffi(MimKind::Inj, children, None, None, None),
-            MimSlotted::Merge(..) => new_node_ffi(MimKind::Merge, children, None, None, None),
-            MimSlotted::Axm(..) => new_node_ffi(MimKind::Axm, children, None, None, None),
-            MimSlotted::Match(..) => new_node_ffi(MimKind::Match, children, None, None, None),
-            MimSlotted::Proxy(..) => new_node_ffi(MimKind::Proxy, children, None, None, None),
-            MimSlotted::Join(..) => new_node_ffi(MimKind::Join, children, None, None, None),
-            MimSlotted::Meet(..) => new_node_ffi(MimKind::Meet, children, None, None, None),
-            MimSlotted::Bot(..) => new_node_ffi(MimKind::Bot, children, None, None, None),
-            MimSlotted::Top(..) => new_node_ffi(MimKind::Top, children, None, None, None),
-            MimSlotted::Arr(..) => new_node_ffi(MimKind::Arr, children, None, None, None),
-            MimSlotted::Sigma(..) => new_node_ffi(MimKind::Sigma, children, None, None, None),
-            MimSlotted::Cn(..) => new_node_ffi(MimKind::Cn, children, None, None, None),
-            MimSlotted::Pi(..) => new_node_ffi(MimKind::Pi, children, None, None, None),
-            MimSlotted::Idx(..) => new_node_ffi(MimKind::Idx, children, None, None, None),
-            MimSlotted::Hole(..) => new_node_ffi(MimKind::Hole, children, None, None, None),
-            MimSlotted::Type(..) => new_node_ffi(MimKind::Type, children, None, None, None),
-            MimSlotted::Reform(..) => new_node_ffi(MimKind::Type, children, None, None, None),
-            MimSlotted::TypeWrap(..) => new_node_ffi(MimKind::TypeWrap, children, None, None, None),
-            MimSlotted::MetaVar(..) => new_node_ffi(MimKind::MetaVar, children, None, None, None),
-            MimSlotted::Root(..) => new_node_ffi(MimKind::Root, children, None, None, None),
-            MimSlotted::Scope(..) => new_node_ffi(MimKind::Scope, children, None, None, None),
-            MimSlotted::Cons(..) => new_node_ffi(MimKind::Cons, children, None, None, None),
-            MimSlotted::Nil() => new_node_ffi(MimKind::Nil, children, None, None, None),
-            MimSlotted::Num(n) => new_node_ffi(MimKind::Num, children, Some(*n), None, None),
-            MimSlotted::Symbol(s) => {
-                new_node_ffi(MimKind::Symbol, children, None, Some(s.to_string()), None)
+            MimSlotted::Lit(..) => new_node_ffi(MimKind::Lit, children, None, None, None, type_),
+            MimSlotted::Pack(..) => new_node_ffi(MimKind::Pack, children, None, None, None, type_),
+            MimSlotted::Tuple(..) => {
+                new_node_ffi(MimKind::Tuple, children, None, None, None, type_)
             }
+            MimSlotted::Extract(..) => {
+                new_node_ffi(MimKind::Extract, children, None, None, None, type_)
+            }
+            MimSlotted::Insert(..) => {
+                new_node_ffi(MimKind::Insert, children, None, None, None, type_)
+            }
+            MimSlotted::Rule(..) => new_node_ffi(MimKind::Rule, children, None, None, None, type_),
+            MimSlotted::Inj(..) => new_node_ffi(MimKind::Inj, children, None, None, None, type_),
+            MimSlotted::Merge(..) => {
+                new_node_ffi(MimKind::Merge, children, None, None, None, type_)
+            }
+            MimSlotted::Axm(..) => new_node_ffi(MimKind::Axm, children, None, None, None, type_),
+            MimSlotted::Match(..) => {
+                new_node_ffi(MimKind::Match, children, None, None, None, type_)
+            }
+            MimSlotted::Proxy(..) => {
+                new_node_ffi(MimKind::Proxy, children, None, None, None, type_)
+            }
+            MimSlotted::Join(..) => new_node_ffi(MimKind::Join, children, None, None, None, type_),
+            MimSlotted::Meet(..) => new_node_ffi(MimKind::Meet, children, None, None, None, type_),
+            MimSlotted::Bot(..) => new_node_ffi(MimKind::Bot, children, None, None, None, type_),
+            MimSlotted::Top(..) => new_node_ffi(MimKind::Top, children, None, None, None, type_),
+            MimSlotted::Arr(..) => new_node_ffi(MimKind::Arr, children, None, None, None, type_),
+            MimSlotted::Sigma(..) => {
+                new_node_ffi(MimKind::Sigma, children, None, None, None, type_)
+            }
+            MimSlotted::Cn(..) => new_node_ffi(MimKind::Cn, children, None, None, None, type_),
+            MimSlotted::Pi(..) => new_node_ffi(MimKind::Pi, children, None, None, None, type_),
+            MimSlotted::Idx(..) => new_node_ffi(MimKind::Idx, children, None, None, None, type_),
+            MimSlotted::Hole(..) => new_node_ffi(MimKind::Hole, children, None, None, None, type_),
+            MimSlotted::Type(..) => new_node_ffi(MimKind::Type, children, None, None, None, type_),
+            MimSlotted::Reform(..) => {
+                new_node_ffi(MimKind::Type, children, None, None, None, type_)
+            }
+            MimSlotted::TypeWrap(..) => {
+                new_node_ffi(MimKind::TypeWrap, children, None, None, None, type_)
+            }
+            MimSlotted::MetaVar(..) => {
+                new_node_ffi(MimKind::MetaVar, children, None, None, None, type_)
+            }
+            MimSlotted::Root(..) => new_node_ffi(MimKind::Root, children, None, None, None, type_),
+            MimSlotted::Scope(..) => {
+                new_node_ffi(MimKind::Scope, children, None, None, None, type_)
+            }
+            MimSlotted::Cons(..) => new_node_ffi(MimKind::Cons, children, None, None, None, type_),
+            MimSlotted::Nil() => new_node_ffi(MimKind::Nil, children, None, None, None, type_),
+            MimSlotted::Num(n) => new_node_ffi(MimKind::Num, children, Some(*n), None, None, type_),
+            MimSlotted::Symbol(s) => new_node_ffi(
+                MimKind::Symbol,
+                children,
+                None,
+                Some(s.to_string()),
+                None,
+                type_,
+            ),
         }
     }
 }

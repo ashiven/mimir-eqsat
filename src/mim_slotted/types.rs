@@ -6,7 +6,7 @@ use slotted_egraphs::*;
 /* Conversion from type-annotated RecExpr to TypedRecExpr  */
 /***********************************************************/
 
-type TypeExpr = RecExpr<MimSlotted>;
+pub type TypeExpr = RecExpr<MimSlotted>;
 
 #[derive(Debug, Clone)]
 pub struct TypedRecExpr {
@@ -33,15 +33,26 @@ pub(crate) fn extract_type_annotations(rec_expr: &RecExpr<MimSlotted>) -> TypedR
         return stripped;
     }
 
-    TypedRecExpr {
+    let mut res = TypedRecExpr {
         node: rec_expr.node.clone(),
         children: rec_expr
             .children
             .iter()
             .map(extract_type_annotations)
             .collect(),
-        type_: hole(),
+        type_: nil(),
+    };
+
+    // Since it was too difficult to correctly type-annotate let
+    // nodes in the sexpr backend, we just infer the type of the let
+    // node via the type annotation of the expression it binds into
+    if let MimSlotted::Let(..) = rec_expr.node {
+        let let_scope = &res.children[0];
+        let let_expr = &let_scope.children[1];
+        res.type_ = let_expr.type_.clone();
     }
+
+    res
 }
 
 pub(crate) fn add_expr_typed(
@@ -121,6 +132,13 @@ pub(crate) fn hole() -> TypeExpr {
     }
 }
 
+pub(crate) fn nil() -> TypeExpr {
+    TypeExpr {
+        node: MimSlotted::Nil(),
+        children: vec![],
+    }
+}
+
 pub(crate) fn make_type(
     eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     enode: &MimSlotted,
@@ -148,6 +166,16 @@ pub(crate) fn make_type(
         // TODO:
         // MimSlotted::Inj(..) = make_inj_type(eg, enode),
         // MimSlotted::Merge(..) = make_merge_type(eg, enode),
+
+        // Num terminals and structural nodes should not get a type at all
+        MimSlotted::Num(..) => AnalysisData { type_: nil() },
+        MimSlotted::MetaVar(..) => AnalysisData { type_: nil() },
+        MimSlotted::Scope(..) => AnalysisData { type_: nil() },
+        MimSlotted::Root(..) => AnalysisData { type_: nil() },
+        MimSlotted::Cons(..) => AnalysisData { type_: nil() },
+        MimSlotted::Nil(..) => AnalysisData { type_: nil() },
+        MimSlotted::TypeWrap(..) => AnalysisData { type_: nil() },
+
         _ => AnalysisData { type_: hole() },
     }
 }

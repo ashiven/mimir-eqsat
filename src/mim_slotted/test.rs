@@ -359,6 +359,33 @@ fn make_var_type_hole() {
     assert_eq!(type_of(&eg, var_id), type_("(hole (type (lit 0 Univ)))"));
 }
 
+#[test]
+fn infer_let_type() {
+    let type_of = |eg: &EGraph<MimSlotted, MimSlottedAnalysis>, id: AppliedId| {
+        eg.analysis_data(id.id).type_.clone()
+    };
+    let type_ = |s: &str| RecExpr::<MimSlotted>::parse(s).unwrap();
+
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
+
+    let let_annotated = "(let $foo (scope (@ Bool (lit ff Bool)) (@ Nat (lit 1 Nat))))";
+    let let_annotated: RecExpr<MimSlotted> = RecExpr::parse(let_annotated).unwrap();
+    let let_typed = extract_type_annotations(&let_annotated);
+    let let_typed_id = add_expr_typed(&mut eg, let_typed);
+
+    assert_eq!(type_of(&eg, let_typed_id), type_("Nat"));
+
+    let let_var_annotated = "(let $foo (scope (@ Bool (lit ff Bool)) (@ Nat (var $bar))))";
+    let let_var_annotated: RecExpr<MimSlotted> = RecExpr::parse(let_var_annotated).unwrap();
+    let let_var_typed = extract_type_annotations(&let_var_annotated);
+    let let_var_typed_id = add_expr_typed(&mut eg, let_var_typed);
+
+    assert_eq!(
+        type_of(&eg, let_var_typed_id),
+        type_("(hole (type (lit 0 Univ)))")
+    );
+}
+
 // Source: https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/entry.rs
 // Had to copy-paste the code below since it didn't seem to be exposed as part of the library.
 

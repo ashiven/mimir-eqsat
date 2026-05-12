@@ -1,5 +1,5 @@
 use crate::ffi::FFI;
-use crate::ffi::bridge::{CostFn, MimKind, RecExprFFI, RuleSet};
+use crate::ffi::bridge::{CostFn, RecExprFFI, RuleSet};
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
 use crate::mim_slotted::types::{TypedRecExpr, add_expr_typed, extract_type_annotations};
@@ -174,15 +174,18 @@ where
 {
     let mut rewritten_sexprs: Vec<RecExprFFI> = Vec::new();
 
+    let mut roots: Vec<AppliedId> = vec![];
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
     for sexpr in &sexprs {
         let annotated_rec_expr: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
         let typed_rec_expr: TypedRecExpr = extract_type_annotations(&annotated_rec_expr);
-        add_expr_typed(&mut eg, typed_rec_expr);
+        let root_id = add_expr_typed(&mut eg, typed_rec_expr);
+        roots.push(root_id);
     }
 
     let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default();
     runner = runner.with_egraph(eg);
+    runner.roots = roots;
     let _report = runner.run(&rules);
 
     let extractor = Extractor::new(&runner.egraph, cost_fn());
