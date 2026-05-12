@@ -14,6 +14,10 @@ pub mod types;
 #[cfg(test)]
 mod test;
 
+// Parsing rec exprs with type annotations can become very stack intensive
+// so we preemptively increase the stack size to avoid stack overflows.
+const PARSE_STACK_SIZE: usize = 8 * 1024 * 1024;
+
 define_language! {
     pub enum MimSlotted {
         // TERMS
@@ -141,7 +145,7 @@ pub(crate) fn pretty(sexpr: &str, _line_len: usize) -> String {
 
     let mut res = String::new();
     for (i, sexpr) in sexprs.iter().enumerate() {
-        let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        let parsed: RecExpr<MimSlotted> = grow(PARSE_STACK_SIZE, || RecExpr::parse(sexpr).unwrap());
         res.push_str(&parsed.to_string());
         if i < sexprs.len() - 1 {
             res.push_str("\n\n");
@@ -178,9 +182,6 @@ where
     let mut roots: Vec<AppliedId> = vec![];
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
     for sexpr in &sexprs {
-        // Parsing rec exprs with type annotations can become very stack intensive
-        // so we preemptively increase the stack size to avoid stack overflows.
-        const PARSE_STACK_SIZE: usize = 8 * 1024 * 1024;
         let annotated_rec_expr: RecExpr<MimSlotted> =
             grow(PARSE_STACK_SIZE, || RecExpr::parse(sexpr).unwrap());
 
