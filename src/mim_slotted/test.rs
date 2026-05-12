@@ -66,7 +66,6 @@ fn parse_loop_slotted() {
 }
 
 #[test]
-#[ignore]
 fn eqsat_loop_slotted() {
     eqsat_equals("examples/loop.slotted", "examples/loop_rw.slotted");
 }
@@ -79,7 +78,6 @@ fn parse_import_slotted() {
 }
 
 #[test]
-#[ignore]
 fn eqsat_import_slotted() {
     eqsat_equals("examples/import.slotted", "examples/import_rw.slotted");
 }

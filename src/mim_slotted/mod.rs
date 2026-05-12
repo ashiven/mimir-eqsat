@@ -5,6 +5,7 @@ use crate::mim_slotted::rulesets::get_rules;
 use crate::mim_slotted::types::{TypedRecExpr, add_expr_typed, extract_type_annotations};
 use regex::Regex;
 use slotted_egraphs::*;
+use stacker::grow;
 
 pub mod analysis;
 pub mod rulesets;
@@ -177,7 +178,12 @@ where
     let mut roots: Vec<AppliedId> = vec![];
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
     for sexpr in &sexprs {
-        let annotated_rec_expr: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        // Parsing rec exprs with type annotations can become very stack intensive
+        // so we preemptively increase the stack size to avoid stack overflows.
+        const PARSE_STACK_SIZE: usize = 8 * 1024 * 1024;
+        let annotated_rec_expr: RecExpr<MimSlotted> =
+            grow(PARSE_STACK_SIZE, || RecExpr::parse(sexpr).unwrap());
+
         let typed_rec_expr: TypedRecExpr = extract_type_annotations(&annotated_rec_expr);
         let root_id = add_expr_typed(&mut eg, typed_rec_expr);
         roots.push(root_id);
