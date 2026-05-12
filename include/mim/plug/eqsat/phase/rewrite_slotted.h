@@ -13,7 +13,7 @@
 
 namespace mim::plug::eqsat {
 
-const bool DEBUG        = false;
+const bool DEBUG        = true;
 const bool DEBUG_SCOPES = false;
 
 class RewriteSlotted : public Phase, public Rewriter {
@@ -68,17 +68,22 @@ private:
     const Def* init_axm(uint32_t id, NodeFFI node);
     const Def* init_root(uint32_t id, NodeFFI node);
     const Def* init_let(uint32_t id, NodeFFI node);
-    const Def* init_con(uint32_t id, NodeFFI node);
+    const Def* init_lam(uint32_t id, NodeFFI node);
+
+    // NodeFFI can carry a type that is also in the form
+    // of a RecExprFFI. We convert this type with a bottom-up
+    // traversal without maintaining a location.
+    const Def* convert(RecExprFFI type_);
 
     // Performs a bottom-up traverse of each RecExprFFI and
     // creates a Def in the new_world() for every node.
     // At this point, the bodies of the lambdas created
     // in the init phase will be set.
     void convert(rust::Vec<RecExprFFI> rec_exprs);
-    const Def* convert(uint32_t id, bool recurse = false);
+    const Def* convert(uint32_t id, bool recurse = false, bool update_loc = true);
     const Def* convert_root(uint32_t id, NodeFFI node);
     const Def* convert_let(uint32_t id, NodeFFI node);
-    const Def* convert_con(uint32_t id, NodeFFI node);
+    const Def* convert_lam(uint32_t id, NodeFFI node);
     const Def* convert_app(uint32_t id, NodeFFI node);
     const Def* convert_var(uint32_t id, NodeFFI node);
     const Def* convert_lit(uint32_t id, NodeFFI node);
@@ -173,14 +178,14 @@ private:
     const Def* get_axm(std::string name) { return axms_[name]; }
 
     NodeFFI get_node(MimKind expected, uint32_t id) {
-        assert(nodes_[id].kind == expected && "get_node: mismatch between expected and actual node kind");
-        return nodes_[id];
+        assert(nodes()[id].kind == expected && "get_node: mismatch between expected and actual node kind");
+        return nodes()[id];
     }
-    NodeFFI get_node_unsafe(uint32_t id) { return nodes_[id]; }
+    NodeFFI get_node_unsafe(uint32_t id) { return nodes()[id]; }
 
-    std::string get_symbol(uint32_t id) { return nodes_[id].symbol.c_str(); }
-    uint64_t get_num(uint32_t id) { return nodes_[id].num; }
-    std::string get_slot(uint32_t id) { return nodes_[id].slot.c_str(); }
+    std::string get_symbol(uint32_t id) { return nodes()[id].symbol.c_str(); }
+    uint64_t get_num(uint32_t id) { return nodes()[id].num; }
+    std::string get_slot(uint32_t id) { return nodes()[id].slot.c_str(); }
 
     // Returns a flattened vector of node id's for a cons list
     // i.e.: (cons 23 (cons 12 nil)) => [23, 12]
