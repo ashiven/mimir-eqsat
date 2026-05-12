@@ -203,10 +203,18 @@ fn convert_rules(
     rules: &mut Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>,
 ) {
     sexprs.retain(|sexpr| {
-        let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
-
+        // let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        // if let MimSlotted::Rule(..) = parsed.node {
+        //
+        // We initially used the more robust check above, however I realized
+        // that the operation of parsing a rec expr with type annotations can
+        // be very expensive and so it would be better to use the cheap shortcut
+        // below to check for rule sexprs
+        //
         // (rule <name> <meta_var> <lhs> <rhs> <guard>)
-        if let MimSlotted::Rule(..) = parsed.node {
+        if sexpr.starts_with("(rule") {
+            let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+
             let mut rule_name = "";
             if let MimSlotted::Symbol(s) = parsed.children[0].node {
                 rule_name = s.into();
