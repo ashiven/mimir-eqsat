@@ -212,7 +212,7 @@ fn convert_rules(
         // below to check for rule sexprs
         //
         // (rule <name> <meta_var> <lhs> <rhs> <guard>)
-        if sexpr.starts_with("(rule") {
+        if sexpr.trim().starts_with("(rule") {
             let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
 
             let mut rule_name = "";
