@@ -192,7 +192,7 @@ fn make_eta_expansion_hole() {
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
-    let fun_annotated = "(@ (pi Nat Bool) fun)";
+    let fun_annotated = "(@ (pi $var (scope Nat Bool)) fun)";
     let fun_annotated: RecExpr<MimSlotted> = RecExpr::parse(fun_annotated).unwrap();
     let fun_typed = extract_type_annotations(&fun_annotated);
     let fun_typed_id = add_expr_typed(&mut eg, fun_typed);
@@ -201,10 +201,13 @@ fn make_eta_expansion_hole() {
     let eta_exp: RecExpr<MimSlotted> = RecExpr::parse(eta_exp).unwrap();
     let eta_exp_id = eg.add_expr(eta_exp);
 
-    assert_eq!(type_of(&eg, fun_typed_id), type_("(pi Nat Bool)"));
+    assert_eq!(
+        type_of(&eg, fun_typed_id),
+        type_("(pi $var (scope Nat Bool))")
+    );
     assert_eq!(
         type_of(&eg, eta_exp_id),
-        type_("(pi (hole (type (lit 0 Univ))) Bool)")
+        type_("(pi $dummy (scope (hole (type (lit 0 Univ))) Bool))")
     );
 }
 

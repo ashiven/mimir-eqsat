@@ -28,7 +28,7 @@ define_language! {
         Lam(Bind<AppliedId>) = "lam",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
-        // (var <name>)
+        // (var $name)
         Var(Slot) = "var",
         // (lit <value> <type>)
         Lit(AppliedId, AppliedId) = "lit",
@@ -70,8 +70,8 @@ define_language! {
         Sigma(AppliedId) = "sigma",
         // (cn <domain>)
         Cn(AppliedId) = "cn",
-        // (pi <domain> <codomain>)
-        Pi(AppliedId, AppliedId) = "pi",
+        // (pi $var (scope <domain> <codomain>))
+        Pi(Bind<AppliedId>) = "pi",
         // (idx <size>)
         Idx(AppliedId) = "idx",
         // (hole <type>) - does it even make sense to have this?

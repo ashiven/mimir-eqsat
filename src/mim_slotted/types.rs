@@ -253,8 +253,6 @@ fn make_let_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
     AnalysisData { type_: expr_type }
 }
 
-// TODO: Since we are working with continuation passing style I should
-// probably give lambdas a type of Cn(Sigma(Hole(*), Cn(typeof(<body>))))
 fn make_lam_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
     let var_bind = if let MimSlotted::Lam(var_bind) = enode {
         var_bind
@@ -276,8 +274,14 @@ fn make_lam_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
 
     AnalysisData {
         type_: TypeExpr {
-            node: MimSlotted::Pi(AppliedId::null(), AppliedId::null()),
-            children: vec![TypeExpr::hole(), body_type],
+            node: MimSlotted::Pi(Bind {
+                slot: Slot::named("dummy"),
+                elem: AppliedId::null(),
+            }),
+            children: vec![TypeExpr {
+                node: MimSlotted::Scope(AppliedId::null(), AppliedId::null()),
+                children: vec![TypeExpr::hole(), body_type],
+            }],
         },
     }
 }
@@ -296,7 +300,11 @@ fn make_app_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
         children: pi_childs,
     } = callee_type
     {
-        let codom_type = pi_childs.get(1).expect("Failed to get callee codomain");
+        let pi_scope = pi_childs.first().expect("Failed to get pi scope");
+        let codom_type = pi_scope
+            .children
+            .get(1)
+            .expect("Failed to get callee codomain");
         AnalysisData {
             type_: codom_type.clone(),
         }
