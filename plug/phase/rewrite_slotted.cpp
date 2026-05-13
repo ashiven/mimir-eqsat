@@ -169,7 +169,6 @@ const Def* RewriteSlotted::init_let(uint32_t id, NodeFFI node) {
 const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
-    // TODO: Polymorphic lambdas
     auto pi_type = convert(node.type_)->as<Pi>();
     auto new_lam = new_world().mut_lam(pi_type);
 
@@ -192,21 +191,27 @@ const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
 }
 
 const Def* RewriteSlotted::convert(RecExprFFI type_) {
-    auto root_id    = type_.nodes.size() - 1;
-    auto curr_nodes = nodes();
+    auto root_id = type_.nodes.size() - 1;
 
+    // Save current state
     reset_cache();
-    set_nodes(type_.nodes);
+    auto curr_nodes    = nodes();
+    auto curr_location = curr_loc();
+    auto curr_visits   = depth_visits();
+
     // TODO: Since types now also include binders we need a top-down init pass
     // followed by a bottom-up convert pass.
     // - We need binder creation in init for Sigma, Arr, and Pi.
     // - We also temporarily need a scope_tree for this type conversion.
-    // - Concerning what we wrote below, does that even make sense? Do types ever
-    //   contain var uses of vars that were bound outside of the type? I don't think so.
+    set_nodes(type_.nodes);
     auto res = convert(root_id, true);
 
+    // Restore state
     reset_cache();
     set_nodes(curr_nodes);
+    set_curr_loc(curr_location);
+    set_depth_visits(curr_visits);
+
     return res;
 }
 
