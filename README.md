@@ -18,6 +18,17 @@
 **Equality Saturation** is a compiler optimization technique that utilizes [E-Graphs](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) to represent every possible way of equivalently rewriting a program and find the most optimal version of it, thereby solving the [Phase-Ordering Problem](https://www2.imm.dtu.dk/pubdb/edoc/imm5406.pdf).
 This repository contains **Equality Saturation** implementations in [egg](https://github.com/egraphs-good/egg) and [slotted-egraphs](https://github.com/memoryleak47/slotted-egraphs) as a plugin for the [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) compiler intermediate representation [MimIR](https://github.com/mimir/mimir).
 
+## Table of Contents
+
+- [Usage](#usage)
+  - [C++ API](#option-1-c-api)
+  - [Mim](#option-2-mim)
+- [Installation](#installation)
+- [Rulesets](#rulesets)
+- [Provided Methods](#provided-methods)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Usage
 
 You may use this plugin through the **MimIR** C++ API or its textual representation **Mim**.
@@ -340,3 +351,22 @@ rust::String pretty_slotted(std::string sexpr, size_t line_len);
  */
 rust::String pretty_ffi(rust::Vec<RecExprFFI> sexprs, size_t line_len);
 ```
+
+## Contributing
+
+Please feel free to submit a [pull request](https://github.com/ashiven/cs2tracker/pulls) or open an [issue](https://github.com/ashiven/cs2tracker/issues).
+
+1. Fork the repository
+2. Create a new branch: `git checkout -b feature-name`.
+3. Make your changes
+4. Push your branch: `git push origin feature-name`.
+5. Submit a PR
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
+
+---
+
+> GitHub [@ashiven](https://github.com/Ashiven) &nbsp;&middot;&nbsp;
+> Twitter [ashiven\_](https://twitter.com/ashiven_)
