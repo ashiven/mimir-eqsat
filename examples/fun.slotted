@@ -1,5 +1,5 @@
 (root extern main
-    (@ (cn (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil))))
+    (@ (pi $dummy (scope (sigma $dummy (scope (cons (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil))) nil)) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)) nil)) (bot (type (lit 0 Univ)))))
     (lam
         $_25260
         (scope
@@ -8,9 +8,9 @@
             (let
                 $return_25265
                 (scope
-                    (@ (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil))))
+                    (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
                     (extract
-                        (@ (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+                        (@ (sigma $dummy (scope (cons (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil))) nil)) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)) nil))
                         (var $_25260))
                         (@ Bool
                         (lit tt Bool))))
@@ -19,9 +19,9 @@
                 (scope
                     (@ (app %mem.M (lit 0 Nat))
                     (extract
-                        (@ (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil))))
+                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil))) nil))
                         (extract
-                            (@ (sigma (cons (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))
+                            (@ (sigma $dummy (scope (cons (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons I8 (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil))) nil)) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)) nil))
                             (var $_25260))
                             (@ Bool
                             (lit ff Bool))))
@@ -29,9 +29,9 @@
                         (lit 0 (idx (lit 3 Nat))))))
             (@ (bot (type (lit 0 Univ)))
             (app
-                (@ (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil))))
+                (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
                 (var $return_25265))
-                (@ (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
+                (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil))
                 (tuple
                     (cons
                         (@ (app %mem.M (lit 0 Nat))
