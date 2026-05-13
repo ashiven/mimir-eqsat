@@ -80,7 +80,7 @@ private:
     // At this point, the bodies of the lambdas created
     // in the init phase will be set.
     void convert(rust::Vec<RecExprFFI> rec_exprs);
-    const Def* convert(uint32_t id, bool recurse = false, bool update_loc = true);
+    const Def* convert(uint32_t id, bool recurse = false);
     const Def* convert_root(uint32_t id, NodeFFI node);
     const Def* convert_let(uint32_t id, NodeFFI node);
     const Def* convert_lam(uint32_t id, NodeFFI node);
@@ -311,22 +311,20 @@ private:
 
     // The current scope which we mostly use to construct the scope map during init
     Scope* curr_scope_;
+    Scope* get_scope(Loc loc) { return &(*scope_tree_)[loc]; }
 
     // For every scope-location we store a Scope struct that stores a pointer to its
     // parent scope, the name of the var it introduces, and the Def associated with this var.
-    typedef std::unordered_map<Loc, Scope, LocHash> Scopes;
-    Scopes* scopes_;
+    typedef std::unordered_map<Loc, Scope, LocHash> ScopeTree;
+    ScopeTree* scope_tree_;
 
-    Scope* get_scope(Loc loc) { return &(*scopes_)[loc]; }
-
-    void set_scopes(size_t rec_expr_idx) {
-        scopes_     = &scopes_map_[rec_expr_idx];
+    void set_scope_tree(size_t rec_expr_id) {
+        scope_tree_ = &scope_tree_map_[rec_expr_id];
         curr_scope_ = get_scope(curr_loc_);
     }
 
-    // For every RecExprFFI keyed by its idx, we store a structure representing its scopes.
-    typedef std::unordered_map<size_t, Scopes> ScopesMap;
-    ScopesMap scopes_map_;
+    // For every RecExprFFI keyed by its idx, we store a structure representing its scopetree.
+    std::unordered_map<size_t, ScopeTree> scope_tree_map_;
 
     // There is a special root scope which is a registry of all top-level/closed Defs
     // that exist beyond the current RecExprFFI.

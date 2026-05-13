@@ -72,18 +72,18 @@ std::pair<rust::Vec<RuleSet>, CostFn> RewriteSlotted::import_config() {
 }
 
 void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
-    size_t rec_expr_idx = 0;
+    size_t rec_expr_id = 0;
     for (auto rec_expr : rec_exprs) {
         reset_loc();
         reset_cache();
 
         set_nodes(rec_expr.nodes);
-        set_scopes(rec_expr_idx);
+        set_scope_tree(rec_expr_id);
 
         auto root_id = nodes().size() - 1;
         init(root_id);
 
-        rec_expr_idx++;
+        rec_expr_id++;
     }
 }
 
@@ -197,12 +197,13 @@ const Def* RewriteSlotted::convert(RecExprFFI type_) {
 
     reset_cache();
     set_nodes(type_.nodes);
-    // The type that we are converting exists on the current node and
-    // thus our location does not really change but it only changes in
-    // relation to the RecExprFFI representing our type.
-    // If a type contains variable uses, we want to remain in the scope
-    // of the current node and therefore set update_loc=false.
-    auto res = convert(root_id, true, false);
+    // TODO: Since types now also include binders we need a top-down init pass
+    // followed by a bottom-up convert pass.
+    // - We need binder creation in init for Sigma, Arr, and Pi.
+    // - We also temporarily need a scope_tree for this type conversion.
+    // - Concerning what we wrote below, does that even make sense? Do types ever
+    //   contain var uses of vars that were bound outside of the type? I don't think so.
+    auto res = convert(root_id, true);
 
     reset_cache();
     set_nodes(curr_nodes);
@@ -210,25 +211,25 @@ const Def* RewriteSlotted::convert(RecExprFFI type_) {
 }
 
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
-    size_t rec_expr_idx = 0;
+    size_t rec_expr_id = 0;
     for (auto rec_expr : rec_exprs) {
         reset_loc();
         reset_cache();
 
         set_nodes(rec_expr.nodes);
-        set_scopes(rec_expr_idx);
+        set_scope_tree(rec_expr_id);
 
         auto root_id = nodes().size() - 1;
         convert(root_id, true);
 
-        rec_expr_idx++;
+        rec_expr_id++;
     }
 }
 
-const Def* RewriteSlotted::convert(uint32_t id, bool recurse, bool update_loc) {
+const Def* RewriteSlotted::convert(uint32_t id, bool recurse) {
     auto node = get_node_unsafe(id);
 
-    if (update_loc) enter_scope(node);
+    enter_scope(node);
 
     if (recurse)
         for (uint32_t child : node.children)
@@ -269,10 +270,8 @@ const Def* RewriteSlotted::convert(uint32_t id, bool recurse, bool update_loc) {
         default: break;
     }
 
-    if (update_loc) {
-        if (DEBUG_SCOPES && node.kind == MimKind::Scope) std::cout << "\n";
-        exit_scope(node);
-    }
+    if (DEBUG_SCOPES && node.kind == MimKind::Scope) std::cout << "\n";
+    exit_scope(node);
 
     if (DEBUG) std::cout << res << "\n";
     return cache_set(id, res);
@@ -493,7 +492,7 @@ const Def* RewriteSlotted::convert_top(uint32_t id, NodeFFI node) {
     return new_top;
 }
 
-// (arr <arity> <body>)
+// TODO: (arr $var (scope <arity> <body>))
 const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
     auto arity   = get_def(node.children[0]);
     auto body    = get_def(node.children[1]);
@@ -501,7 +500,7 @@ const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
     return new_arr;
 }
 
-// (sigma <type-cons>)
+// TODO: (sigma $var (scope <type-cons> nil))
 const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
     auto type_ids = get_cons_flat(node.children[0]);
 
@@ -522,7 +521,7 @@ const Def* RewriteSlotted::convert_cn(uint32_t id, NodeFFI node) {
     return new_cn;
 }
 
-// (pi <domain> <codomain>)
+// TODO: (pi $var (scope <domain> <codomain>))
 const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
     auto domain   = get_def(node.children[0]);
     auto codomain = get_def(node.children[1]);
