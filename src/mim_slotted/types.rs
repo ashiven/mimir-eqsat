@@ -27,7 +27,7 @@ pub(crate) fn extract_type_annotations(rec_expr: &RecExpr<MimSlotted>) -> TypedR
         // all vars are represented with the same singleton var eclass
         // and we can't store different vars' types on this single eclass.
         if let MimSlotted::Var(_slot) = expr.node {
-            stripped.type_ = hole();
+            stripped.type_ = TypeExpr::hole();
         }
 
         return stripped;
@@ -40,7 +40,7 @@ pub(crate) fn extract_type_annotations(rec_expr: &RecExpr<MimSlotted>) -> TypedR
             .iter()
             .map(extract_type_annotations)
             .collect(),
-        type_: nil(),
+        type_: TypeExpr::nil(),
     };
 
     // Since it was too difficult to correctly type-annotate let
@@ -101,41 +101,48 @@ pub(crate) fn hole_amount(type_expr: &TypeExpr) -> usize {
     holes(type_expr)
 }
 
-// This is a placeholder for a type that is as of yet unknown.
-// The type inference built into the mim compiler is able to later
-// infer the types of these holes from the context they appear in.
-//
-// We could also leave the level of the type as a hole and
-// then use world.mut_hole_type() which leaves the level as a hole
-// as well and infers it later on. (not sure if we need this though)
-//
-// (hole (type (lit 0 Univ)))  --  Hole(*)
-pub(crate) fn hole() -> TypeExpr {
-    TypeExpr {
-        node: MimSlotted::Hole(AppliedId::null()),
-        children: vec![TypeExpr {
-            node: MimSlotted::Type(AppliedId::null()),
-            children: vec![TypeExpr {
-                node: MimSlotted::Lit(AppliedId::null(), AppliedId::null()),
-                children: vec![
-                    TypeExpr {
-                        node: MimSlotted::Num(0),
-                        children: vec![],
-                    },
-                    TypeExpr {
-                        node: MimSlotted::Symbol("Univ".into()),
-                        children: vec![],
-                    },
-                ],
-            }],
-        }],
-    }
+trait TypeDefaults {
+    fn hole() -> Self;
+    fn nil() -> Self;
 }
 
-pub(crate) fn nil() -> TypeExpr {
-    TypeExpr {
-        node: MimSlotted::Nil(),
-        children: vec![],
+impl TypeDefaults for TypeExpr {
+    // This is a placeholder for a type that is as of yet unknown.
+    // The type inference built into the mim compiler is able to later
+    // infer the types of these holes from the context they appear in.
+    //
+    // We could also leave the level of the type as a hole and
+    // then use world.mut_hole_type() which leaves the level as a hole
+    // as well and infers it later on. (not sure if we need this though)
+    //
+    // (hole (type (lit 0 Univ)))  --  Hole(*)
+    fn hole() -> TypeExpr {
+        TypeExpr {
+            node: MimSlotted::Hole(AppliedId::null()),
+            children: vec![TypeExpr {
+                node: MimSlotted::Type(AppliedId::null()),
+                children: vec![TypeExpr {
+                    node: MimSlotted::Lit(AppliedId::null(), AppliedId::null()),
+                    children: vec![
+                        TypeExpr {
+                            node: MimSlotted::Num(0),
+                            children: vec![],
+                        },
+                        TypeExpr {
+                            node: MimSlotted::Symbol("Univ".into()),
+                            children: vec![],
+                        },
+                    ],
+                }],
+            }],
+        }
+    }
+
+    fn nil() -> TypeExpr {
+        TypeExpr {
+            node: MimSlotted::Nil(),
+            children: vec![],
+        }
     }
 }
 
@@ -168,15 +175,31 @@ pub(crate) fn make_type(
         // MimSlotted::Merge(..) = make_merge_type(eg, enode),
 
         // Num terminals and structural nodes should not get a type at all
-        MimSlotted::Num(..) => AnalysisData { type_: nil() },
-        MimSlotted::MetaVar(..) => AnalysisData { type_: nil() },
-        MimSlotted::Scope(..) => AnalysisData { type_: nil() },
-        MimSlotted::Root(..) => AnalysisData { type_: nil() },
-        MimSlotted::Cons(..) => AnalysisData { type_: nil() },
-        MimSlotted::Nil(..) => AnalysisData { type_: nil() },
-        MimSlotted::TypeWrap(..) => AnalysisData { type_: nil() },
+        MimSlotted::Num(..) => AnalysisData {
+            type_: TypeExpr::nil(),
+        },
+        MimSlotted::MetaVar(..) => AnalysisData {
+            type_: TypeExpr::nil(),
+        },
+        MimSlotted::Scope(..) => AnalysisData {
+            type_: TypeExpr::nil(),
+        },
+        MimSlotted::Root(..) => AnalysisData {
+            type_: TypeExpr::nil(),
+        },
+        MimSlotted::Cons(..) => AnalysisData {
+            type_: TypeExpr::nil(),
+        },
+        MimSlotted::Nil(..) => AnalysisData {
+            type_: TypeExpr::nil(),
+        },
+        MimSlotted::TypeWrap(..) => AnalysisData {
+            type_: TypeExpr::nil(),
+        },
 
-        _ => AnalysisData { type_: hole() },
+        _ => AnalysisData {
+            type_: TypeExpr::hole(),
+        },
     }
 }
 
@@ -254,7 +277,7 @@ fn make_lam_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
     AnalysisData {
         type_: TypeExpr {
             node: MimSlotted::Pi(AppliedId::null(), AppliedId::null()),
-            children: vec![hole(), body_type],
+            children: vec![TypeExpr::hole(), body_type],
         },
     }
 }
@@ -278,7 +301,9 @@ fn make_app_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
             type_: codom_type.clone(),
         }
     } else {
-        AnalysisData { type_: hole() }
+        AnalysisData {
+            type_: TypeExpr::hole(),
+        }
     }
 }
 
@@ -291,7 +316,9 @@ fn make_var_type(
     _eg: &EGraph<MimSlotted, MimSlottedAnalysis>,
     _enode: &MimSlotted,
 ) -> AnalysisData {
-    AnalysisData { type_: hole() }
+    AnalysisData {
+        type_: TypeExpr::hole(),
+    }
 }
 
 fn make_lit_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
@@ -434,7 +461,7 @@ fn make_extract_type(
     let index_id = eg.find_applied_id(index);
     let index = eg.get_syn_expr(&index_id);
 
-    let mut extract_type = hole();
+    let mut extract_type = TypeExpr::hole();
 
     // Extract from pack
     if let TypeExpr {
@@ -502,7 +529,7 @@ fn make_insert_type(
     let index_id = eg.find_applied_id(index);
     let index = eg.get_syn_expr(&index_id);
 
-    let mut insert_type = hole();
+    let mut insert_type = TypeExpr::hole();
 
     // Insert into pack
     if let TypeExpr {
