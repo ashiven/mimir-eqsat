@@ -101,12 +101,15 @@ pub(crate) fn hole_amount(type_expr: &TypeExpr) -> usize {
     holes(type_expr)
 }
 
-trait TypeDefaults {
+trait TypeConstructors {
     fn hole() -> Self;
     fn nil() -> Self;
+    fn arr(arity: TypeExpr, body: TypeExpr) -> Self;
+    fn sigma(elem_cons: TypeExpr) -> Self;
+    fn pi(dom: TypeExpr, codom: TypeExpr) -> Self;
 }
 
-impl TypeDefaults for TypeExpr {
+impl TypeConstructors for TypeExpr {
     // This is a placeholder for a type that is as of yet unknown.
     // The type inference built into the mim compiler is able to later
     // infer the types of these holes from the context they appear in.
@@ -116,7 +119,7 @@ impl TypeDefaults for TypeExpr {
     // as well and infers it later on. (not sure if we need this though)
     //
     // (hole (type (lit 0 Univ)))  --  Hole(*)
-    fn hole() -> TypeExpr {
+    fn hole() -> Self {
         TypeExpr {
             node: MimSlotted::Hole(AppliedId::null()),
             children: vec![TypeExpr {
@@ -138,10 +141,49 @@ impl TypeDefaults for TypeExpr {
         }
     }
 
-    fn nil() -> TypeExpr {
+    fn nil() -> Self {
         TypeExpr {
             node: MimSlotted::Nil(),
             children: vec![],
+        }
+    }
+
+    fn arr(arity: TypeExpr, body: TypeExpr) -> Self {
+        TypeExpr {
+            node: MimSlotted::Arr(Bind {
+                slot: Slot::named("dummy"),
+                elem: AppliedId::null(),
+            }),
+            children: vec![TypeExpr {
+                node: MimSlotted::Scope(AppliedId::null(), AppliedId::null()),
+                children: vec![arity, body],
+            }],
+        }
+    }
+
+    fn sigma(elem_cons: TypeExpr) -> Self {
+        TypeExpr {
+            node: MimSlotted::Sigma(Bind {
+                slot: Slot::named("dummy"),
+                elem: AppliedId::null(),
+            }),
+            children: vec![TypeExpr {
+                node: MimSlotted::Scope(AppliedId::null(), AppliedId::null()),
+                children: vec![elem_cons, TypeExpr::nil()],
+            }],
+        }
+    }
+
+    fn pi(dom: TypeExpr, codom: TypeExpr) -> Self {
+        TypeExpr {
+            node: MimSlotted::Pi(Bind {
+                slot: Slot::named("dummy"),
+                elem: AppliedId::null(),
+            }),
+            children: vec![TypeExpr {
+                node: MimSlotted::Scope(AppliedId::null(), AppliedId::null()),
+                children: vec![dom, codom],
+            }],
         }
     }
 }
@@ -269,20 +311,10 @@ fn make_lam_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
 
     let scope_child_ids = var_scope.applied_id_occurrences();
     let body_id = scope_child_ids.get(1).expect("Failed to get body id");
-
     let body_type = eg.analysis_data(body_id.id).type_.clone();
 
     AnalysisData {
-        type_: TypeExpr {
-            node: MimSlotted::Pi(Bind {
-                slot: Slot::named("dummy"),
-                elem: AppliedId::null(),
-            }),
-            children: vec![TypeExpr {
-                node: MimSlotted::Scope(AppliedId::null(), AppliedId::null()),
-                children: vec![TypeExpr::hole(), body_type],
-            }],
-        },
+        type_: TypeExpr::pi(TypeExpr::hole(), body_type),
     }
 }
 
@@ -353,10 +385,7 @@ fn make_pack_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotte
     let body_type = eg.analysis_data(body.id).type_.clone();
 
     AnalysisData {
-        type_: TypeExpr {
-            node: MimSlotted::Arr(AppliedId::null(), AppliedId::null()),
-            children: vec![arity, body_type],
-        },
+        type_: TypeExpr::arr(arity, body_type),
     }
 }
 
@@ -397,10 +426,7 @@ fn make_tuple_type(
 
     if elem_types.is_empty() {
         AnalysisData {
-            type_: TypeExpr {
-                node: MimSlotted::Sigma(AppliedId::null()),
-                children: vec![elem_type_cons],
-            },
+            type_: TypeExpr::sigma(elem_type_cons),
         }
     } else {
         while let Some(elem_type) = elem_types.pop() {
@@ -410,10 +436,7 @@ fn make_tuple_type(
             }
         }
         AnalysisData {
-            type_: TypeExpr {
-                node: MimSlotted::Sigma(AppliedId::null()),
-                children: vec![elem_type_cons],
-            },
+            type_: TypeExpr::sigma(elem_type_cons),
         }
     }
 }
@@ -477,7 +500,12 @@ fn make_extract_type(
         children: arr_childs,
     } = tuple_type
     {
-        extract_type = arr_childs.get(1).expect("Expected array body").clone()
+        let arr_var_scope = arr_childs.first().expect("Expected arr var scope");
+        extract_type = arr_var_scope
+            .children
+            .get(1)
+            .expect("Expected array body")
+            .clone()
     // Extract from tuple with literal index
     } else if let TypeExpr {
         node: MimSlotted::Sigma(..),
@@ -488,7 +516,11 @@ fn make_extract_type(
             ..
         } = index
     {
-        let sigma_elem_cons = sigma_childs.first().expect("Expected sigma elem cons");
+        let sigma_var_scope = sigma_childs.first().expect("Expected sigma var scope");
+        let sigma_elem_cons = sigma_var_scope
+            .children
+            .first()
+            .expect("Expected sigma elem cons");
         let index_literal = get_literal(&index);
         extract_type = cons_elem_at(sigma_elem_cons, index_literal);
     }
@@ -556,13 +588,14 @@ fn make_insert_type(
             ..
         } = index
     {
-        let sigma_elem_cons = sigma_childs.first().expect("Expected sigma elem cons");
+        let sigma_var_scope = sigma_childs.first().expect("Expected sigma var scope");
+        let sigma_elem_cons = sigma_var_scope
+            .children
+            .first()
+            .expect("Expected sigma elem cons");
         let index_literal = get_literal(&index);
         let inserted_cons = cons_insert_at(sigma_elem_cons, &value_type, index_literal);
-        insert_type = TypeExpr {
-            node: MimSlotted::Sigma(AppliedId::null()),
-            children: vec![inserted_cons],
-        };
+        insert_type = TypeExpr::sigma(inserted_cons);
     }
 
     AnalysisData { type_: insert_type }

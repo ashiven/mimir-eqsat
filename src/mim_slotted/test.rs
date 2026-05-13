@@ -260,20 +260,26 @@ fn make_types_tuple_pack() {
 
     assert_eq!(
         type_of(&eg, tuple_id),
-        type_("(sigma (cons Nat (cons Nat (cons Nat nil))))")
+        type_("(sigma $dummy (scope (cons Nat (cons Nat (cons Nat nil))) nil))")
     );
 
     let tuple_empty = "(tuple nil)";
     let tuple_empty: RecExpr<MimSlotted> = RecExpr::parse(tuple_empty).unwrap();
     let tuple_empty_id = eg.add_expr(tuple_empty);
 
-    assert_eq!(type_of(&eg, tuple_empty_id), type_("(sigma nil)"));
+    assert_eq!(
+        type_of(&eg, tuple_empty_id),
+        type_("(sigma $dummy (scope nil nil))")
+    );
 
     let pack = "(pack (top Nat) (lit 3 Nat))";
     let pack: RecExpr<MimSlotted> = RecExpr::parse(pack).unwrap();
     let pack_id = eg.add_expr(pack);
 
-    assert_eq!(type_of(&eg, pack_id), type_("(arr (top Nat) Nat)"));
+    assert_eq!(
+        type_of(&eg, pack_id),
+        type_("(arr $dummy (scope (top Nat) Nat))")
+    );
 }
 
 #[test]
@@ -292,7 +298,7 @@ fn make_types_extract_insert() {
 
     assert_eq!(
         type_of(&eg, insert_tuple_id),
-        type_("(sigma (cons Nat (cons Bool nil)))")
+        type_("(sigma $dummy (scope (cons Nat (cons Bool nil)) nil))")
     );
 
     let insert_pack = "(insert (pack (top Nat) (lit ff Bool)) (lit tt Bool) (lit ff Bool))";
@@ -301,7 +307,7 @@ fn make_types_extract_insert() {
 
     assert_eq!(
         type_of(&eg, insert_pack_id),
-        type_("(arr (top Nat) (Bool))")
+        type_("(arr $dummy (scope (top Nat) Bool))")
     );
 
     let extract_tuple =

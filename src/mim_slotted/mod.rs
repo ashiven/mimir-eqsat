@@ -64,10 +64,10 @@ define_language! {
         Bot(AppliedId) = "bot",
         // (top <type>)
         Top(AppliedId) = "top",
-        // (arr <arity> <body>)
-        Arr(AppliedId, AppliedId) = "arr",
-        // (sigma <type-cons>)
-        Sigma(AppliedId) = "sigma",
+        // (arr $var (scope <arity> <body>))
+        Arr(Bind<AppliedId>) = "arr",
+        // (sigma $var (scope <type-cons> nil))
+        Sigma(Bind<AppliedId>) = "sigma",
         // (cn <domain>)
         Cn(AppliedId) = "cn",
         // (pi $var (scope <domain> <codomain>))

@@ -365,12 +365,31 @@ impl FFIInner for MimSlotted {
             MimSlotted::Meet(..) => new_node_ffi(MimKind::Meet, children, None, None, None, type_),
             MimSlotted::Bot(..) => new_node_ffi(MimKind::Bot, children, None, None, None, type_),
             MimSlotted::Top(..) => new_node_ffi(MimKind::Top, children, None, None, None, type_),
-            MimSlotted::Arr(..) => new_node_ffi(MimKind::Arr, children, None, None, None, type_),
-            MimSlotted::Sigma(..) => {
-                new_node_ffi(MimKind::Sigma, children, None, None, None, type_)
-            }
+            MimSlotted::Arr(bind) => new_node_ffi(
+                MimKind::Arr,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Sigma(bind) => new_node_ffi(
+                MimKind::Sigma,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
             MimSlotted::Cn(..) => new_node_ffi(MimKind::Cn, children, None, None, None, type_),
-            MimSlotted::Pi(..) => new_node_ffi(MimKind::Pi, children, None, None, None, type_),
+            MimSlotted::Pi(bind) => new_node_ffi(
+                MimKind::Pi,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
             MimSlotted::Idx(..) => new_node_ffi(MimKind::Idx, children, None, None, None, type_),
             MimSlotted::Hole(..) => new_node_ffi(MimKind::Hole, children, None, None, None, type_),
             MimSlotted::Type(..) => new_node_ffi(MimKind::Type, children, None, None, None, type_),
