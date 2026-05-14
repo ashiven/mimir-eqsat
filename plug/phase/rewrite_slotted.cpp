@@ -142,7 +142,7 @@ const Def* RewriteSlotted::init(uint32_t id) {
         init(child);
 
     exit_scope(node);
-    return res;
+    return cache_set(id, res);
 }
 
 // (axm <name> <type>)
@@ -313,8 +313,12 @@ const Def* RewriteSlotted::convert(uint32_t id) {
     for (uint32_t child : node.children)
         convert(child);
 
-    const Def* res = cache_get(id);
-    if (res) return res;
+    // We don't want to short-circuit through the cache here
+    // because some Def's (mutables) need to be converted after
+    // they have already been created in init().
+    // We could later short-circuit for all other terms except
+    // those that need to be revisited..
+    const Def* res = nullptr;
 
     if (DEBUG) std::cout << "convert - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     switch (node.kind) {
@@ -570,26 +574,36 @@ const Def* RewriteSlotted::convert_top(uint32_t id, NodeFFI node) {
     return new_top;
 }
 
-// TODO: (arr $var (scope <arity> <body>))
+// (arr $var (scope <arity> <body>))
 const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
-    auto arity   = get_def(node.children[0]);
-    auto body    = get_def(node.children[1]);
-    auto new_arr = new_world().arr(arity, body);
-    return new_arr;
+    auto arr = get_def(id)->as_mut<Arr>();
+
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+    enter_scope(var_scope, true);
+
+    auto arity = get_def(var_scope.children[0]);
+    auto body  = get_def(var_scope.children[1]);
+
+    arr->set(arity, body);
+    return arr;
 }
 
-// TODO: (sigma $var (scope <type-cons> nil))
+// (sigma $var (scope <type-cons> nil))
 const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
-    auto type_ids = get_cons_flat(node.children[0]);
+    auto sigma = get_def(id)->as_mut<Sigma>();
+
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+    enter_scope(var_scope, true);
 
     DefVec types;
+    auto type_ids = get_cons_flat(var_scope.children[0]);
     for (auto type_id : type_ids) {
         auto type = get_def(type_id);
         types.push_back(type);
     }
 
-    auto new_sigma = new_world().sigma(types);
-    return new_sigma;
+    sigma->set(types);
+    return sigma;
 }
 
 // (cn <domain>)
@@ -599,12 +613,18 @@ const Def* RewriteSlotted::convert_cn(uint32_t id, NodeFFI node) {
     return new_cn;
 }
 
-// TODO: (pi $var (scope <domain> <codomain>))
+// (pi $var (scope <domain> <codomain>))
 const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
+    auto pi = get_def(id)->as_mut<Pi>();
+
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+    enter_scope(var_scope, true);
+
     auto domain   = get_def(node.children[0]);
     auto codomain = get_def(node.children[1]);
-    auto new_pi   = new_world().pi(domain, codomain);
-    return new_pi;
+
+    pi->set(domain, codomain);
+    return pi;
 }
 
 // (idx <size>)

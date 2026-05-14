@@ -114,8 +114,8 @@ private:
     const Def* convert_symbol(uint32_t id, NodeFFI node);
 
     // The nodes of the RecExprFFI we are currently processing
-    void set_nodes(rust::Vec<NodeFFI> nodes) { nodes_ = nodes; }
     rust::Vec<NodeFFI> nodes() const { return nodes_; }
+    void set_nodes(rust::Vec<NodeFFI> nodes) { nodes_ = nodes; }
 
     // Stores Defs that were already created for a node via the nodes' id
     const Def* cache_get(uint32_t id) { return added_[id]; }
@@ -128,20 +128,21 @@ private:
     // 3) A symbol node representing a type or term alias
     // 4) A symbol node representing a variable
     const Def* get_def(uint32_t id) {
-        auto def = added_[id];
-        if (def == nullptr) {
+        auto def = cache_get(id);
+        if (!def) {
             auto sym = get_symbol(id);
             sym.empty() ? sym = get_slot(id) : sym;
-
-            if (aliases_.contains(sym))
-                def = aliases_[sym];
-            else if (axms_.contains(sym))
-                def = get_axm(sym);
-            else if (auto var = get_var(sym); var)
+            if (auto alias = get_alias(sym))
+                def = alias;
+            else if (auto axm = get_axm(sym))
+                def = axm;
+            else if (auto var = get_var(sym))
                 def = var;
         }
         return def;
     }
+
+    const Def* get_alias(std::string name) { return aliases_.contains(name) ? aliases_[name] : nullptr; }
 
     void register_var(std::string name, const Def* def) {
         if (loc().depth == ROOT_SCOPE_DEPTH) {
@@ -178,7 +179,7 @@ private:
         }
         axms_[name] = converted;
     }
-    const Def* get_axm(std::string name) { return axms_[name]; }
+    const Def* get_axm(std::string name) { return axms_.contains(name) ? axms_[name] : nullptr; }
 
     NodeFFI get_node(MimKind expected, uint32_t id) {
         assert(nodes()[id].kind == expected && "get_node: mismatch between expected and actual node kind");
