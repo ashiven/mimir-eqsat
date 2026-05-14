@@ -6,7 +6,7 @@ plugin eqsat;
 import pipeline;
 
 fun extern _impl(): %eqsat.Impl =
-    return %eqsat.slotted;
+    return %eqsat.__IMPL__;
 
 lam Ptr(T: *): * = %mem.Ptr (T, 0);
 
