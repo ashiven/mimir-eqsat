@@ -75,6 +75,7 @@ const Def* RewriteSlotted::create_type(RecExprFFI type_) {
     auto root_id = type_.nodes.size() - 1;
 
     // Save current state
+    auto saved_cache      = cache();
     auto saved_loc        = loc();
     auto saved_visits     = depth_visits();
     auto saved_scope_tree = scope_tree();
@@ -82,12 +83,13 @@ const Def* RewriteSlotted::create_type(RecExprFFI type_) {
     auto saved_nodes      = nodes();
 
     // Prepare environment
+    auto temp_cache      = Cache{};
     auto temp_scope_tree = ScopeTree{};
-    reset_cache();
     reset_loc();
     reset_depth_visits();
+    set_cache(&temp_cache);
     set_scope_tree(&temp_scope_tree);
-    set_scope(scope(loc()));
+    set_scope(loc());
     set_nodes(type_.nodes);
 
     // Convert type
@@ -95,7 +97,7 @@ const Def* RewriteSlotted::create_type(RecExprFFI type_) {
     auto res = convert(root_id);
 
     // Restore state
-    reset_cache();
+    set_cache(saved_cache);
     set_loc(saved_loc);
     set_depth_visits(saved_visits);
     set_scope_tree(saved_scope_tree);
@@ -108,13 +110,13 @@ const Def* RewriteSlotted::create_type(RecExprFFI type_) {
 void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
     size_t rec_expr_id = 0;
     for (auto rec_expr : rec_exprs) {
-        reset_cache();
         reset_loc();
         reset_depth_visits();
 
+        set_cache(rec_expr_id);
         set_nodes(rec_expr.nodes);
         set_scope_tree(rec_expr_id);
-        set_scope(scope(loc()));
+        set_scope(loc());
 
         auto root_id = nodes().size() - 1;
         init(root_id);
@@ -127,7 +129,7 @@ const Def* RewriteSlotted::init(uint32_t id) {
     auto node = get_node_unsafe(id);
     enter_scope(node);
 
-    const Def* res = nullptr;
+    const Def* res = cache_get(id);
     switch (node.kind) {
         case MimKind::Axm: res = init_axm(id, node); break;
         case MimKind::Root: res = init_root(id, node); break;
@@ -176,36 +178,36 @@ const Def* RewriteSlotted::init_root(uint32_t id, NodeFFI node) {
     }
 
     if (DEBUG) std::cout << def << "\n";
-    return def;
+    return nullptr;
 }
 
-// (let $name (scope <definition> <expression>))
+// (let $var (scope <definition> <expression>))
 const Def* RewriteSlotted::init_let(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
-    auto name       = get_slot(id);
-    auto name_scope = get_node(MimKind::Scope, node.children[0]);
+    auto var_name  = get_slot(id);
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
 
     const Def* def = nullptr;
-    auto def_node  = get_node_unsafe(name_scope.children[0]);
+    auto def_node  = get_node_unsafe(var_scope.children[0]);
 
-    enter_scope(name_scope);
+    enter_scope(var_scope);
     if (def_node.kind == MimKind::Lam) {
-        def = init_lam(name_scope.children[0], def_node);
-        def->set(name);
-        register_var(name, def);
+        def = init_lam(var_scope.children[0], def_node);
+        def->set(var_name);
+        register_var(var_name, def);
     } else {
-        def = convert(name_scope.children[0]);
-        def->set(name);
-        register_var(name, def);
+        def = convert(var_scope.children[0]);
+        def->set(var_name);
+        register_var(var_name, def);
     }
-    exit_scope(name_scope, true);
+    exit_scope(var_scope, true);
 
     if (DEBUG) std::cout << def << "\n";
     return nullptr;
 }
 
-// (lam $var-name (scope <filter> <body>))
+// (lam $var (scope <filter> <body>))
 const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
@@ -216,25 +218,19 @@ const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
     auto var      = new_lam->var();
     var->set(var_name);
 
-    // When we are calling on init_lam() via init_let(), we have to manually adjust our location for
-    // the additional scopes introduced by the let binder and the continuations' variable.
-    // This is because location changes are made via enter_/exit_scope() in init() where init() calls
-    // on init_let() which calls on init_lam() so the location changes from init() are not being applied.
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
     register_var(var_name, var);
-    // We set ignore_visit=true to ensure that this visit won't be
-    // counted twice in depth_visits_ (init() will already count it once)
     exit_scope(var_scope, true);
 
-    return new_lam;
+    return cache_set(id, new_lam);
 }
 
 // (pi $var (scope <dom> <codom>))
 const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
-    auto new_pi = new_world().mut_pi(new_world().type<1>());
+    auto new_pi = new_world().mut_pi(new_world().type());
 
     auto var_name = get_slot(id);
     auto var      = new_pi->var();
@@ -252,7 +248,7 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
 const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
-    auto var_scope = get_node(MimKind::Sigma, node.children[0]);
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
     auto elem_cons = get_cons_flat(var_scope.children[0]);
     auto size      = elem_cons.size();
 
@@ -290,13 +286,13 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
     size_t rec_expr_id = 0;
     for (auto rec_expr : rec_exprs) {
-        reset_cache();
         reset_loc();
         reset_depth_visits();
 
+        set_cache(rec_expr_id);
         set_nodes(rec_expr.nodes);
         set_scope_tree(rec_expr_id);
-        set_scope(scope(loc()));
+        set_scope(loc());
 
         auto root_id = nodes().size() - 1;
         convert(root_id);
@@ -364,60 +360,40 @@ const Def* RewriteSlotted::convert_root(uint32_t id, NodeFFI node) {
     auto is_extern = get_symbol(node.children[0]);
     auto def       = get_def(node.children[1]);
 
-    if (def->isa<Lam>()) {
-        auto lam       = def->as_mut<Lam>();
-        auto lam_node  = get_node(MimKind::Lam, node.children[2]);
-        auto var_scope = get_node(MimKind::Scope, lam_node.children[0]);
-        if (DEBUG_SCOPES) std::cout << "\n";
-        enter_scope(var_scope, true);
-        auto filter = get_def(var_scope.children[0]);
-        auto body   = get_def(var_scope.children[1]);
-        if (filter && body) {
-            lam->set_filter(filter);
-            lam->set_body(body);
-        } else {
-            lam->set_filter(false);
-        }
+    if (auto lam = def->isa_mut<Lam>()) {
         if (is_extern == "extern") lam->externalize();
-        exit_scope(var_scope);
     }
 
     return def;
 }
 
-// (let $name (scope <definition> <expression>))
+// (let $var (scope <definition> <expression>))
 const Def* RewriteSlotted::convert_let(uint32_t id, NodeFFI node) {
-    auto name_scope = get_node(MimKind::Scope, node.children[0]);
-    if (DEBUG_SCOPES) std::cout << "\n";
-    enter_scope(name_scope, true);
-    auto def  = get_def(id);
-    auto expr = get_def(name_scope.children[1]);
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+    enter_scope(var_scope, true);
+    auto expr = get_def(var_scope.children[1]);
+    exit_scope(var_scope);
 
-    if (def->isa<Lam>()) {
-        auto lam       = def->as_mut<Lam>();
-        auto lam_node  = get_node(MimKind::Lam, name_scope.children[0]);
-        auto var_scope = get_node(MimKind::Scope, lam_node.children[0]);
-        enter_scope(var_scope, true);
-        auto filter = get_def(var_scope.children[0]);
-        auto body   = get_def(var_scope.children[1]);
-        if (filter && body) {
-            lam->set_filter(filter);
-            lam->set_body(body);
-        } else {
-            lam->set_filter(false);
-        }
-        exit_scope(var_scope);
-    }
-
-    exit_scope(name_scope);
     return expr;
 }
 
-// (con <domain-type> $var-name (scope <filter> <body>))
+// (lam $var (scope <filter> <body>))
 const Def* RewriteSlotted::convert_lam(uint32_t id, NodeFFI node) {
-    // Real conversion happens in convert_root and convert_let because we need a name to get to the Def
-    auto con = get_def(id);
-    return con;
+    auto lam       = get_def(id)->as_mut<Lam>();
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+
+    enter_scope(var_scope, true);
+    auto filter = get_def(var_scope.children[0]);
+    auto body   = get_def(var_scope.children[1]);
+    if (filter && body) {
+        lam->set_filter(filter);
+        lam->set_body(body);
+    } else {
+        lam->set_filter(false);
+    }
+    exit_scope(var_scope);
+
+    return lam;
 }
 
 // (app <callee> <arg>)
@@ -620,8 +596,8 @@ const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope, true);
 
-    auto domain   = get_def(node.children[0]);
-    auto codomain = get_def(node.children[1]);
+    auto domain   = get_def(var_scope.children[0]);
+    auto codomain = get_def(var_scope.children[1]);
 
     pi->set(domain, codomain);
     return pi;

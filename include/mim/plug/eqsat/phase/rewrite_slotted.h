@@ -117,10 +117,21 @@ private:
     rust::Vec<NodeFFI> nodes() const { return nodes_; }
     void set_nodes(rust::Vec<NodeFFI> nodes) { nodes_ = nodes; }
 
+    typedef std::unordered_map<uint32_t, const Def*> Cache;
+    typedef std::unordered_map<size_t, Cache> CacheMap;
+
     // Stores Defs that were already created for a node via the nodes' id
-    const Def* cache_get(uint32_t id) { return added_[id]; }
-    const Def* cache_set(uint32_t id, const Def* def) { return added_[id] = def; }
-    void reset_cache() { added_ = {}; }
+    Cache* cache() { return cache_; }
+    Cache* cache(size_t rec_expr_id) { return &cache_map_[rec_expr_id]; }
+    void set_cache(Cache* cache) { cache_ = cache; }
+    void set_cache(size_t rec_expr_id) { set_cache(cache(rec_expr_id)); }
+    void dump_cache() {
+        for (auto [id, def] : cache_map_[0])
+            std::cout << id << ": " << def << "\n";
+    }
+
+    const Def* cache_get(uint32_t id) { return (*cache())[id]; }
+    const Def* cache_set(uint32_t id, const Def* def) { return (*cache())[id] = def; }
 
     // A node that is associated with a Def can be:
     // 1) A node representing an arbitrary term
@@ -286,6 +297,7 @@ private:
     Scope* scope() const { return curr_scope_; }
     Scope* scope(Loc loc) { return &(*scope_tree_)[loc]; }
     void set_scope(Scope* scope) { curr_scope_ = scope; }
+    void set_scope(Loc loc) { set_scope(scope(loc)); }
 
     void scope_add(std::string name, const Def* def) {
         scope()->var_name = name;
@@ -370,7 +382,8 @@ private:
     std::set<std::pair<std::string, const Def*>> root_scope_;
 
     rust::Vec<NodeFFI> nodes_;
-    std::unordered_map<uint32_t, const Def*> added_;
+    Cache* cache_;
+    CacheMap cache_map_;
     std::unordered_map<std::string, const Def*> vars_;
     std::unordered_map<std::string, const Def*> axms_;
     std::unordered_map<std::string, const Def*> aliases_;
