@@ -60,6 +60,12 @@ private:
 
     std::pair<rust::Vec<RuleSet>, CostFn> import_config();
 
+    // NodeFFI can carry a type that is also in the form
+    // of a RecExprFFI. We convert this type with a top-down
+    // traversal for creating binders followed by a bottom-up
+    // traversal to create the remaining Def's
+    const Def* create_type(RecExprFFI type_);
+
     // Performs a top-down traverse of each RecExprFFI
     // and creates and stores all bindings with their definitions.
     // Lambdas are created without their bodies in this phase.
@@ -69,18 +75,16 @@ private:
     const Def* init_root(uint32_t id, NodeFFI node);
     const Def* init_let(uint32_t id, NodeFFI node);
     const Def* init_lam(uint32_t id, NodeFFI node);
-
-    // NodeFFI can carry a type that is also in the form
-    // of a RecExprFFI. We convert this type with a bottom-up
-    // traversal without maintaining a location.
-    const Def* convert(RecExprFFI type_);
+    const Def* init_pi(uint32_t id, NodeFFI node);
+    const Def* init_sigma(uint32_t id, NodeFFI node);
+    const Def* init_arr(uint32_t id, NodeFFI node);
 
     // Performs a bottom-up traverse of each RecExprFFI and
     // creates a Def in the new_world() for every node.
     // At this point, the bodies of the lambdas created
     // in the init phase will be set.
     void convert(rust::Vec<RecExprFFI> rec_exprs);
-    const Def* convert(uint32_t id, bool recurse = false);
+    const Def* convert(uint32_t id);
     const Def* convert_root(uint32_t id, NodeFFI node);
     const Def* convert_let(uint32_t id, NodeFFI node);
     const Def* convert_lam(uint32_t id, NodeFFI node);
@@ -140,28 +144,28 @@ private:
     }
 
     void register_var(std::string name, const Def* def) {
-        if (curr_loc().depth == ROOT_SCOPE_DEPTH) {
+        if (loc().depth == ROOT_SCOPE_DEPTH) {
             root_scope_add(name, def);
             if (DEBUG_SCOPES) std::cout << "Registering: " << name << "-" << def << " in root scope\n";
         } else {
-            curr_scope_add(name, def);
-            if (DEBUG_SCOPES) std::cout << "Registering: " << curr_scope()->to_str() << "\n";
+            scope_add(name, def);
+            if (DEBUG_SCOPES) std::cout << "Registering: " << scope()->to_str() << "\n";
         }
     }
 
     const Def* get_var(std::string name) {
-        auto scope = curr_scope();
+        auto curr_scope = scope();
 
-        while (name != scope->var_name) {
-            if (scope->parent_loc.depth == ROOT_SCOPE_DEPTH) {
+        while (name != curr_scope->var_name) {
+            if (curr_scope->parent_loc.depth == ROOT_SCOPE_DEPTH) {
                 for (auto [var_name, def] : root_scope())
                     if (var_name == name) return def;
                 break;
             }
-            scope = get_scope(scope->parent_loc);
+            curr_scope = scope(curr_scope->parent_loc);
         }
 
-        if (name == scope->var_name) return scope->def;
+        if (name == curr_scope->var_name) return curr_scope->def;
 
         return nullptr;
     }
@@ -198,6 +202,15 @@ private:
         return flattened;
     }
 
+    /************ Depth Visits*************/
+    typedef std::unordered_map<size_t, size_t> DepthVisits;
+    DepthVisits depth_visits() const { return depth_visits_; }
+    void set_depth_visits(std::unordered_map<size_t, size_t> depth_visits) { depth_visits_ = depth_visits; }
+
+    void reset_depth_visits() { set_depth_visits({}); }
+    void inc_visit_count(size_t depth) { depth_visits_[depth] += 1; }
+
+    /******************* Loc **************/
     // Loc tracks the current location in the scope tree.
     // This is done by maintaining a depth and an offset while
     // traversing the RecExprFFI that indicate the exact scope we
@@ -233,35 +246,23 @@ private:
             return os.str();
         }
     };
-
     struct LocHash {
         std::size_t operator()(const Loc& loc) const noexcept {
             return std::hash<size_t>()(loc.depth) ^ (std::hash<size_t>()(loc.offset) << 1);
         }
     };
 
-    const int32_t ROOT_SCOPE_DEPTH = -1;
+    Loc loc() const { return curr_loc_; }
+    void set_loc(Loc loc) { curr_loc_ = loc; }
 
     void reset_loc() {
         // We start at Loc {depth: -1, offset: 0} because
         // enter_scope() increments the depth and we want
         // the first scope to begin at (0,0) rather than (1,0)
-        set_curr_loc({ROOT_SCOPE_DEPTH, 0});
-        set_depth_visits({});
+        set_loc({ROOT_SCOPE_DEPTH, 0});
     }
 
-    // Keeps track of how often we have visited each scope-depth
-    // so we can keep track of the current locations' offset at each depth.
-    // maps: Depth -> #Visits
-    std::unordered_map<size_t, size_t> depth_visits_;
-    std::unordered_map<size_t, size_t> depth_visits() const { return depth_visits_; }
-    void set_depth_visits(std::unordered_map<size_t, size_t> depth_visits) { depth_visits_ = depth_visits; }
-    void inc_visit_count(size_t depth) { depth_visits_[depth] += 1; }
-
-    Loc curr_loc_;
-    Loc curr_loc() const { return curr_loc_; }
-    void set_curr_loc(Loc loc) { curr_loc_ = loc; }
-
+    /******************* Scope **************/
     struct Scope {
         Loc loc;
         Loc parent_loc;
@@ -281,85 +282,91 @@ private:
         }
     };
 
-    void set_scope() {
-        auto curr_scope = get_scope(curr_loc());
-        curr_scope->loc = curr_loc();
-        set_curr_scope(curr_scope);
-    }
+    Scope* scope() const { return curr_scope_; }
+    Scope* scope(Loc loc) { return &(*scope_tree_)[loc]; }
+    void set_scope(Scope* scope) { curr_scope_ = scope; }
 
+    void scope_add(std::string name, const Def* def) {
+        scope()->var_name = name;
+        scope()->def      = def;
+    }
+    void update_scope() {
+        auto curr_scope = scope(loc());
+        curr_scope->loc = loc();
+        set_scope(curr_scope);
+    }
     void enter_scope(NodeFFI node, bool ignore_last_visit = false) {
         if (node.kind == MimKind::Scope) {
-            auto parent_loc = curr_loc();
+            auto parent_loc = loc();
 
-            auto next_depth  = curr_loc().depth + 1;
+            auto next_depth  = loc().depth + 1;
             auto next_offset = depth_visits()[next_depth];
             auto next_loc    = Loc{next_depth, next_offset};
-            set_curr_loc(next_loc);
+            set_loc(next_loc);
 
             // We act like we didn't already visit at that depth before,
             // which we need to be able to revisit a scope we just exited
             // in the convert() bottom-up traverse.
             if (ignore_last_visit) {
-                auto curr_depth   = curr_loc().depth;
-                auto prev_offset  = curr_loc().offset - 1;
+                auto curr_depth   = loc().depth;
+                auto prev_offset  = loc().offset - 1;
                 auto adjusted_loc = Loc{curr_depth, prev_offset};
-                set_curr_loc(adjusted_loc);
+                set_loc(adjusted_loc);
             }
 
-            set_scope();
-            curr_scope()->parent_loc = parent_loc;
-            if (DEBUG_SCOPES) std::cout << "Entering: " << curr_scope()->to_str() << "\n";
+            update_scope();
+            scope()->parent_loc = parent_loc;
+            if (DEBUG_SCOPES) std::cout << "Entering: " << scope()->to_str() << "\n";
         }
     }
-
     void exit_scope(NodeFFI node, bool ignore_visit = false) {
         if (node.kind == MimKind::Scope) {
-            if (DEBUG_SCOPES) std::cout << "Exiting: " << curr_scope()->to_str() << "\n";
+            if (DEBUG_SCOPES) std::cout << "Exiting: " << scope()->to_str() << "\n";
 
             // We sometimes want to act like we did not enter a scope
             // in the top-down traverse in which case we don't increment
             // the number of visits at the specific depth.
-            if (!ignore_visit) inc_visit_count(curr_loc().depth);
+            if (!ignore_visit) inc_visit_count(loc().depth);
 
-            auto next_depth  = curr_loc().depth - 1;
+            auto next_depth  = loc().depth - 1;
             auto next_offset = depth_visits()[next_depth];
             auto next_loc    = Loc{next_depth, next_offset};
-            set_curr_loc(next_loc);
+            set_loc(next_loc);
 
-            set_scope();
+            update_scope();
         }
     }
 
+    /************** Scope Tree ************/
+    typedef std::unordered_map<Loc, Scope, LocHash> ScopeTree;
+    ScopeTree* scope_tree() const { return scope_tree_; }
+    ScopeTree* scope_tree(size_t rec_expr_id) { return &scope_tree_map_[rec_expr_id]; }
+    void set_scope_tree(ScopeTree* scope_tree) { scope_tree_ = scope_tree; }
+    void set_scope_tree(size_t rec_expr_id) { set_scope_tree(scope_tree(rec_expr_id)); }
+
+    /************** Root Scope ************/
+    typedef std::set<std::pair<std::string, const Def*>> RootScope;
+    RootScope root_scope() const { return root_scope_; }
+
+    void root_scope_add(std::string name, const Def* def) { root_scope_.insert({name, def}); }
+
+    /********** SCOPES INTERFACE **********/
+    const int32_t ROOT_SCOPE_DEPTH = -1;
+    // Keeps track of how often we have visited each scope-depth
+    // so we can keep track of the current locations' offset at each depth.
+    // maps: Depth -> #Visits
+    std::unordered_map<size_t, size_t> depth_visits_;
+    Loc curr_loc_;
     // The current scope which we mostly use to construct the scope map during init
     Scope* curr_scope_;
-    Scope* curr_scope() const { return curr_scope_; }
-    Scope* get_scope(Loc loc) { return &(*scope_tree_)[loc]; }
-    void set_curr_scope(Scope* scope) { curr_scope_ = scope; }
-    void curr_scope_add(std::string name, const Def* def) {
-        curr_scope()->var_name = name;
-        curr_scope()->def      = def;
-    }
-
     // For every scope-location we store a Scope struct that stores a pointer to its
     // parent scope, the name of the var it introduces, and the Def associated with this var.
-    typedef std::unordered_map<Loc, Scope, LocHash> ScopeTree;
     ScopeTree* scope_tree_;
-    ScopeTree* scope_tree() const { return scope_tree_; }
-    ScopeTree* get_scope_tree(size_t rec_expr_id) { return &scope_tree_map_[rec_expr_id]; }
-    void set_scope_tree(ScopeTree* scope_tree) { scope_tree_ = scope_tree; }
-    void set_scope_tree(size_t rec_expr_id) {
-        set_scope_tree(get_scope_tree(rec_expr_id));
-        set_curr_scope(get_scope(curr_loc()));
-    }
-
     // For every RecExprFFI keyed by its idx, we store a structure representing its scopetree.
     std::unordered_map<size_t, ScopeTree> scope_tree_map_;
-
     // There is a special root scope which is a registry of all top-level/closed Defs
     // that exist beyond the current RecExprFFI.
     std::set<std::pair<std::string, const Def*>> root_scope_;
-    std::set<std::pair<std::string, const Def*>> root_scope() const { return root_scope_; }
-    void root_scope_add(std::string name, const Def* def) { root_scope_.insert({name, def}); }
 
     rust::Vec<NodeFFI> nodes_;
     std::unordered_map<uint32_t, const Def*> added_;

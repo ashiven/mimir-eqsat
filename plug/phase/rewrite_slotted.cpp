@@ -71,14 +71,50 @@ std::pair<rust::Vec<RuleSet>, CostFn> RewriteSlotted::import_config() {
     return {rulesets, cost_fn};
 }
 
+const Def* RewriteSlotted::create_type(RecExprFFI type_) {
+    auto root_id = type_.nodes.size() - 1;
+
+    // Save current state
+    auto saved_loc        = loc();
+    auto saved_visits     = depth_visits();
+    auto saved_scope_tree = scope_tree();
+    auto saved_scope      = scope();
+    auto saved_nodes      = nodes();
+
+    // Prepare environment
+    auto temp_scope_tree = ScopeTree{};
+    reset_cache();
+    reset_loc();
+    reset_depth_visits();
+    set_scope_tree(&temp_scope_tree);
+    set_scope(scope(loc()));
+    set_nodes(type_.nodes);
+
+    // Convert type
+    init(root_id);
+    auto res = convert(root_id);
+
+    // Restore state
+    reset_cache();
+    set_loc(saved_loc);
+    set_depth_visits(saved_visits);
+    set_scope_tree(saved_scope_tree);
+    set_scope(saved_scope);
+    set_nodes(saved_nodes);
+
+    return res;
+}
+
 void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
     size_t rec_expr_id = 0;
     for (auto rec_expr : rec_exprs) {
-        reset_loc();
         reset_cache();
+        reset_loc();
+        reset_depth_visits();
 
         set_nodes(rec_expr.nodes);
         set_scope_tree(rec_expr_id);
+        set_scope(scope(loc()));
 
         auto root_id = nodes().size() - 1;
         init(root_id);
@@ -96,6 +132,9 @@ const Def* RewriteSlotted::init(uint32_t id) {
         case MimKind::Axm: res = init_axm(id, node); break;
         case MimKind::Root: res = init_root(id, node); break;
         case MimKind::Let: res = init_let(id, node); break;
+        case MimKind::Pi: res = init_pi(id, node); break;
+        case MimKind::Sigma: res = init_sigma(id, node); break;
+        case MimKind::Arr: res = init_arr(id, node); break;
         default: break;
     }
 
@@ -111,7 +150,8 @@ const Def* RewriteSlotted::init_axm(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     auto name = get_symbol(node.children[0]);
     if (DEBUG) std::cout << "\n";
-    auto type = convert(node.children[1], true);
+    // TODO: Use create_type instead of convert
+    auto type = convert(node.children[1]);
 
     auto new_axm = new_world().axm(type);
     new_axm->set(name);
@@ -155,7 +195,7 @@ const Def* RewriteSlotted::init_let(uint32_t id, NodeFFI node) {
         def->set(name);
         register_var(name, def);
     } else {
-        def = convert(name_scope.children[0], true);
+        def = convert(name_scope.children[0]);
         def->set(name);
         register_var(name, def);
     }
@@ -169,7 +209,7 @@ const Def* RewriteSlotted::init_let(uint32_t id, NodeFFI node) {
 const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
-    auto pi_type = convert(node.type_)->as<Pi>();
+    auto pi_type = create_type(node.type_)->as<Pi>();
     auto new_lam = new_world().mut_lam(pi_type);
 
     auto var_name = get_slot(id);
@@ -190,55 +230,88 @@ const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
     return new_lam;
 }
 
-const Def* RewriteSlotted::convert(RecExprFFI type_) {
-    auto root_id = type_.nodes.size() - 1;
+// (pi $var (scope <dom> <codom>))
+const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
+    if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
 
-    // Save current state
-    reset_cache();
-    auto curr_nodes    = nodes();
-    auto curr_location = curr_loc();
-    auto curr_visits   = depth_visits();
+    auto new_pi = new_world().mut_pi(new_world().type<1>());
 
-    // TODO: Since types now also include binders we need a top-down init pass
-    // followed by a bottom-up convert pass.
-    // - We need binder creation in init for Sigma, Arr, and Pi.
-    // - We also temporarily need a scope_tree for this type conversion.
-    set_nodes(type_.nodes);
-    auto res = convert(root_id, true);
+    auto var_name = get_slot(id);
+    auto var      = new_pi->var();
+    var->set(var_name);
 
-    // Restore state
-    reset_cache();
-    set_nodes(curr_nodes);
-    set_curr_loc(curr_location);
-    set_depth_visits(curr_visits);
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+    enter_scope(var_scope);
+    register_var(var_name, var);
+    exit_scope(var_scope, true);
 
-    return res;
+    return new_pi;
+}
+
+// (sigma $var (scope <elem-cons> nil))
+const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
+    if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
+
+    auto var_scope = get_node(MimKind::Sigma, node.children[0]);
+    auto elem_cons = get_cons_flat(var_scope.children[0]);
+    auto size      = elem_cons.size();
+
+    auto new_sigma = new_world().mut_sigma(size);
+
+    auto var_name = get_slot(id);
+    auto var      = new_sigma->var();
+    var->set(var_name);
+
+    enter_scope(var_scope);
+    register_var(var_name, var);
+    exit_scope(var_scope, true);
+
+    return new_sigma;
+}
+
+// (arr $var (scope <arity> <body>))
+const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
+    if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
+
+    auto new_arr = new_world().mut_arr();
+
+    auto var_name = get_slot(id);
+    auto var      = new_arr->var();
+    var->set(var_name);
+
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+    enter_scope(var_scope);
+    register_var(var_name, var);
+    exit_scope(var_scope, true);
+
+    return new_arr;
 }
 
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
     size_t rec_expr_id = 0;
     for (auto rec_expr : rec_exprs) {
-        reset_loc();
         reset_cache();
+        reset_loc();
+        reset_depth_visits();
 
         set_nodes(rec_expr.nodes);
         set_scope_tree(rec_expr_id);
+        set_scope(scope(loc()));
 
         auto root_id = nodes().size() - 1;
-        convert(root_id, true);
+        convert(root_id);
 
         rec_expr_id++;
     }
 }
 
-const Def* RewriteSlotted::convert(uint32_t id, bool recurse) {
+const Def* RewriteSlotted::convert(uint32_t id) {
     auto node = get_node_unsafe(id);
 
     enter_scope(node);
 
-    if (recurse)
-        for (uint32_t child : node.children)
-            convert(child, recurse);
+    for (uint32_t child : node.children)
+        convert(child);
 
     const Def* res = cache_get(id);
     if (res) return res;
