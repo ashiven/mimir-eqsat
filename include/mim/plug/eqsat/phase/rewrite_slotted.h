@@ -295,7 +295,7 @@ private:
         curr_scope->loc = loc();
         set_scope(curr_scope);
     }
-    void enter_scope(NodeFFI node, bool ignore_last_visit = false) {
+    void enter_scope(NodeFFI node, bool revisit = false) {
         if (node.kind == MimKind::Scope) {
             auto parent_loc = loc();
 
@@ -304,10 +304,10 @@ private:
             auto next_loc    = Loc{next_depth, next_offset};
             set_loc(next_loc);
 
-            // We act like we didn't already visit at that depth before,
-            // which we need to be able to revisit a scope we just exited
-            // in the convert() bottom-up traverse.
-            if (ignore_last_visit) {
+            // We sometimes need to be able to revisit a scope we just exited
+            // in the convert() bottom-up traverse. This is the equivalent of
+            // the lookahead in exit_scope() for the top-down traverse.
+            if (revisit) {
                 auto curr_depth   = loc().depth;
                 auto prev_offset  = loc().offset - 1;
                 auto adjusted_loc = Loc{curr_depth, prev_offset};
@@ -319,14 +319,14 @@ private:
             if (DEBUG_SCOPES) std::cout << "Entering: " << scope()->to_str() << "\n";
         }
     }
-    void exit_scope(NodeFFI node, bool ignore_visit = false) {
+    void exit_scope(NodeFFI node, bool lookahead = false) {
         if (node.kind == MimKind::Scope) {
             if (DEBUG_SCOPES) std::cout << "Exiting: " << scope()->to_str() << "\n";
 
-            // We sometimes want to act like we did not enter a scope
-            // in the top-down traverse in which case we don't increment
-            // the number of visits at the specific depth.
-            if (!ignore_visit) inc_visit_count(loc().depth);
+            // We sometimes want to enter a scope in the top-down
+            // traverse without incrementing the number of visits
+            // at the specific depth when exiting it. (look ahead)
+            if (!lookahead) inc_visit_count(loc().depth);
 
             auto next_depth  = loc().depth - 1;
             auto next_offset = depth_visits()[next_depth];

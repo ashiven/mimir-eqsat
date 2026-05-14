@@ -375,7 +375,7 @@ const Def* RewriteSlotted::convert_root(uint32_t id, NodeFFI node) {
             lam->set_filter(false);
         }
         if (is_extern == "extern") lam->externalize();
-        exit_scope(var_scope, true);
+        exit_scope(var_scope);
     }
 
     return def;
@@ -402,10 +402,10 @@ const Def* RewriteSlotted::convert_let(uint32_t id, NodeFFI node) {
         } else {
             lam->set_filter(false);
         }
-        exit_scope(var_scope, true);
+        exit_scope(var_scope);
     }
 
-    exit_scope(name_scope, true);
+    exit_scope(name_scope);
     return expr;
 }
 
