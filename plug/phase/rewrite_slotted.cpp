@@ -578,9 +578,6 @@ const Def* RewriteSlotted::convert_top(uint32_t id, NodeFFI node) {
 
 // (arr $var (scope <arity> <body>))
 const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
-    // TODO: If we are converting an arr as part of a rec expr and not
-    // as part of a type then it won't have been initialized and we won't (But shouldn't it have been init'd?)
-    // be able to get it here. (I guess it would be an immutable arr?)
     auto arr = get_def(id)->as_mut<Arr>();
 
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
@@ -590,7 +587,9 @@ const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
 
     exit_scope(var_scope);
 
-    arr->set_body(body);
+    // We already converted some mutable pi/sigma/arr that appear in let/root def subterms
+    // via init_lookahead and setting them again when they have already been set would result in an error.
+    if (!arr->body()) arr->set_body(body);
     return arr;
 }
 
@@ -610,7 +609,7 @@ const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
 
     exit_scope(var_scope);
 
-    sigma->set(types);
+    if (!sigma->is_set()) sigma->set(types);
     return sigma;
 }
 
@@ -633,7 +632,7 @@ const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
 
     exit_scope(var_scope);
 
-    pi->set(domain, codomain);
+    if (!pi->is_set()) pi->set(domain, codomain);
     return pi;
 }
 
