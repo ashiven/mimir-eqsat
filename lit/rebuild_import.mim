@@ -6,7 +6,7 @@ plugin eqsat;
 import pipeline;
 
 fun extern _impl(): %eqsat.Impl =
-    return %eqsat.__IMPL__;
+    return %eqsat.slotted;
 
 ccon atoi[%mem.M 0, %mem.Ptr («⊤:Nat; I8», 0), Cn [%mem.M 0, I32]];
 

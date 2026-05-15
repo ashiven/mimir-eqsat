@@ -119,13 +119,13 @@ void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
         set_scope(loc());
 
         auto root_id = nodes().size() - 1;
-        init(root_id);
+        init(root_id, true);
 
         rec_expr_id++;
     }
 }
 
-const Def* RewriteSlotted::init(uint32_t id) {
+const Def* RewriteSlotted::init(uint32_t id, bool lookahead_init /* = false */) {
     auto node = get_node_unsafe(id);
     enter_scope(node);
 
@@ -134,17 +134,44 @@ const Def* RewriteSlotted::init(uint32_t id) {
         case MimKind::Axm: res = init_axm(id, node); break;
         case MimKind::Root: res = init_root(id, node); break;
         case MimKind::Let: res = init_let(id, node); break;
-        case MimKind::Pi: res = init_pi(id, node); break;
-        case MimKind::Sigma: res = init_sigma(id, node); break;
-        case MimKind::Arr: res = init_arr(id, node); break;
         default: break;
     }
 
+    // If lookahead_init=true we implicitly call init_lam/pi/sigma/arr
+    // via their surrounding let/root binders init_let/init_root
+    // We don't need to initialize with a lookahead when creating types or let/root
+    // definition subterms because we know that they do not contain
+    // let-bindings or root-bindings which require this lookahead initialization.
+    if (!lookahead_init) {
+        switch (node.kind) {
+            case MimKind::Lam: res = init_lam(id, node); break;
+            case MimKind::Pi: res = init_pi(id, node); break;
+            case MimKind::Sigma: res = init_sigma(id, node); break;
+            case MimKind::Arr: res = init_arr(id, node); break;
+            default: break;
+        }
+    }
+
     for (uint32_t child : node.children)
-        init(child);
+        init(child, lookahead_init);
 
     exit_scope(node, true);
     return cache_set(id, res);
+}
+
+const Def* RewriteSlotted::init_lookahead(uint32_t id, NodeFFI node) {
+    const Def* def = cache_get(id);
+    switch (node.kind) {
+        case MimKind::Lam: def = init_lam(id, node); break;
+        case MimKind::Pi: def = init_pi(id, node); break;
+        case MimKind::Sigma: def = init_sigma(id, node); break;
+        case MimKind::Arr: def = init_arr(id, node); break;
+        default:
+            init(id);
+            def = convert(id);
+            break;
+    }
+    return def;
 }
 
 // (axm <name> <type>)
@@ -169,13 +196,11 @@ const Def* RewriteSlotted::init_root(uint32_t id, NodeFFI node) {
 
     auto name = get_symbol(node.children[1]);
 
-    const Def* def = nullptr;
-    auto def_node  = get_node_unsafe(node.children[2]);
-    if (def_node.kind == MimKind::Lam) {
-        def = init_lam(node.children[2], def_node);
-        def->set(name);
-        register_var(name, def);
-    }
+    auto def_id   = node.children[2];
+    auto def_node = get_node_unsafe(def_id);
+    auto def      = init_lookahead(def_id, def_node);
+    def->set(name);
+    register_var(name, def);
 
     if (DEBUG) std::cout << def << "\n";
     return nullptr;
@@ -188,19 +213,14 @@ const Def* RewriteSlotted::init_let(uint32_t id, NodeFFI node) {
     auto var_name  = get_slot(id);
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
 
-    const Def* def = nullptr;
-    auto def_node  = get_node_unsafe(var_scope.children[0]);
-
     enter_scope(var_scope);
-    if (def_node.kind == MimKind::Lam) {
-        def = init_lam(var_scope.children[0], def_node);
-        def->set(var_name);
-        register_var(var_name, def);
-    } else {
-        def = convert(var_scope.children[0]);
-        def->set(var_name);
-        register_var(var_name, def);
-    }
+
+    auto def_id   = var_scope.children[0];
+    auto def_node = get_node_unsafe(def_id);
+    auto def      = init_lookahead(def_id, def_node);
+    def->set(var_name);
+    register_var(var_name, def);
+
     exit_scope(var_scope);
 
     if (DEBUG) std::cout << def << "\n";
@@ -241,7 +261,7 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
     register_var(var_name, var);
     exit_scope(var_scope);
 
-    return new_pi;
+    return cache_set(id, new_pi);
 }
 
 // (sigma $var (scope <elem-cons> nil))
@@ -262,7 +282,7 @@ const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
     register_var(var_name, var);
     exit_scope(var_scope);
 
-    return new_sigma;
+    return cache_set(id, new_sigma);
 }
 
 // (arr $var (scope <arity> <body>))
@@ -283,7 +303,7 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
     register_var(var_name, var);
     exit_scope(var_scope);
 
-    return new_arr;
+    return cache_set(id, new_arr);
 }
 
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
@@ -558,6 +578,9 @@ const Def* RewriteSlotted::convert_top(uint32_t id, NodeFFI node) {
 
 // (arr $var (scope <arity> <body>))
 const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
+    // TODO: If we are converting an arr as part of a rec expr and not
+    // as part of a type then it won't have been initialized and we won't (But shouldn't it have been init'd?)
+    // be able to get it here. (I guess it would be an immutable arr?)
     auto arr = get_def(id)->as_mut<Arr>();
 
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
