@@ -167,8 +167,19 @@ const Def* RewriteSlotted::init_lookahead(uint32_t id, NodeFFI node) {
         case MimKind::Sigma: def = init_sigma(id, node); break;
         case MimKind::Arr: def = init_arr(id, node); break;
         default:
+            auto saved_loc    = loc();
+            auto saved_visits = depth_visits();
+            auto saved_scope  = scope();
+
             init(id);
+            set_loc(saved_loc);
+            set_depth_visits(saved_visits);
+            set_scope(saved_scope);
+
             def = convert(id);
+            set_loc(saved_loc);
+            set_depth_visits(saved_visits);
+            set_scope(saved_scope);
             break;
     }
     return def;
