@@ -318,8 +318,10 @@ private:
             set_loc(next_loc);
 
             // We sometimes need to be able to revisit a scope we just exited
-            // in the convert() bottom-up traverse. This is the equivalent of
-            // the lookahead in exit_scope() for the top-down traverse.
+            // in the convert() bottom-up traverse. Since the last visit coming
+            // from the bottom up was counted, our offset when revisiting needs
+            // to be decremented by one in order to account for the fact that
+            // we are visiting the same scope again.
             if (revisit) {
                 auto curr_depth   = loc().depth;
                 auto prev_offset  = loc().offset - 1;
@@ -332,14 +334,11 @@ private:
             if (DEBUG_SCOPES) std::cout << "Entering: " << scope()->to_str() << "\n";
         }
     }
-    void exit_scope(NodeFFI node, bool lookahead = false) {
+    void exit_scope(NodeFFI node, bool count_visit = false) {
         if (node.kind == MimKind::Scope) {
             if (DEBUG_SCOPES) std::cout << "Exiting: " << scope()->to_str() << "\n";
 
-            // We sometimes want to enter a scope in the top-down
-            // traverse without incrementing the number of visits
-            // at the specific depth when exiting it. (look ahead)
-            if (!lookahead) inc_visit_count(loc().depth);
+            if (count_visit) inc_visit_count(loc().depth);
 
             auto next_depth  = loc().depth - 1;
             auto next_offset = depth_visits()[next_depth];
