@@ -72,6 +72,8 @@ std::pair<rust::Vec<RuleSet>, CostFn> RewriteSlotted::import_config() {
 }
 
 const Def* RewriteSlotted::create_type(RecExprFFI type_) {
+    if (type_.nodes.empty()) return nullptr;
+
     auto root_id = type_.nodes.size() - 1;
 
     // Save current state
@@ -190,8 +192,13 @@ const Def* RewriteSlotted::init_axm(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     auto name = get_symbol(node.children[0]);
     if (DEBUG) std::cout << "\n";
-    // TODO: Use create_type instead of convert
-    auto type = convert(node.children[1]);
+
+    // TODO: Pass a type annotation along instead of this nonsense
+    // This needs us to type annotate (axm) in the sexpr backend.
+    // Maybe we don't want to annotate the axm node but rather
+    // just the name of the axm like (axm (@ Bool %foo.bar))
+    auto type = create_type(node.type_);
+    assert(type != nullptr);
 
     auto new_axm = new_world().axm(type);
     new_axm->set(name);

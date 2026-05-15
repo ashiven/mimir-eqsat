@@ -6,7 +6,7 @@ build:
 		-DBUILD_TESTING=ON \
 		-DMIM_BUILD_EXAMPLES=ON \
 		-DCMAKE_EXPORT_COMPILE_COMMANDS=1 \
-		-DCMAKE_INSTALL_PREFIX="~\OneDrive\Dokumente\Projects\C++\MimIR\build\install"
+		-DCMAKE_INSTALL_PREFIX="~/OneDrive/Dokumente/Projects/C++/MimIR/build/install"
 
 
 compile:
@@ -16,7 +16,7 @@ build-lit:
 	cmake --build ../../build -j 8 --target lit -- /verbosity:quiet
 
 test:
-	MIM_PLUGIN_PATH="~/OneDrive/Dokumente/Projects/C++/MimIR/extra/eqsat/lit" && "../../build/install/bin/mim.exe" ./lit/$(TEST) -o -
+	MIM_PLUGIN_PATH="C:/Users/janni/OneDrive/Dokumente/Projects/C++/MimIR/extra/eqsat/lit" && "../../build/install/bin/mim.exe" ./lit/$(TEST) -o -
 
 bootstrap:
 	../../build/bin/Debug/mim.exe \
