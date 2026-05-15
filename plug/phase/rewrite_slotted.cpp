@@ -125,7 +125,7 @@ void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
     }
 }
 
-const Def* RewriteSlotted::init(uint32_t id, bool lookahead_init /* = false */) {
+const Def* RewriteSlotted::init(uint32_t id, bool init_lookahead /* = false */) {
     auto node = get_node_unsafe(id);
     enter_scope(node);
 
@@ -137,12 +137,12 @@ const Def* RewriteSlotted::init(uint32_t id, bool lookahead_init /* = false */) 
         default: break;
     }
 
-    // If lookahead_init=true we implicitly call init_lam/pi/sigma/arr
+    // If init_lookahead=true we implicitly call init_lam/pi/sigma/arr
     // via their surrounding let/root binders init_let/init_root
     // We don't need to initialize with a lookahead when creating types or let/root
     // definition subterms because we know that they do not contain
     // let-bindings or root-bindings which require this lookahead initialization.
-    if (!lookahead_init) {
+    if (!init_lookahead) {
         switch (node.kind) {
             case MimKind::Lam: res = init_lam(id, node); break;
             case MimKind::Pi: res = init_pi(id, node); break;
@@ -153,7 +153,7 @@ const Def* RewriteSlotted::init(uint32_t id, bool lookahead_init /* = false */) 
     }
 
     for (uint32_t child : node.children)
-        init(child, lookahead_init);
+        init(child, init_lookahead);
 
     exit_scope(node, true);
     return cache_set(id, res);
