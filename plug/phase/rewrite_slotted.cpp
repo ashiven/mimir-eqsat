@@ -271,12 +271,14 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
 
     auto new_arr = new_world().mut_arr();
 
+    auto var_scope = get_node(MimKind::Scope, node.children[0]);
+    auto arity     = convert(var_scope.children[0]);
+    new_arr->set_arity(arity);
+
     auto var_name = get_slot(id);
-    // TODO: This line results in an error in rebuild_import.mim
-    auto var = new_arr->var();
+    auto var      = new_arr->var();
     var->set(var_name);
 
-    auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
     register_var(var_name, var);
     exit_scope(var_scope);
@@ -315,7 +317,7 @@ const Def* RewriteSlotted::convert(uint32_t id) {
     // they have already been created in init().
     // We could later short-circuit for all other terms except
     // those that need to be revisited..
-    const Def* res = nullptr;
+    const Def* res = cache_get(id);
 
     if (DEBUG) std::cout << "convert - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     switch (node.kind) {
@@ -348,6 +350,9 @@ const Def* RewriteSlotted::convert(uint32_t id) {
         case MimKind::Symbol: res = convert_symbol(id, node); break;
         default: break;
     }
+
+    if (res)
+        if (auto mut = res->isa_mut()) mut->immutabilize();
 
     if (DEBUG_SCOPES && node.kind == MimKind::Scope) std::cout << "\n";
     exit_scope(node, true);
@@ -558,12 +563,11 @@ const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope, true);
 
-    auto arity = get_def(var_scope.children[0]);
-    auto body  = get_def(var_scope.children[1]);
+    auto body = get_def(var_scope.children[1]);
 
     exit_scope(var_scope);
 
-    arr->set(arity, body);
+    arr->set_body(body);
     return arr;
 }
 

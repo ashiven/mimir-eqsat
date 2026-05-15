@@ -14,7 +14,7 @@
 namespace mim::plug::eqsat {
 
 const bool DEBUG        = true;
-const bool DEBUG_SCOPES = true;
+const bool DEBUG_SCOPES = false;
 
 class RewriteSlotted : public Phase, public Rewriter {
 public:
