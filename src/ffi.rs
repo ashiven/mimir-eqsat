@@ -532,6 +532,21 @@ impl RecExprFFI {
                         vec.insert(1, Sexpr::String(node.slot.clone()))
                     }
                 }
+                MimKind::Pi => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Sigma => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Arr => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
                 _ => (),
             }
             Sexpr::List(vec)
