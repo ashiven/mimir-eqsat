@@ -1,4 +1,4 @@
-.PHONY: build compile build-lit test bootstrap
+.PHONY: build compile build-lit bootstrap run-mim test test-all
 
 # NOTE: use flag "-G Ninja" to generate compile_commands.json on Windows
 build:
@@ -15,9 +15,6 @@ compile:
 build-lit:
 	cmake --build ../../build -j 8 --target lit -- /verbosity:quiet
 
-test:
-	MIM_PLUGIN_PATH="C:/Users/janni/OneDrive/Dokumente/Projects/C++/MimIR/extra/eqsat/lit" && "../../build/install/bin/mim.exe" ./lit/$(TEST) -o -
-
 bootstrap:
 	../../build/bin/Debug/mim.exe \
   ./eqsat.mim \
@@ -25,6 +22,9 @@ bootstrap:
   --bootstrap \
   --output-h ../../build/include/mim/plug/eqsat/autogen.h \
 	--output-md ../../build/docs/plug/eqsat.md
+
+test:
+	MIM_PLUGIN_PATH="C:/Users/janni/OneDrive/Dokumente/Projects/C++/MimIR/extra/eqsat/lit" && "../../build/install/bin/mim.exe" ./lit/$(TEST) -o -
 
 test-all:
 	python ../../lit/lit ../../build/lit -v --filter eqsat
