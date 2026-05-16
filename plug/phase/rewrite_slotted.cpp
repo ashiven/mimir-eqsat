@@ -240,6 +240,10 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
 
     auto new_pi = new_world().mut_pi(new_world().type_infer_univ());
 
+    auto dom_stub   = new_world().mut_hole_type();
+    auto codom_stub = new_world().mut_hole_type();
+    new_pi->set(dom_stub, codom_stub);
+
     auto var_name = get_slot(id);
     auto var      = new_pi->var();
     var->set(var_name);
@@ -280,7 +284,7 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto new_arr = new_world().mut_arr(new_world().mut_hole_type());
+    auto new_arr = new_world().mut_arr(new_world().type_infer_univ());
 
     auto arity_stub = new_world().mut_hole_infer_entity();
     auto body_stub  = new_world().mut_hole_type();
@@ -615,7 +619,9 @@ const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
 
     auto domain   = get_def(var_scope.children[0]);
     auto codomain = get_def(var_scope.children[1]);
-    if (!pi->is_set()) pi->set(domain, codomain);
+
+    pi->unset();
+    pi->set(domain, codomain);
 
     exit_scope(var_scope);
     return pi;
