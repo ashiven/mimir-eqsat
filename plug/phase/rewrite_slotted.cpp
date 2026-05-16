@@ -280,10 +280,11 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto new_arr = new_world().mut_arr();
+    auto new_arr = new_world().mut_arr(new_world().mut_hole_type());
 
-    auto arity = convert(var_scope.children[0]);
-    new_arr->set_arity(arity);
+    auto arity_stub = new_world().mut_hole_infer_entity();
+    auto body_stub  = new_world().mut_hole_type();
+    new_arr->set(arity_stub, body_stub);
 
     auto var_name = get_slot(id);
     auto var      = new_arr->var();
@@ -565,8 +566,11 @@ const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
 
     auto arr = get_def(id)->as_mut<Arr>();
 
-    auto body = get_def(var_scope.children[1]);
-    if (!arr->body()) arr->set_body(body);
+    auto arity = get_def(var_scope.children[0]);
+    auto body  = get_def(var_scope.children[1]);
+
+    arr->unset();
+    arr->set(arity, body);
 
     exit_scope(var_scope);
     return arr;
