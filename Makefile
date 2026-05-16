@@ -28,3 +28,6 @@ test:
 
 test-all:
 	python ../../lit/lit ../../build/lit -v --filter eqsat
+
+sexpr:
+	mim ./lit/$(NAME) --sexpr-include-types --output-sexpr-slotted -
