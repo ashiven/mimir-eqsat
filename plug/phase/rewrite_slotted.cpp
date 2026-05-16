@@ -355,8 +355,8 @@ const Def* RewriteSlotted::convert(uint32_t id) {
         default: break;
     }
 
-    // if (res)
-    //     if (auto mut = res->isa_mut()) mut->immutabilize();
+    if (res)
+        if (auto mut = res->isa_mut()) mut->immutabilize();
 
     if (DEBUG_SCOPES && node.kind == MimKind::Scope) std::cout << "\n";
     exit_scope(node, true);
