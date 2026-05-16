@@ -255,18 +255,24 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
     return new_pi;
 }
 
-// (sigma $var (scope <elem-cons> nil))
+// (sigma $var (scope <type-cons> nil))
 const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
     if (DEBUG) std::cout << "init - current node(" << id << "): " << node_ffi_str(node).c_str() << " - \n";
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto elem_cons = get_cons_flat(var_scope.children[0]);
-    auto size      = elem_cons.size();
-    DefVec stub_ops(size, new_world().mut_hole_type());
+    auto type_cons = get_cons_flat(var_scope.children[0]);
+    auto size      = type_cons.size();
 
-    auto new_sigma = new_world().mut_sigma(size);
-    new_sigma->set(stub_ops);
+    DefVec types;
+    for (auto type_id : type_cons) {
+        auto type_node = get_node_unsafe(type_id);
+        auto type      = init_lookahead(type_id, type_node);
+        types.push_back(type);
+    }
+
+    auto new_sigma = new_world().mut_sigma(new_world().type_infer_univ(), size);
+    new_sigma->set(types);
 
     auto var_name = get_slot(id);
     auto var      = new_sigma->var();
