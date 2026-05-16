@@ -154,7 +154,7 @@ const Def* RewriteSlotted::init_lookahead(uint32_t id, NodeFFI node) {
             restore_state(saved_state);
             break;
     }
-    return def;
+    return cache_set(id, def);
 }
 
 // (axm <name> <type>)
@@ -223,8 +223,9 @@ const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
 
     register_var(var_name, var);
 
+    if (DEBUG) std::cout << new_lam << "\n";
     exit_scope(var_scope);
-    return cache_set(id, new_lam);
+    return new_lam;
 }
 
 // (pi $var (scope <dom> <codom>))
@@ -241,8 +242,9 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
 
     register_var(var_name, var);
 
+    if (DEBUG) std::cout << new_pi << "\n";
     exit_scope(var_scope);
-    return cache_set(id, new_pi);
+    return new_pi;
 }
 
 // (sigma $var (scope <elem-cons> nil))
@@ -262,8 +264,9 @@ const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
 
     register_var(var_name, var);
 
+    if (DEBUG) std::cout << new_sigma << "\n";
     exit_scope(var_scope);
-    return cache_set(id, new_sigma);
+    return new_sigma;
 }
 
 // (arr $var (scope <arity> <body>))
@@ -283,8 +286,9 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
 
     register_var(var_name, var);
 
+    if (DEBUG) std::cout << new_arr << "\n";
     exit_scope(var_scope);
-    return cache_set(id, new_arr);
+    return new_arr;
 }
 
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
