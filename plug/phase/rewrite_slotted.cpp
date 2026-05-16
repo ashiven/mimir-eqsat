@@ -355,6 +355,9 @@ const Def* RewriteSlotted::convert(uint32_t id) {
     // they have already been created in init().
     // We could later short-circuit for all other terms except
     // those that need to be revisited..
+    // TODO: Try out the following once everything else works:
+    // std::set mutables = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr};
+    // if (res && !mutables.contains(node.kind)) return res;
     const Def* res = cache_get(id);
 
     if (DEBUG) std::cout << "convert - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";

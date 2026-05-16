@@ -26,4 +26,5 @@ bootstrap:
   --output-h ../../build/include/mim/plug/eqsat/autogen.h \
 	--output-md ../../build/docs/plug/eqsat.md
 
-# TODO: test-all command to run all tests in ./lit
+test-all:
+	python ../../lit/lit ../../build/lit -v --filter eqsat
