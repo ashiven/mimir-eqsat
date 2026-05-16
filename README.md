@@ -56,9 +56,9 @@ int main(int, char**) {
 
         // rule foo (x: Nat) = %core.nat.add (x, 0) => x;
         auto foo = w.mut_rule(w.type_nat())->set("foo");
-        foo->var()->set("x");
-        auto lhs = w.call(core::nat::add, w.tuple(foo->var(), lit_nat(0)))
-        auto rhs = foo->var();
+        auto x = foo->var()->set("x");
+        auto lhs = w.call(core::nat::add, w.tuple(x, lit_nat(0)))
+        auto rhs = x;
         foo.set_lhs(lhs);
         foo.set_rhs(rhs);
         foo.set_guard(w.lit_tt());
@@ -109,23 +109,17 @@ fun extern _impl(): %eqsat.Impl =
 
 // To define the cost function that should be used for term extraction,
 // simply provide the following config function.
-//
-// Config values:
-// Egg:       AstSize (default), AstDepth
-// Slotted:   AstSize (default)
 fun extern _cost_fun(): %eqsat.CostFun =
     return %eqsat.AstSize;
 
 // To use a set of rules directly implemented in `egg` or `slotted-egraphs`, define
 // the following config function.
-//
 // To see the existing rulesets, have a look at `src\mim_[egg|slotted]\rulesets`.
-// To implement and use your own ruleset, follow the instructions under **Adding rulesets**.
+// To implement and use your own ruleset, follow the instructions under **Rulesets**.
 fun extern _rulesets(): %eqsat.Ruleset =
     return %eqsat.rulesets ( %eqsat.standard );
 
 // You can also define your own syntactic rewrite-rules in `MimIR`.
-//
 // To differentiate between slots: "(var $x)" and patterns: "?x" you should
 // prefix variables with "slot_" or "pat_" when using the slotted implementation.
 rule foo (slot_x: Nat) = %core.nat.add (slot_x, 0) => slotx;
@@ -133,7 +127,6 @@ rule foo (slot_x: Nat) = %core.nat.add (slot_x, 0) => slotx;
 // And then tell the eqsat plugin to use them for term rewriting.
 fun extern _rules(): %eqsat.Rules =
     return %eqsat.rules ( foo );
-
 
 // Using your rewrite-rule 'foo', this will be rewritten to:
 //
