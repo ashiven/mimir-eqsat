@@ -59,9 +59,9 @@ int main(int, char**) {
         auto x = foo->var()->set("x");
         auto lhs = w.call(core::nat::add, w.tuple(x, lit_nat(0)))
         auto rhs = x;
-        foo.set_lhs(lhs);
-        foo.set_rhs(rhs);
-        foo.set_guard(w.lit_tt());
+        foo->set_lhs(lhs);
+        foo->set_rhs(rhs);
+        foo->set_guard(w.lit_tt());
 
         // Use the provided methods to quickly define config functions
         eqsat_impl(w, eqsat::slotted);
