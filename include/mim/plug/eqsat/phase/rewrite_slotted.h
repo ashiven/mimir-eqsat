@@ -188,6 +188,12 @@ private:
 
     const Def* cache_get(uint32_t id) { return (*cache())[id]; }
     const Def* cache_set(uint32_t id, const Def* def) { return (*cache())[id] = def; }
+    uint32_t get_id(const Def* def) {
+        auto it = std::find_if(cache()->begin(), cache()->end(), [&](const auto& pair) { return pair.second == def; });
+        if (it != cache()->end()) return it->first;
+        assert(false && "Could not find the given Def in the cache.");
+        return -1;
+    }
 
     // A node that is associated with a Def can be:
     // 1) A node representing an arbitrary term

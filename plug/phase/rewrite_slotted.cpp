@@ -10,6 +10,9 @@
 
 namespace mim::plug::eqsat {
 
+// A var can represent a mutable
+const std::set MUTABLES = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr, MimKind::Var};
+
 void RewriteSlotted::start() {
     auto [rulesets, cost_fn] = import_config();
 
@@ -303,21 +306,13 @@ void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
 
 const Def* RewriteSlotted::convert(uint32_t id) {
     auto node = get_node_unsafe(id);
-
     enter_scope(node);
 
     for (uint32_t child : node.children)
         convert(child);
 
-    // We don't want to short-circuit through the cache here
-    // because some Def's (mutables) need to be converted after
-    // they have already been created in init().
-    // We could later short-circuit for all other terms except
-    // those that need to be revisited..
-    // TODO: Try out the following once everything else works:
-    // std::set mutables = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr};
-    // if (res && !mutables.contains(node.kind)) return res;
     const Def* res = cache_get(id);
+    if (res && !MUTABLES.contains(node.kind)) return res;
 
     if (DEBUG) std::cout << "convert - current node(" << id << "): " << node_ffi_str(node).c_str() << " - ";
     switch (node.kind) {
@@ -451,6 +446,12 @@ const Def* RewriteSlotted::convert_tuple(uint32_t id, NodeFFI node) {
 
 // (extract <tuple> <index>)
 const Def* RewriteSlotted::convert_extract(uint32_t id, NodeFFI node) {
+    // TODO: 'tuple' can be a mutable sigma/arr whose ops have not
+    // been set at this point and extracting from this results in an error.
+    // - My idea to solve this would be to further split up the convert
+    //   method into convert_mutables followed by convert_immutables
+    // - The mutables would then need to further convert the subterms
+    //   that they depend on and that makes all of this such a complicated mess...
     auto tuple       = get_def(node.children[0]);
     auto index       = get_def(node.children[1]);
     auto new_extract = new_world().extract(tuple, index);
@@ -565,9 +566,6 @@ const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
     auto arr = get_def(id)->as_mut<Arr>();
 
     auto body = get_def(var_scope.children[1]);
-
-    // We already converted some mutable pi/sigma/arr that appear in let/root def subterms
-    // via init_lookahead and setting them again when they have already been set would result in an error.
     if (!arr->body()) arr->set_body(body);
 
     exit_scope(var_scope);
@@ -610,7 +608,6 @@ const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
 
     auto domain   = get_def(var_scope.children[0]);
     auto codomain = get_def(var_scope.children[1]);
-
     if (!pi->is_set()) pi->set(domain, codomain);
 
     exit_scope(var_scope);
