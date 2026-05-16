@@ -81,13 +81,13 @@ const Def* RewriteSlotted::create_type(RecExprFFI type_) {
     auto type_root_id    = type_.nodes.size() - 1;
     init(type_root_id);
 
-    std::cout << "\n Type init stage complete! \n";
+    if (DEBUG) std::cout << "Type init stage complete! \n";
 
     type_state.cache = cache();
     restore_state(type_state);
     auto res = convert(type_root_id);
 
-    std::cout << "\n Type convert stage complete! \n";
+    if (DEBUG) std::cout << "Type convert stage complete! \n";
 
     restore_state(outer_state);
     return res;
