@@ -144,6 +144,8 @@ private:
     // in the init phase will be set.
     void convert(rust::Vec<RecExprFFI> rec_exprs);
     const Def* convert(uint32_t id);
+    const Def* convert_mutables(uint32_t id);
+    const Def* convert_immutables(uint32_t id);
     const Def* convert_root(uint32_t id, NodeFFI node);
     const Def* convert_let(uint32_t id, NodeFFI node);
     const Def* convert_lam(uint32_t id, NodeFFI node);
@@ -297,11 +299,11 @@ private:
         return save_state();
     }
 
-    void restore_state(State state) {
+    void restore_state(State state, bool keep_cache = false) {
         set_loc(state.loc);
         set_depth_visits(state.depth_visits);
         set_nodes(state.nodes);
-        set_cache(state.cache);
+        if (!keep_cache) set_cache(state.cache);
         set_scope_tree(state.scope_tree);
         set_scope(state.scope);
     }

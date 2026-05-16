@@ -10,8 +10,7 @@
 
 namespace mim::plug::eqsat {
 
-// A var can represent a mutable
-const std::set MUTABLES = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr, MimKind::Var};
+const std::set MUTABLES = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr};
 
 void RewriteSlotted::start() {
     auto [rulesets, cost_fn] = import_config();
@@ -98,6 +97,7 @@ const Def* RewriteSlotted::create_type(RecExprFFI type_) {
 
 void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
     for (size_t rec_expr_id = 0; rec_expr_id < rec_exprs.size(); rec_expr_id++) {
+        if (DEBUG) std::cout << "\nInitializing RecExpr: " << rec_expr_id << "\n";
         auto rec_expr = rec_exprs[rec_expr_id];
         set_state(rec_expr_id, rec_expr);
 
@@ -237,7 +237,7 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto new_pi = new_world().mut_pi(new_world().type());
+    auto new_pi = new_world().mut_pi(new_world().type_infer_univ());
 
     auto var_name = get_slot(id);
     auto var      = new_pi->var();
@@ -258,13 +258,14 @@ const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
 
     auto elem_cons = get_cons_flat(var_scope.children[0]);
     auto size      = elem_cons.size();
+    DefVec stub_ops(size, new_world().mut_hole_type());
 
     auto new_sigma = new_world().mut_sigma(size);
+    new_sigma->set(stub_ops);
 
     auto var_name = get_slot(id);
     auto var      = new_sigma->var();
     var->set(var_name);
-
     register_var(var_name, var);
 
     if (DEBUG) std::cout << new_sigma << "\n";
@@ -296,6 +297,7 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
 
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
     for (size_t rec_expr_id = 0; rec_expr_id < rec_exprs.size(); rec_expr_id++) {
+        if (DEBUG) std::cout << "\nConverting RecExpr: " << rec_expr_id << "\n";
         auto rec_expr = rec_exprs[rec_expr_id];
         set_state(rec_expr_id, rec_expr);
 
@@ -446,12 +448,6 @@ const Def* RewriteSlotted::convert_tuple(uint32_t id, NodeFFI node) {
 
 // (extract <tuple> <index>)
 const Def* RewriteSlotted::convert_extract(uint32_t id, NodeFFI node) {
-    // TODO: 'tuple' can be a mutable sigma/arr whose ops have not
-    // been set at this point and extracting from this results in an error.
-    // - My idea to solve this would be to further split up the convert
-    //   method into convert_mutables followed by convert_immutables
-    // - The mutables would then need to further convert the subterms
-    //   that they depend on and that makes all of this such a complicated mess...
     auto tuple       = get_def(node.children[0]);
     auto index       = get_def(node.children[1]);
     auto new_extract = new_world().extract(tuple, index);
@@ -560,6 +556,7 @@ const Def* RewriteSlotted::convert_top(uint32_t id, NodeFFI node) {
 
 // (arr $var (scope <arity> <body>))
 const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
+    if (DEBUG_SCOPES) std::cout << "\n";
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope, true);
 
@@ -574,6 +571,7 @@ const Def* RewriteSlotted::convert_arr(uint32_t id, NodeFFI node) {
 
 // (sigma $var (scope <type-cons> nil))
 const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
+    if (DEBUG_SCOPES) std::cout << "\n";
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope, true);
 
@@ -586,7 +584,8 @@ const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
         types.push_back(type);
     }
 
-    if (!sigma->is_set()) sigma->set(types);
+    sigma->unset();
+    sigma->set(types);
 
     exit_scope(var_scope);
     return sigma;
@@ -601,6 +600,7 @@ const Def* RewriteSlotted::convert_cn(uint32_t id, NodeFFI node) {
 
 // (pi $var (scope <domain> <codomain>))
 const Def* RewriteSlotted::convert_pi(uint32_t id, NodeFFI node) {
+    if (DEBUG_SCOPES) std::cout << "\n";
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope, true);
 
