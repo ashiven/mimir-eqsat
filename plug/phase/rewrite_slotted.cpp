@@ -10,7 +10,8 @@
 
 namespace mim::plug::eqsat {
 
-const std::set MUTABLES = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr};
+const std::set MUTABLES   = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr};
+const std::set NO_CONVERT = {MimKind::Axm};
 
 void RewriteSlotted::start() {
     auto [rulesets, cost_fn] = import_config();
@@ -309,6 +310,8 @@ void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
 const Def* RewriteSlotted::convert(uint32_t id) {
     auto node = get_node_unsafe(id);
     enter_scope(node);
+
+    if (NO_CONVERT.contains(node.kind)) return nullptr;
 
     for (uint32_t child : node.children)
         convert(child);
