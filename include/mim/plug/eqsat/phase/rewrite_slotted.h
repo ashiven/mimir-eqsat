@@ -13,9 +13,67 @@
 
 namespace mim::plug::eqsat {
 
+/****************** DEBUG *********************/
 const bool DEBUG        = true;
 const bool DEBUG_SCOPES = true;
 
+/***************** TYPES **********************/
+typedef struct Loc {
+    int32_t depth;
+    size_t offset;
+
+    bool operator==(const Loc& other) const noexcept { return depth == other.depth && offset == other.offset; }
+
+    std::string to_str() const {
+        std::ostringstream os;
+        os << "Loc{ depth=" << depth << ", offset=" << offset << " }";
+        return os.str();
+    }
+} Loc;
+
+typedef struct LocHash {
+    std::size_t operator()(const Loc& loc) const noexcept {
+        return std::hash<size_t>()(loc.depth) ^ (std::hash<size_t>()(loc.offset) << 1);
+    }
+} LocHash;
+
+typedef struct Scope {
+    Loc loc;
+    Loc parent_loc;
+    std::string var_name;
+    const Def* def;
+
+    std::string to_str() const {
+        std::ostringstream os;
+        os << "Scope{ loc=" << loc.to_str() << ", parent_loc=" << parent_loc.to_str() << ", var=\"" << var_name
+           << "\", def=";
+        if (def)
+            os << def;
+        else
+            os << "null";
+        os << " }";
+        return os.str();
+    }
+} Scope;
+
+typedef std::unordered_map<uint32_t, const Def*> Cache;
+typedef std::unordered_map<size_t, Cache> CacheMap;
+typedef std::unordered_map<size_t, size_t> DepthVisits;
+typedef std::unordered_map<Loc, Scope, LocHash> ScopeTree;
+typedef std::unordered_map<size_t, ScopeTree> ScopeTreeMap;
+typedef std::set<std::pair<std::string, const Def*>> RootScope;
+typedef rust::Vec<NodeFFI> Nodes;
+
+typedef struct State {
+    Loc loc;
+    DepthVisits depth_visits;
+    Nodes nodes;
+    Cache* cache;
+    ScopeTree* scope_tree;
+    Scope* scope;
+} State;
+
+/***************** REWRITER *********************/
 class RewriteSlotted : public Phase, public Rewriter {
 public:
     RewriteSlotted(World& world, std::string name)
@@ -118,9 +176,6 @@ private:
     rust::Vec<NodeFFI> nodes() const { return nodes_; }
     void set_nodes(rust::Vec<NodeFFI> nodes) { nodes_ = nodes; }
 
-    typedef std::unordered_map<uint32_t, const Def*> Cache;
-    typedef std::unordered_map<size_t, Cache> CacheMap;
-
     // Stores Defs that were already created for a node via the nodes' id
     Cache* cache() { return cache_; }
     Cache* cache(size_t rec_expr_id) { return &cache_map_[rec_expr_id]; }
@@ -215,8 +270,37 @@ private:
         return flattened;
     }
 
+    void set_state(size_t rec_expr_id, RecExprFFI rec_expr) {
+        reset_loc();
+        reset_depth_visits();
+        set_nodes(rec_expr.nodes);
+        set_cache(rec_expr_id);
+        set_scope_tree(rec_expr_id);
+        set_scope(loc());
+    }
+
+    State save_state() { return State{loc(), depth_visits(), nodes(), cache(), scope_tree(), scope()}; }
+
+    State temp_state(Cache* cache, ScopeTree* scope_tree, Nodes nodes) {
+        reset_loc();
+        reset_depth_visits();
+        set_cache(cache);
+        set_scope_tree(scope_tree);
+        set_scope(loc());
+        set_nodes(nodes);
+        return save_state();
+    }
+
+    void restore_state(State state) {
+        set_loc(state.loc);
+        set_depth_visits(state.depth_visits);
+        set_nodes(state.nodes);
+        set_cache(state.cache);
+        set_scope_tree(state.scope_tree);
+        set_scope(state.scope);
+    }
+
     /************ Depth Visits*************/
-    typedef std::unordered_map<size_t, size_t> DepthVisits;
     DepthVisits depth_visits() const { return depth_visits_; }
     void set_depth_visits(std::unordered_map<size_t, size_t> depth_visits) { depth_visits_ = depth_visits; }
 
@@ -247,23 +331,6 @@ private:
     // traverse, in the second bottom-up traverse, we need only to provide
     // our current location and the name of the variable whose definition
     // we need and we can simply look it up in the scopes_ map.
-    struct Loc {
-        int32_t depth;
-        size_t offset;
-
-        bool operator==(const Loc& other) const noexcept { return depth == other.depth && offset == other.offset; }
-
-        std::string to_str() const {
-            std::ostringstream os;
-            os << "Loc{ depth=" << depth << ", offset=" << offset << " }";
-            return os.str();
-        }
-    };
-    struct LocHash {
-        std::size_t operator()(const Loc& loc) const noexcept {
-            return std::hash<size_t>()(loc.depth) ^ (std::hash<size_t>()(loc.offset) << 1);
-        }
-    };
 
     Loc loc() const { return curr_loc_; }
     void set_loc(Loc loc) { curr_loc_ = loc; }
@@ -276,25 +343,6 @@ private:
     }
 
     /******************* Scope **************/
-    struct Scope {
-        Loc loc;
-        Loc parent_loc;
-        std::string var_name;
-        const Def* def;
-
-        std::string to_str() const {
-            std::ostringstream os;
-            os << "Scope{ loc=" << loc.to_str() << ", parent_loc=" << parent_loc.to_str() << ", var=\"" << var_name
-               << "\", def=";
-            if (def)
-                os << def;
-            else
-                os << "null";
-            os << " }";
-            return os.str();
-        }
-    };
-
     Scope* scope() const { return curr_scope_; }
     Scope* scope(Loc loc) { return &(*scope_tree_)[loc]; }
     void set_scope(Scope* scope) { curr_scope_ = scope; }
@@ -304,11 +352,13 @@ private:
         scope()->var_name = name;
         scope()->def      = def;
     }
+
     void update_scope() {
         auto curr_scope = scope(loc());
         curr_scope->loc = loc();
         set_scope(curr_scope);
     }
+
     void enter_scope(NodeFFI node, bool revisit = false) {
         if (node.kind == MimKind::Scope) {
             auto parent_loc = loc();
@@ -335,6 +385,7 @@ private:
             if (DEBUG_SCOPES) std::cout << "Entering: " << scope()->to_str() << "\n";
         }
     }
+
     void exit_scope(NodeFFI node, bool count_visit = false) {
         if (node.kind == MimKind::Scope) {
             if (DEBUG_SCOPES) std::cout << "Exiting: " << scope()->to_str() << "\n";
@@ -351,14 +402,12 @@ private:
     }
 
     /************** Scope Tree ************/
-    typedef std::unordered_map<Loc, Scope, LocHash> ScopeTree;
     ScopeTree* scope_tree() const { return scope_tree_; }
     ScopeTree* scope_tree(size_t rec_expr_id) { return &scope_tree_map_[rec_expr_id]; }
     void set_scope_tree(ScopeTree* scope_tree) { scope_tree_ = scope_tree; }
     void set_scope_tree(size_t rec_expr_id) { set_scope_tree(scope_tree(rec_expr_id)); }
 
     /************** Root Scope ************/
-    typedef std::set<std::pair<std::string, const Def*>> RootScope;
     RootScope root_scope() const { return root_scope_; }
 
     void root_scope_add(std::string name, const Def* def) { root_scope_.insert({name, def}); }
@@ -368,7 +417,7 @@ private:
     // Keeps track of how often we have visited each scope-depth
     // so we can keep track of the current locations' offset at each depth.
     // maps: Depth -> #Visits
-    std::unordered_map<size_t, size_t> depth_visits_;
+    DepthVisits depth_visits_;
     Loc curr_loc_;
     // The current scope which we mostly use to construct the scope map during init
     Scope* curr_scope_;
@@ -376,12 +425,12 @@ private:
     // parent scope, the name of the var it introduces, and the Def associated with this var.
     ScopeTree* scope_tree_;
     // For every RecExprFFI keyed by its idx, we store a structure representing its scopetree.
-    std::unordered_map<size_t, ScopeTree> scope_tree_map_;
+    ScopeTreeMap scope_tree_map_;
     // There is a special root scope which is a registry of all top-level/closed Defs
     // that exist beyond the current RecExprFFI.
-    std::set<std::pair<std::string, const Def*>> root_scope_;
+    RootScope root_scope_;
 
-    rust::Vec<NodeFFI> nodes_;
+    Nodes nodes_;
     Cache* cache_;
     CacheMap cache_map_;
     std::unordered_map<std::string, const Def*> vars_;

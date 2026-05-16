@@ -73,58 +73,29 @@ std::pair<rust::Vec<RuleSet>, CostFn> RewriteSlotted::import_config() {
 
 const Def* RewriteSlotted::create_type(RecExprFFI type_) {
     if (type_.nodes.empty()) assert(false && "Tried to create an empty type.");
+    auto outer_state = save_state();
 
-    auto root_id = type_.nodes.size() - 1;
+    auto type_cache      = Cache{};
+    auto type_scope_tree = ScopeTree{};
+    auto type_state      = temp_state(&type_cache, &type_scope_tree, type_.nodes);
+    auto type_root_id    = type_.nodes.size() - 1;
+    init(type_root_id);
 
-    // Save current state
-    auto saved_cache      = cache();
-    auto saved_loc        = loc();
-    auto saved_visits     = depth_visits();
-    auto saved_scope_tree = scope_tree();
-    auto saved_scope      = scope();
-    auto saved_nodes      = nodes();
+    type_state.cache = cache();
+    restore_state(type_state);
+    auto res = convert(type_root_id);
 
-    // Prepare environment
-    auto temp_cache      = Cache{};
-    auto temp_scope_tree = ScopeTree{};
-    reset_loc();
-    reset_depth_visits();
-    set_cache(&temp_cache);
-    set_scope_tree(&temp_scope_tree);
-    set_scope(loc());
-    set_nodes(type_.nodes);
-
-    // Convert type
-    init(root_id);
-    // TODO: Need another loc reset between these two.
-    auto res = convert(root_id);
-
-    // Restore state
-    set_cache(saved_cache);
-    set_loc(saved_loc);
-    set_depth_visits(saved_visits);
-    set_scope_tree(saved_scope_tree);
-    set_scope(saved_scope);
-    set_nodes(saved_nodes);
-
+    restore_state(outer_state);
     return res;
 }
 
 void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
-    size_t rec_expr_id = 0;
-    for (auto rec_expr : rec_exprs) {
-        reset_loc();
-        reset_depth_visits();
-
-        set_cache(rec_expr_id);
-        set_nodes(rec_expr.nodes);
-        set_scope_tree(rec_expr_id);
-        set_scope(loc());
+    for (size_t rec_expr_id = 0; rec_expr_id < rec_exprs.size(); rec_expr_id++) {
+        auto rec_expr = rec_exprs[rec_expr_id];
+        set_state(rec_expr_id, rec_expr);
 
         auto root_id = nodes().size() - 1;
         init(root_id, true);
-
-        rec_expr_id++;
     }
 }
 
@@ -170,19 +141,13 @@ const Def* RewriteSlotted::init_lookahead(uint32_t id, NodeFFI node) {
         case MimKind::Sigma: def = init_sigma(id, node); break;
         case MimKind::Arr: def = init_arr(id, node); break;
         default:
-            auto saved_loc    = loc();
-            auto saved_visits = depth_visits();
-            auto saved_scope  = scope();
+            auto saved_state = save_state();
 
             init(id);
-            set_loc(saved_loc);
-            set_depth_visits(saved_visits);
-            set_scope(saved_scope);
+            restore_state(saved_state);
 
             def = convert(id);
-            set_loc(saved_loc);
-            set_depth_visits(saved_visits);
-            set_scope(saved_scope);
+            restore_state(saved_state);
             break;
     }
     return def;
@@ -321,20 +286,12 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
 }
 
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
-    size_t rec_expr_id = 0;
-    for (auto rec_expr : rec_exprs) {
-        reset_loc();
-        reset_depth_visits();
-
-        set_cache(rec_expr_id);
-        set_nodes(rec_expr.nodes);
-        set_scope_tree(rec_expr_id);
-        set_scope(loc());
+    for (size_t rec_expr_id = 0; rec_expr_id < rec_exprs.size(); rec_expr_id++) {
+        auto rec_expr = rec_exprs[rec_expr_id];
+        set_state(rec_expr_id, rec_expr);
 
         auto root_id = nodes().size() - 1;
         convert(root_id);
-
-        rec_expr_id++;
     }
 }
 
