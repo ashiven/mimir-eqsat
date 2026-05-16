@@ -8,7 +8,7 @@ plugin eqsat;
 import pipeline;
 
 fun extern _impl(): %eqsat.Impl =
-    return %eqsat.__IMPL__;
+    return %eqsat.slotted;
 
 rec Num = [T: *, add: [T, T] → T];
 lam my_add {pe: «2; Nat»} (a b: %math.F pe): %math.F pe = %math.arith.add 0 (a, b);
