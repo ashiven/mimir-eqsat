@@ -128,7 +128,7 @@ private:
     // and creates and stores all bindings with their definitions.
     // Lambdas are created without their bodies in this phase.
     void init(rust::Vec<RecExprFFI> rec_exprs);
-    const Def* init(uint32_t id, bool init_lookahead = false);
+    const Def* init(uint32_t id);
     const Def* init_lookahead(uint32_t id, NodeFFI node);
     const Def* init_axm(uint32_t id, NodeFFI node);
     const Def* init_root(uint32_t id, NodeFFI node);

@@ -103,29 +103,20 @@ void RewriteSlotted::init(rust::Vec<RecExprFFI> rec_exprs) {
         set_state(rec_expr_id, rec_expr);
 
         auto root_id = nodes().size() - 1;
-        init(root_id, true);
+        init(root_id);
     }
 }
 
-const Def* RewriteSlotted::init(uint32_t id, bool init_lookahead /* = false */) {
+const Def* RewriteSlotted::init(uint32_t id) {
     auto node = get_node_unsafe(id);
     enter_scope(node);
 
     const Def* res = cache_get(id);
-    switch (node.kind) {
-        case MimKind::Axm: res = init_axm(id, node); break;
-        case MimKind::Root: res = init_root(id, node); break;
-        case MimKind::Let: res = init_let(id, node); break;
-        default: break;
-    }
-
-    // If init_lookahead=true we implicitly call init_lam/pi/sigma/arr
-    // via their surrounding let/root binders init_let/init_root
-    // We don't need to initialize with a lookahead when creating types or let/root
-    // definition subterms because we know that they do not contain
-    // let-bindings or root-bindings which require this lookahead initialization.
-    if (!init_lookahead) {
+    if (!res) {
         switch (node.kind) {
+            case MimKind::Axm: res = init_axm(id, node); break;
+            case MimKind::Root: res = init_root(id, node); break;
+            case MimKind::Let: res = init_let(id, node); break;
             case MimKind::Lam: res = init_lam(id, node); break;
             case MimKind::Pi: res = init_pi(id, node); break;
             case MimKind::Sigma: res = init_sigma(id, node); break;
@@ -135,7 +126,7 @@ const Def* RewriteSlotted::init(uint32_t id, bool init_lookahead /* = false */) 
     }
 
     for (uint32_t child : node.children)
-        init(child, init_lookahead);
+        init(child);
 
     exit_scope(node, true);
     return cache_set(id, res);
@@ -143,20 +134,22 @@ const Def* RewriteSlotted::init(uint32_t id, bool init_lookahead /* = false */) 
 
 const Def* RewriteSlotted::init_lookahead(uint32_t id, NodeFFI node) {
     const Def* def = cache_get(id);
-    switch (node.kind) {
-        case MimKind::Lam: def = init_lam(id, node); break;
-        case MimKind::Pi: def = init_pi(id, node); break;
-        case MimKind::Sigma: def = init_sigma(id, node); break;
-        case MimKind::Arr: def = init_arr(id, node); break;
-        default:
-            auto saved_state = save_state();
+    if (!def) {
+        switch (node.kind) {
+            case MimKind::Lam: def = init_lam(id, node); break;
+            case MimKind::Pi: def = init_pi(id, node); break;
+            case MimKind::Sigma: def = init_sigma(id, node); break;
+            case MimKind::Arr: def = init_arr(id, node); break;
+            default:
+                auto saved_state = save_state();
 
-            init(id);
-            restore_state(saved_state);
+                init(id);
+                restore_state(saved_state, true);
 
-            def = convert(id);
-            restore_state(saved_state);
-            break;
+                def = convert(id);
+                restore_state(saved_state, true);
+                break;
+        }
     }
     return cache_set(id, def);
 }
@@ -362,8 +355,8 @@ const Def* RewriteSlotted::convert(uint32_t id) {
         default: break;
     }
 
-    if (res)
-        if (auto mut = res->isa_mut()) mut->immutabilize();
+    // if (res)
+    //     if (auto mut = res->isa_mut()) mut->immutabilize();
 
     if (DEBUG_SCOPES && node.kind == MimKind::Scope) std::cout << "\n";
     exit_scope(node, true);
@@ -594,15 +587,15 @@ const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
 
     auto sigma = get_def(id)->as_mut<Sigma>();
 
-    DefVec types;
-    auto type_ids = get_cons_flat(var_scope.children[0]);
-    for (auto type_id : type_ids) {
-        auto type = get_def(type_id);
-        types.push_back(type);
-    }
+    // DefVec types;
+    // auto type_ids = get_cons_flat(var_scope.children[0]);
+    // for (auto type_id : type_ids) {
+    //     auto type = get_def(type_id);
+    //     types.push_back(type);
+    // }
 
-    sigma->unset();
-    sigma->set(types);
+    // sigma->unset();
+    // sigma->set(types);
 
     exit_scope(var_scope);
     return sigma;
