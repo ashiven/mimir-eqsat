@@ -217,7 +217,6 @@ const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
     auto var_name = get_slot(id);
     auto var      = new_lam->var();
     var->set(var_name);
-
     register_var(var_name, var);
 
     if (DEBUG) std::cout << new_lam << "\n";
@@ -240,7 +239,6 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
     auto var_name = get_slot(id);
     auto var      = new_pi->var();
     var->set(var_name);
-
     register_var(var_name, var);
 
     if (DEBUG) std::cout << new_pi << "\n";
@@ -257,12 +255,15 @@ const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
     auto type_cons = get_cons_flat(var_scope.children[0]);
     auto size      = type_cons.size();
 
+    auto saved_state = save_state();
     DefVec types;
     for (auto type_id : type_cons) {
         auto type_node = get_node_unsafe(type_id);
         auto type      = init_lookahead(type_id, type_node);
         types.push_back(type);
+        inc_visit_count(loc().depth + 1);
     }
+    restore_state(saved_state);
 
     auto new_sigma = new_world().mut_sigma(new_world().type_infer_univ(), size);
     new_sigma->set(types);
@@ -292,7 +293,6 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
     auto var_name = get_slot(id);
     auto var      = new_arr->var();
     var->set(var_name);
-
     register_var(var_name, var);
 
     if (DEBUG) std::cout << new_arr << "\n";
