@@ -5,7 +5,7 @@ plugin eqsat;
 import pipeline;
 
 fun extern _impl(): %eqsat.Impl =
-    return %eqsat.slotted;
+    return %eqsat.__IMPL__;
 
 lam pow(a b: Nat)@(%core.pe.is_closed b): Nat =
     (%core.nat.mul (a, pow(a, %core.nat.sub (b, 1))), 1)#(%core.ncmp.e (b, 0));

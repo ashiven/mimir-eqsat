@@ -4,7 +4,7 @@ plugin eqsat;
 import pipeline;
 
 fun extern _impl(): %eqsat.Impl =
-    return %eqsat.slotted;
+    return %eqsat.__IMPL__;
 
 fun extern combine (t1 t2: *) : * =
     return t1 ∪ t2;
