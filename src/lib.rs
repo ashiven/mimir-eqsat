@@ -24,6 +24,12 @@ pub fn pretty_ffi(sexprs: Vec<RecExprFFI>, line_len: usize) -> String {
     ffi::pretty_ffi(sexprs, line_len)
 }
 
-pub fn node_ffi_str(node: NodeFFI) -> String {
+pub fn node_ffi_str(mut node: NodeFFI) -> String {
+    // Printing types along with nodes becomes too bloated
+    node.type_ = RecExprFFI { nodes: vec![] };
     format!("{:?}", node)
+}
+
+pub fn type_str(type_: RecExprFFI, line_len: usize) -> String {
+    ffi::pretty_ffi(vec![type_], line_len)
 }

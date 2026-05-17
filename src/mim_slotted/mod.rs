@@ -1,38 +1,38 @@
 use crate::ffi::FFI;
-use crate::ffi::bridge::{CostFn, MimKind, RecExprFFI, RuleSet};
+use crate::ffi::bridge::{CostFn, RecExprFFI, RuleSet};
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
 use crate::mim_slotted::rulesets::get_rules;
+use crate::mim_slotted::types::{TypedRecExpr, add_expr_typed, extract_type_annotations};
 use regex::Regex;
 use slotted_egraphs::*;
+use stacker::grow;
 
 pub mod analysis;
 pub mod rulesets;
+pub mod types;
 
 #[cfg(test)]
 mod test;
+
+// Parsing rec exprs with type annotations can become very stack intensive
+// so we preemptively increase the stack size to avoid stack overflows.
+const PARSE_STACK_SIZE: usize = 8 * 1024 * 1024;
 
 define_language! {
     pub enum MimSlotted {
         // TERMS
 
-        // NOTE: Bind<AppliedId> is apparently a wrapper for a pattern like "(bind $1 (expr $1))" whose
-        // first child defines a slot while its second child defines some pattern using the slot.
-        // This lead to a whole lot of confusion because it means that a pattern like "(let $1 (var $1) ?e)"
-        // contains this bind node implicitly as if it was defined as "(let (bind $1 (var $1)) ?e)"
-        // and therefore we would have to define Let(Bind<AppliedId>, AppliedId) instead of
-        // Let(Bind<AppliedId>, AppliedId, AppliedId) as I initially assumed
-
-        // This now reads as: "let definition equal name in scope containing definition and expression".
-        // Instead of (in egg): "let name equal definition in expression".
-        // (let <name> <name-scope>)
+        // (let $name (scope <definition> <expr>))
         Let(Bind<AppliedId>) = "let",
-        // (lam <domain-type> <codomain-type> <var-name> <var-scope>)
-        Lam(AppliedId, AppliedId, Bind<AppliedId>) = "lam",
-        // (con <domain-type> <var-name> <var-scope>)
-        Con(AppliedId, Bind<AppliedId>) = "con",
+        // (lam $var-name (scope <filter> <body>))
+        Lam(Bind<AppliedId>) = "lam",
+        // (con $var-name (scope <filter> <body>))
+        Con(Bind<AppliedId>) = "con",
+        // (fun $var-name (scope <filter> <body>))
+        Fun(Bind<AppliedId>) = "fun",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
-        // (var <name>)
+        // (var $name)
         Var(Slot) = "var",
         // (lit <value> <type>)
         Lit(AppliedId, AppliedId) = "lit",
@@ -68,14 +68,16 @@ define_language! {
         Bot(AppliedId) = "bot",
         // (top <type>)
         Top(AppliedId) = "top",
-        // (arr <arity> <body>)
-        Arr(AppliedId, AppliedId) = "arr",
-        // (sigma <type-cons>)
-        Sigma(AppliedId) = "sigma",
-        // (cn <domain>)
-        Cn(AppliedId) = "cn",
-        // (pi <domain> <codomain>)
-        Pi(AppliedId, AppliedId) = "pi",
+        // (arr $var (scope <arity> <body>))
+        Arr(Bind<AppliedId>) = "arr",
+        // (sigma $var (scope <type-cons> nil))
+        Sigma(Bind<AppliedId>) = "sigma",
+        // (pi $var (scope <domain> <codomain>))
+        Pi(Bind<AppliedId>) = "pi",
+        // (cn $var (scope <domain> <codomain>))
+        Cn(Bind<AppliedId>) = "cn",
+        // (fn $var (scope <domain> <codomain>))
+        Fn(Bind<AppliedId>) = "fn",
         // (idx <size>)
         Idx(AppliedId) = "idx",
         // (hole <type>) - does it even make sense to have this?
@@ -133,10 +135,15 @@ pub(crate) fn equality_saturate(
     rulesets: Vec<RuleSet>,
     cost_fn: CostFn,
 ) -> Vec<RecExprFFI> {
-    equality_saturate_internal(sexpr, rulesets, cost_fn)
-        .iter()
-        .map(|rec_expr: &RecExpr<MimSlotted>| rec_expr.to_ffi())
-        .collect()
+    let mut sexprs = split_sexprs(sexpr);
+
+    let mut rules = get_rules(rulesets);
+    convert_rules(&mut sexprs, &mut rules);
+
+    match cost_fn {
+        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
+        _ => panic!("Unknown cost function provided."),
+    }
 }
 
 pub(crate) fn pretty(sexpr: &str, _line_len: usize) -> String {
@@ -144,7 +151,7 @@ pub(crate) fn pretty(sexpr: &str, _line_len: usize) -> String {
 
     let mut res = String::new();
     for (i, sexpr) in sexprs.iter().enumerate() {
-        let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        let parsed: RecExpr<MimSlotted> = grow(PARSE_STACK_SIZE, || RecExpr::parse(sexpr).unwrap());
         res.push_str(&parsed.to_string());
         if i < sexprs.len() - 1 {
             res.push_str("\n\n");
@@ -167,45 +174,38 @@ fn split_sexprs(sexpr: &str) -> Vec<String> {
         .collect()
 }
 
-fn equality_saturate_internal(
-    sexpr: &str,
-    rulesets: Vec<RuleSet>,
-    cost_fn: CostFn,
-) -> Vec<RecExpr<MimSlotted>> {
-    let mut sexprs = split_sexprs(sexpr);
-
-    let mut rules = get_rules(rulesets);
-    convert_rules(&mut sexprs, &mut rules);
-
-    match cost_fn {
-        CostFn::AstSize => rewrite_sexprs(sexprs, rules, || AstSize),
-        _ => panic!("Unknown cost function provided."),
-    }
-}
-
 fn rewrite_sexprs<C, F>(
     sexprs: Vec<String>,
     rules: Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>,
     cost_fn: F,
-) -> Vec<RecExpr<MimSlotted>>
+) -> Vec<RecExprFFI>
 where
     C: CostFunction<MimSlotted>,
     F: Fn() -> C,
 {
-    let mut rewritten_sexprs: Vec<RecExpr<MimSlotted>> = Vec::new();
+    let mut rewritten_sexprs: Vec<RecExprFFI> = Vec::new();
 
-    let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default();
+    let mut roots: Vec<AppliedId> = vec![];
+    let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
     for sexpr in &sexprs {
-        let rec_expr = RecExpr::parse(sexpr).unwrap();
-        runner = runner.with_expr(&rec_expr);
+        let annotated_rec_expr: RecExpr<MimSlotted> =
+            grow(PARSE_STACK_SIZE, || RecExpr::parse(sexpr).unwrap());
+
+        let typed_rec_expr: TypedRecExpr = extract_type_annotations(&annotated_rec_expr);
+        let root_id = add_expr_typed(&mut eg, typed_rec_expr);
+        roots.push(root_id);
     }
 
+    let mut runner = Runner::<MimSlotted, MimSlottedAnalysis>::default();
+    runner = runner.with_egraph(eg);
+    runner.roots = roots;
     let _report = runner.run(&rules);
 
     let extractor = Extractor::new(&runner.egraph, cost_fn());
     for i in 0..sexprs.len() {
         let best_expr = extractor.extract(&runner.roots[i], &runner.egraph);
-        rewritten_sexprs.push(best_expr);
+        let best_expr_ffi = best_expr.to_ffi(&runner.egraph);
+        rewritten_sexprs.push(best_expr_ffi);
     }
 
     rewritten_sexprs
@@ -216,11 +216,17 @@ fn convert_rules(
     rules: &mut Vec<Rewrite<MimSlotted, MimSlottedAnalysis>>,
 ) {
     sexprs.retain(|sexpr| {
-        let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
-
+        // let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
+        // if let MimSlotted::Rule(..) = parsed.node {
+        //
+        // We initially used the more robust check above, however I realized
+        // that the operation of parsing a rec expr with type annotations can
+        // be very expensive and so it would be better to use the cheap shortcut
+        // below to check for rule sexprs
+        //
         // (rule <name> <meta_var> <lhs> <rhs> <guard>)
-        if let MimSlotted::Rule(..) = parsed.node {
-            let flattened = parsed.to_ffi();
+        if sexpr.trim().starts_with("(rule") {
+            let parsed: RecExpr<MimSlotted> = RecExpr::parse(sexpr).unwrap();
 
             let mut rule_name = "";
             if let MimSlotted::Symbol(s) = parsed.children[0].node {
@@ -228,12 +234,22 @@ fn convert_rules(
             }
 
             let mut meta_vars: Vec<String> = Vec::new();
-            for node in &flattened.nodes {
-                if node.kind == MimKind::MetaVar {
-                    let name = &flattened.nodes[node.children[0] as usize];
-                    meta_vars.push(name.symbol.clone());
+            fn lookup(rec_expr: &RecExpr<MimSlotted>, meta_vars: &mut Vec<String>) {
+                if let RecExpr {
+                    node: MimSlotted::MetaVar(..),
+                    children,
+                } = rec_expr
+                {
+                    let name_expr = children.first().expect("Expected meta var name");
+                    if let MimSlotted::Symbol(s) = name_expr.node {
+                        meta_vars.push(s.to_string());
+                    } else {
+                        panic!("Expected meta var name to be a symbol");
+                    }
                 }
+                rec_expr.children.iter().for_each(|c| lookup(c, meta_vars));
             }
+            lookup(&parsed, &mut meta_vars);
 
             let lhs_rexpr = &parsed.children[2];
             let rhs_rexpr = &parsed.children[3];

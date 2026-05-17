@@ -1,9 +1,12 @@
 use crate::mim_egg::Mim;
+use crate::mim_egg::analysis::MimAnalysis;
 use crate::mim_slotted::MimSlotted;
-use crate::{eqsat_egg, eqsat_slotted, node_ffi_str, pretty_egg, pretty_slotted};
+use crate::mim_slotted::analysis::MimSlottedAnalysis;
+use crate::mim_slotted::types::TypeExpr;
+use crate::{eqsat_egg, eqsat_slotted, node_ffi_str, pretty_egg, pretty_slotted, type_str};
 use bridge::{MimKind, NodeFFI, RecExprFFI};
-use egg::{Id, RecExpr};
-use slotted_egraphs::RecExpr as RecExprSlotted;
+use egg::{EGraph, Id, RecExpr};
+use slotted_egraphs::{EGraph as EGraphSlotted, RecExpr as RecExprSlotted};
 use std::collections::HashMap;
 use std::fmt;
 
@@ -30,6 +33,7 @@ pub mod bridge {
         Let,
         Lam,
         Con,
+        Fun,
         App,
         Var,
         Lit,
@@ -49,8 +53,9 @@ pub mod bridge {
         Top,
         Arr,
         Sigma,
-        Cn,
         Pi,
+        Cn,
+        Fn,
         Idx,
         Hole,
         Type,
@@ -66,16 +71,17 @@ pub mod bridge {
         Symbol,
     }
 
-    #[derive(Debug, PartialEq, Hash, Eq, Clone, Default)]
+    #[derive(Debug, Hash, Default, Eq, PartialEq)]
     struct NodeFFI {
         kind: MimKind,
         children: Vec<u32>,
         num: u64,
         symbol: String,
         slot: String,
+        type_: RecExprFFI,
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, Hash, Default, Eq, PartialEq)]
     struct RecExprFFI {
         nodes: Vec<NodeFFI>,
     }
@@ -89,6 +95,7 @@ pub mod bridge {
 
         fn pretty_ffi(sexpr: Vec<RecExprFFI>, line_len: usize) -> String;
         fn node_ffi_str(node: NodeFFI) -> String;
+        fn type_str(type_: RecExprFFI, line_len: usize) -> String;
     }
 }
 
@@ -113,6 +120,7 @@ impl fmt::Display for NodeFFI {
             MimKind::Let => f.write_str("let"),
             MimKind::Lam => f.write_str("lam"),
             MimKind::Con => f.write_str("con"),
+            MimKind::Fun => f.write_str("fun"),
             MimKind::App => f.write_str("app"),
             MimKind::Var => f.write_str("var"),
             MimKind::Lit => f.write_str("lit"),
@@ -132,8 +140,9 @@ impl fmt::Display for NodeFFI {
             MimKind::Top => f.write_str("top"),
             MimKind::Arr => f.write_str("arr"),
             MimKind::Sigma => f.write_str("sigma"),
-            MimKind::Cn => f.write_str("cn"),
             MimKind::Pi => f.write_str("pi"),
+            MimKind::Cn => f.write_str("cn"),
+            MimKind::Fn => f.write_str("fn"),
             MimKind::Idx => f.write_str("idx"),
             MimKind::Hole => f.write_str("hole"),
             MimKind::Type => f.write_str("type"),
@@ -152,27 +161,35 @@ impl fmt::Display for NodeFFI {
 }
 
 pub trait FFI {
-    fn to_ffi(&self) -> RecExprFFI;
+    type EG;
+
+    fn to_ffi(&self, egraph: &Self::EG) -> RecExprFFI;
 }
 
 pub trait FFIInner {
-    fn to_ffi(&self) -> NodeFFI {
+    type EG;
+
+    fn to_ffi(&self, _egraph: &Self::EG) -> NodeFFI {
         Default::default()
     }
-    fn to_ffi_with_childs(&self, _children: &[usize]) -> NodeFFI {
+    fn to_ffi_with_childs(&self, _children: &[usize], _egraph: &Self::EG) -> NodeFFI {
         Default::default()
     }
 }
 
 impl FFI for RecExpr<Mim> {
-    fn to_ffi(&self) -> RecExprFFI {
-        let nodes = self.iter().map(|n| n.to_ffi()).collect();
+    type EG = EGraph<Mim, MimAnalysis>;
+
+    fn to_ffi(&self, egraph: &Self::EG) -> RecExprFFI {
+        let nodes = self.iter().map(|n| n.to_ffi(egraph)).collect();
         RecExprFFI { nodes }
     }
 }
 
 impl FFIInner for Mim {
-    fn to_ffi(&self) -> NodeFFI {
+    type EG = EGraph<Mim, MimAnalysis>;
+
+    fn to_ffi(&self, _egraph: &Self::EG) -> NodeFFI {
         fn new_node_ffi(
             kind: MimKind,
             children: &[Id],
@@ -187,6 +204,7 @@ impl FFIInner for Mim {
                 num: num.unwrap_or_default(),
                 symbol: symbol.unwrap_or_default(),
                 slot: String::new(),
+                type_: RecExprFFI { nodes: vec![] },
             }
         }
 
@@ -226,19 +244,22 @@ impl FFIInner for Mim {
 }
 
 impl FFI for RecExprSlotted<MimSlotted> {
-    fn to_ffi(&self) -> RecExprFFI {
+    type EG = EGraphSlotted<MimSlotted, MimSlottedAnalysis>;
+
+    fn to_ffi(&self, egraph: &Self::EG) -> RecExprFFI {
         fn to_ffi_internal(
             rec_expr: &RecExprSlotted<MimSlotted>,
             nodes: &mut Vec<NodeFFI>,
             added: &mut HashMap<NodeFFI, usize>,
+            egraph: &EGraphSlotted<MimSlotted, MimSlottedAnalysis>,
         ) -> usize {
             let child_ids: Vec<usize> = rec_expr
                 .children
                 .iter()
-                .map(|child| to_ffi_internal(child, nodes, added))
+                .map(|child| to_ffi_internal(child, nodes, added, egraph))
                 .collect();
 
-            let new_node = rec_expr.node.to_ffi_with_childs(&child_ids);
+            let new_node = rec_expr.node.to_ffi_with_childs(&child_ids, egraph);
 
             if added.contains_key(&new_node) {
                 return *added.get(&new_node).unwrap();
@@ -251,19 +272,22 @@ impl FFI for RecExprSlotted<MimSlotted> {
 
         let mut nodes: Vec<NodeFFI> = Vec::new();
         let mut added = HashMap::<NodeFFI, usize>::new();
-        to_ffi_internal(self, &mut nodes, &mut added);
+        to_ffi_internal(self, &mut nodes, &mut added, egraph);
         RecExprFFI { nodes }
     }
 }
 
 impl FFIInner for MimSlotted {
-    fn to_ffi_with_childs(&self, children: &[usize]) -> NodeFFI {
+    type EG = EGraphSlotted<MimSlotted, MimSlottedAnalysis>;
+
+    fn to_ffi_with_childs(&self, children: &[usize], egraph: &Self::EG) -> NodeFFI {
         fn new_node_ffi(
             kind: MimKind,
             children: &[usize],
             num: Option<u64>,
             symbol: Option<String>,
             slot: Option<String>,
+            type_: Option<RecExprFFI>,
         ) -> NodeFFI {
             let converted_ids = children.iter().map(|id| *id as u32).collect();
 
@@ -273,8 +297,25 @@ impl FFIInner for MimSlotted {
                 num: num.unwrap_or_default(),
                 symbol: symbol.unwrap_or_default(),
                 slot: slot.unwrap_or_default(),
+                type_: type_.unwrap_or(RecExprFFI { nodes: vec![] }),
             }
         }
+
+        let eclass_id = egraph.lookup(self);
+        let type_ = if let Some(eclass_id) = eclass_id {
+            let type_ = egraph.analysis_data(eclass_id.id).type_.clone();
+            if let TypeExpr {
+                node: MimSlotted::Nil(),
+                ..
+            } = type_
+            {
+                None
+            } else {
+                Some(type_.to_ffi(egraph))
+            }
+        } else {
+            None
+        };
 
         match &self {
             MimSlotted::Let(bind) => new_node_ffi(
@@ -283,62 +324,135 @@ impl FFIInner for MimSlotted {
                 None,
                 None,
                 Some(format!("{}", bind.slot)),
+                type_,
             ),
-            MimSlotted::Lam(.., bind) => new_node_ffi(
+            MimSlotted::Lam(bind) => new_node_ffi(
                 MimKind::Lam,
                 children,
                 None,
                 None,
                 Some(format!("{}", bind.slot)),
+                type_,
             ),
-            MimSlotted::Con(.., bind) => new_node_ffi(
+            MimSlotted::Con(bind) => new_node_ffi(
                 MimKind::Con,
                 children,
                 None,
                 None,
                 Some(format!("{}", bind.slot)),
+                type_,
             ),
-            MimSlotted::App(..) => new_node_ffi(MimKind::App, children, None, None, None),
+            MimSlotted::Fun(bind) => new_node_ffi(
+                MimKind::Fun,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::App(..) => new_node_ffi(MimKind::App, children, None, None, None, type_),
             MimSlotted::Var(slot) => new_node_ffi(
                 MimKind::Var,
                 children,
                 None,
                 None,
                 Some(format!("{}", slot)),
+                type_,
             ),
-            MimSlotted::Lit(..) => new_node_ffi(MimKind::Lit, children, None, None, None),
-            MimSlotted::Pack(..) => new_node_ffi(MimKind::Pack, children, None, None, None),
-            MimSlotted::Tuple(..) => new_node_ffi(MimKind::Tuple, children, None, None, None),
-            MimSlotted::Extract(..) => new_node_ffi(MimKind::Extract, children, None, None, None),
-            MimSlotted::Insert(..) => new_node_ffi(MimKind::Insert, children, None, None, None),
-            MimSlotted::Rule(..) => new_node_ffi(MimKind::Rule, children, None, None, None),
-            MimSlotted::Inj(..) => new_node_ffi(MimKind::Inj, children, None, None, None),
-            MimSlotted::Merge(..) => new_node_ffi(MimKind::Merge, children, None, None, None),
-            MimSlotted::Axm(..) => new_node_ffi(MimKind::Axm, children, None, None, None),
-            MimSlotted::Match(..) => new_node_ffi(MimKind::Match, children, None, None, None),
-            MimSlotted::Proxy(..) => new_node_ffi(MimKind::Proxy, children, None, None, None),
-            MimSlotted::Join(..) => new_node_ffi(MimKind::Join, children, None, None, None),
-            MimSlotted::Meet(..) => new_node_ffi(MimKind::Meet, children, None, None, None),
-            MimSlotted::Bot(..) => new_node_ffi(MimKind::Bot, children, None, None, None),
-            MimSlotted::Top(..) => new_node_ffi(MimKind::Top, children, None, None, None),
-            MimSlotted::Arr(..) => new_node_ffi(MimKind::Arr, children, None, None, None),
-            MimSlotted::Sigma(..) => new_node_ffi(MimKind::Sigma, children, None, None, None),
-            MimSlotted::Cn(..) => new_node_ffi(MimKind::Cn, children, None, None, None),
-            MimSlotted::Pi(..) => new_node_ffi(MimKind::Pi, children, None, None, None),
-            MimSlotted::Idx(..) => new_node_ffi(MimKind::Idx, children, None, None, None),
-            MimSlotted::Hole(..) => new_node_ffi(MimKind::Hole, children, None, None, None),
-            MimSlotted::Type(..) => new_node_ffi(MimKind::Type, children, None, None, None),
-            MimSlotted::Reform(..) => new_node_ffi(MimKind::Type, children, None, None, None),
-            MimSlotted::TypeWrap(..) => new_node_ffi(MimKind::TypeWrap, children, None, None, None),
-            MimSlotted::MetaVar(..) => new_node_ffi(MimKind::MetaVar, children, None, None, None),
-            MimSlotted::Root(..) => new_node_ffi(MimKind::Root, children, None, None, None),
-            MimSlotted::Scope(..) => new_node_ffi(MimKind::Scope, children, None, None, None),
-            MimSlotted::Cons(..) => new_node_ffi(MimKind::Cons, children, None, None, None),
-            MimSlotted::Nil() => new_node_ffi(MimKind::Nil, children, None, None, None),
-            MimSlotted::Num(n) => new_node_ffi(MimKind::Num, children, Some(*n), None, None),
-            MimSlotted::Symbol(s) => {
-                new_node_ffi(MimKind::Symbol, children, None, Some(s.to_string()), None)
+            MimSlotted::Lit(..) => new_node_ffi(MimKind::Lit, children, None, None, None, type_),
+            MimSlotted::Pack(..) => new_node_ffi(MimKind::Pack, children, None, None, None, type_),
+            MimSlotted::Tuple(..) => {
+                new_node_ffi(MimKind::Tuple, children, None, None, None, type_)
             }
+            MimSlotted::Extract(..) => {
+                new_node_ffi(MimKind::Extract, children, None, None, None, type_)
+            }
+            MimSlotted::Insert(..) => {
+                new_node_ffi(MimKind::Insert, children, None, None, None, type_)
+            }
+            MimSlotted::Rule(..) => new_node_ffi(MimKind::Rule, children, None, None, None, type_),
+            MimSlotted::Inj(..) => new_node_ffi(MimKind::Inj, children, None, None, None, type_),
+            MimSlotted::Merge(..) => {
+                new_node_ffi(MimKind::Merge, children, None, None, None, type_)
+            }
+            MimSlotted::Axm(..) => new_node_ffi(MimKind::Axm, children, None, None, None, type_),
+            MimSlotted::Match(..) => {
+                new_node_ffi(MimKind::Match, children, None, None, None, type_)
+            }
+            MimSlotted::Proxy(..) => {
+                new_node_ffi(MimKind::Proxy, children, None, None, None, type_)
+            }
+            MimSlotted::Join(..) => new_node_ffi(MimKind::Join, children, None, None, None, type_),
+            MimSlotted::Meet(..) => new_node_ffi(MimKind::Meet, children, None, None, None, type_),
+            MimSlotted::Bot(..) => new_node_ffi(MimKind::Bot, children, None, None, None, type_),
+            MimSlotted::Top(..) => new_node_ffi(MimKind::Top, children, None, None, None, type_),
+            MimSlotted::Arr(bind) => new_node_ffi(
+                MimKind::Arr,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Sigma(bind) => new_node_ffi(
+                MimKind::Sigma,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Pi(bind) => new_node_ffi(
+                MimKind::Pi,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Cn(bind) => new_node_ffi(
+                MimKind::Cn,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Fn(bind) => new_node_ffi(
+                MimKind::Fn,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Idx(..) => new_node_ffi(MimKind::Idx, children, None, None, None, type_),
+            MimSlotted::Hole(..) => new_node_ffi(MimKind::Hole, children, None, None, None, type_),
+            MimSlotted::Type(..) => new_node_ffi(MimKind::Type, children, None, None, None, type_),
+            MimSlotted::Reform(..) => {
+                new_node_ffi(MimKind::Type, children, None, None, None, type_)
+            }
+            MimSlotted::TypeWrap(..) => {
+                new_node_ffi(MimKind::TypeWrap, children, None, None, None, type_)
+            }
+            MimSlotted::MetaVar(..) => {
+                new_node_ffi(MimKind::MetaVar, children, None, None, None, type_)
+            }
+            MimSlotted::Root(..) => new_node_ffi(MimKind::Root, children, None, None, None, type_),
+            MimSlotted::Scope(..) => {
+                new_node_ffi(MimKind::Scope, children, None, None, None, type_)
+            }
+            MimSlotted::Cons(..) => new_node_ffi(MimKind::Cons, children, None, None, None, type_),
+            MimSlotted::Nil() => new_node_ffi(MimKind::Nil, children, None, None, None, type_),
+            MimSlotted::Num(n) => new_node_ffi(MimKind::Num, children, Some(*n), None, None, type_),
+            MimSlotted::Symbol(s) => new_node_ffi(
+                MimKind::Symbol,
+                children,
+                None,
+                Some(s.to_string()),
+                None,
+                type_,
+            ),
         }
     }
 }
@@ -449,7 +563,37 @@ impl RecExprFFI {
                         vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone()))
                     }
                 }
+                MimKind::Fun => {
+                    if !node.slot.is_empty() {
+                        vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone()))
+                    }
+                }
                 MimKind::Var => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Pi => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Cn => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Fn => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Sigma => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Arr => {
                     if !node.slot.is_empty() {
                         vec.insert(1, Sexpr::String(node.slot.clone()))
                     }

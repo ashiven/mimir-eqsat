@@ -3,6 +3,9 @@ plugin core;
 plugin eqsat;
 import pipeline;
 
+fun extern _impl(): %eqsat.Impl =
+    return %eqsat.egg;
+
 rule foo (a: Nat, b: Nat) : (%core.nat.add (a, (%core.nat.sub (b, a)))) => b;
 
 fun extern _rules(): %eqsat.Rules =
