@@ -213,6 +213,8 @@ pub(crate) fn make_type(
         MimSlotted::Insert(..) => make_insert_type(eg, enode),
 
         // TODO:
+        // MimSlotted::Con(..) = make_con_type(eg, enode),
+        // MimSlotted::Fun(..) = make_fun_type(eg, enode),
         // MimSlotted::Inj(..) = make_inj_type(eg, enode),
         // MimSlotted::Merge(..) = make_merge_type(eg, enode),
 

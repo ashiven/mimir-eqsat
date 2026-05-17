@@ -33,6 +33,7 @@ pub mod bridge {
         Let,
         Lam,
         Con,
+        Fun,
         App,
         Var,
         Lit,
@@ -52,8 +53,9 @@ pub mod bridge {
         Top,
         Arr,
         Sigma,
-        Cn,
         Pi,
+        Cn,
+        Fn,
         Idx,
         Hole,
         Type,
@@ -118,6 +120,7 @@ impl fmt::Display for NodeFFI {
             MimKind::Let => f.write_str("let"),
             MimKind::Lam => f.write_str("lam"),
             MimKind::Con => f.write_str("con"),
+            MimKind::Fun => f.write_str("fun"),
             MimKind::App => f.write_str("app"),
             MimKind::Var => f.write_str("var"),
             MimKind::Lit => f.write_str("lit"),
@@ -137,8 +140,9 @@ impl fmt::Display for NodeFFI {
             MimKind::Top => f.write_str("top"),
             MimKind::Arr => f.write_str("arr"),
             MimKind::Sigma => f.write_str("sigma"),
-            MimKind::Cn => f.write_str("cn"),
             MimKind::Pi => f.write_str("pi"),
+            MimKind::Cn => f.write_str("cn"),
+            MimKind::Fn => f.write_str("fn"),
             MimKind::Idx => f.write_str("idx"),
             MimKind::Hole => f.write_str("hole"),
             MimKind::Type => f.write_str("type"),
@@ -330,6 +334,22 @@ impl FFIInner for MimSlotted {
                 Some(format!("{}", bind.slot)),
                 type_,
             ),
+            MimSlotted::Con(bind) => new_node_ffi(
+                MimKind::Con,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Fun(bind) => new_node_ffi(
+                MimKind::Fun,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
             MimSlotted::App(..) => new_node_ffi(MimKind::App, children, None, None, None, type_),
             MimSlotted::Var(slot) => new_node_ffi(
                 MimKind::Var,
@@ -382,9 +402,24 @@ impl FFIInner for MimSlotted {
                 Some(format!("{}", bind.slot)),
                 type_,
             ),
-            MimSlotted::Cn(..) => new_node_ffi(MimKind::Cn, children, None, None, None, type_),
             MimSlotted::Pi(bind) => new_node_ffi(
                 MimKind::Pi,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Cn(bind) => new_node_ffi(
+                MimKind::Cn,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
+            MimSlotted::Fn(bind) => new_node_ffi(
+                MimKind::Fn,
                 children,
                 None,
                 None,
@@ -528,12 +563,27 @@ impl RecExprFFI {
                         vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone()))
                     }
                 }
+                MimKind::Fun => {
+                    if !node.slot.is_empty() {
+                        vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone()))
+                    }
+                }
                 MimKind::Var => {
                     if !node.slot.is_empty() {
                         vec.insert(1, Sexpr::String(node.slot.clone()))
                     }
                 }
                 MimKind::Pi => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Cn => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Fn => {
                     if !node.slot.is_empty() {
                         vec.insert(1, Sexpr::String(node.slot.clone()))
                     }

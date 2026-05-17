@@ -10,7 +10,8 @@
 
 namespace mim::plug::eqsat {
 
-const std::set MUTABLES   = {MimKind::Lam, MimKind::Pi, MimKind::Sigma, MimKind::Arr};
+const std::set MUTABLES
+    = {MimKind::Lam, MimKind::Con, MimKind::Fun, MimKind::Pi, MimKind::Cn, MimKind::Fn, MimKind::Sigma, MimKind::Arr};
 const std::set NO_CONVERT = {MimKind::Axm};
 
 void RewriteSlotted::start() {
@@ -115,8 +116,12 @@ const Def* RewriteSlotted::init(uint32_t id) {
         switch (node.kind) {
             case MimKind::Axm: res = init_axm(id, node); break;
             case MimKind::Root: res = init_root(id, node); break;
-            case MimKind::Let: res = init_let(id, node); break;
+            case MimKind::Fun:
+            case MimKind::Con:
             case MimKind::Lam: res = init_lam(id, node); break;
+            case MimKind::Let: res = init_let(id, node); break;
+            case MimKind::Fn:
+            case MimKind::Cn:
             case MimKind::Pi: res = init_pi(id, node); break;
             case MimKind::Sigma: res = init_sigma(id, node); break;
             case MimKind::Arr: res = init_arr(id, node); break;
@@ -137,7 +142,11 @@ const Def* RewriteSlotted::init_lookahead(uint32_t id) {
     const Def* res = cache_get(id);
     if (!res) {
         switch (node.kind) {
+            case MimKind::Fun:
+            case MimKind::Con:
             case MimKind::Lam: res = init_lam(id, node); break;
+            case MimKind::Fn:
+            case MimKind::Cn:
             case MimKind::Pi: res = init_pi(id, node); break;
             case MimKind::Sigma: res = init_sigma(id, node); break;
             case MimKind::Arr: res = init_arr(id, node); break;
@@ -323,6 +332,8 @@ const Def* RewriteSlotted::convert(uint32_t id) {
     switch (node.kind) {
         case MimKind::Root: res = convert_root(id, node); break;
         case MimKind::Let: res = convert_let(id, node); break;
+        case MimKind::Fun:
+        case MimKind::Con:
         case MimKind::Lam: res = convert_lam(id, node); break;
         case MimKind::App: res = convert_app(id, node); break;
         case MimKind::Var: res = convert_var(id, node); break;
@@ -341,7 +352,8 @@ const Def* RewriteSlotted::convert(uint32_t id) {
         case MimKind::Top: res = convert_top(id, node); break;
         case MimKind::Arr: res = convert_arr(id, node); break;
         case MimKind::Sigma: res = convert_sigma(id, node); break;
-        case MimKind::Cn: res = convert_cn(id, node); break;
+        case MimKind::Fn:
+        case MimKind::Cn:
         case MimKind::Pi: res = convert_pi(id, node); break;
         case MimKind::Idx: res = convert_idx(id, node); break;
         case MimKind::Hole: res = convert_hole(id, node); break;
@@ -585,13 +597,6 @@ const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
 
     exit_scope(var_scope);
     return sigma;
-}
-
-// (cn <domain>)
-const Def* RewriteSlotted::convert_cn(uint32_t id, NodeFFI node) {
-    auto domain = get_def(node.children[0]);
-    auto new_cn = new_world().cn(domain);
-    return new_cn;
 }
 
 // (pi $var (scope <domain> <codomain>))

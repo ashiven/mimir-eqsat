@@ -26,6 +26,10 @@ define_language! {
         Let(Bind<AppliedId>) = "let",
         // (lam $var-name (scope <filter> <body>))
         Lam(Bind<AppliedId>) = "lam",
+        // (con $var-name (scope <filter> <body>))
+        Con(Bind<AppliedId>) = "con",
+        // (fun $var-name (scope <filter> <body>))
+        Fun(Bind<AppliedId>) = "fun",
         // (app <callee> <arg>)
         App(AppliedId, AppliedId) = "app",
         // (var $name)
@@ -68,10 +72,12 @@ define_language! {
         Arr(Bind<AppliedId>) = "arr",
         // (sigma $var (scope <type-cons> nil))
         Sigma(Bind<AppliedId>) = "sigma",
-        // (cn <domain>)
-        Cn(AppliedId) = "cn",
         // (pi $var (scope <domain> <codomain>))
         Pi(Bind<AppliedId>) = "pi",
+        // (cn $var (scope <domain> <codomain>))
+        Cn(Bind<AppliedId>) = "cn",
+        // (fn $var (scope <domain> <codomain>))
+        Fn(Bind<AppliedId>) = "fn",
         // (idx <size>)
         Idx(AppliedId) = "idx",
         // (hole <type>) - does it even make sense to have this?
