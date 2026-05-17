@@ -86,8 +86,7 @@ const Def* RewriteSlotted::create_type(RecExprFFI type_) {
 
     if (DEBUG) std::cout << "Type init stage complete! \n";
 
-    type_state.cache = cache();
-    restore_state(type_state);
+    restore_state(type_state, true);
     auto res = convert(type_root_id);
 
     if (DEBUG) std::cout << "Type convert stage complete! \n";
@@ -132,26 +131,28 @@ const Def* RewriteSlotted::init(uint32_t id) {
     return cache_set(id, res);
 }
 
-const Def* RewriteSlotted::init_lookahead(uint32_t id, NodeFFI node) {
-    const Def* def = cache_get(id);
-    if (!def) {
+const Def* RewriteSlotted::init_lookahead(uint32_t id) {
+    auto node = get_node_unsafe(id);
+
+    const Def* res = cache_get(id);
+    if (!res) {
         switch (node.kind) {
-            case MimKind::Lam: def = init_lam(id, node); break;
-            case MimKind::Pi: def = init_pi(id, node); break;
-            case MimKind::Sigma: def = init_sigma(id, node); break;
-            case MimKind::Arr: def = init_arr(id, node); break;
+            case MimKind::Lam: res = init_lam(id, node); break;
+            case MimKind::Pi: res = init_pi(id, node); break;
+            case MimKind::Sigma: res = init_sigma(id, node); break;
+            case MimKind::Arr: res = init_arr(id, node); break;
             default:
                 auto saved_state = save_state();
 
                 init(id);
                 restore_state(saved_state, true);
 
-                def = convert(id);
+                res = convert(id);
                 restore_state(saved_state, true);
                 break;
         }
     }
-    return cache_set(id, def);
+    return cache_set(id, res);
 }
 
 // (axm <name> <type>)
@@ -176,9 +177,7 @@ const Def* RewriteSlotted::init_root(uint32_t id, NodeFFI node) {
 
     auto name = get_symbol(node.children[1]);
 
-    auto def_id   = node.children[2];
-    auto def_node = get_node_unsafe(def_id);
-    auto def      = init_lookahead(def_id, def_node);
+    auto def = init_lookahead(node.children[2]);
     def->set(name);
     register_var(name, def);
 
@@ -194,9 +193,7 @@ const Def* RewriteSlotted::init_let(uint32_t id, NodeFFI node) {
 
     auto var_name = get_slot(id);
 
-    auto def_id   = var_scope.children[0];
-    auto def_node = get_node_unsafe(def_id);
-    auto def      = init_lookahead(def_id, def_node);
+    auto def = init_lookahead(var_scope.children[0]);
     def->set(var_name);
     register_var(var_name, def);
 
@@ -252,14 +249,13 @@ const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto type_cons = get_cons_flat(var_scope.children[0]);
-    auto size      = type_cons.size();
+    auto type_ids = get_cons_flat(var_scope.children[0]);
+    auto size     = type_ids.size();
 
     auto saved_state = save_state();
     DefVec types;
-    for (auto type_id : type_cons) {
-        auto type_node = get_node_unsafe(type_id);
-        auto type      = init_lookahead(type_id, type_node);
+    for (auto type_id : type_ids) {
+        auto type = init_lookahead(type_id);
         types.push_back(type);
         inc_visit_count(loc().depth + 1);
     }
