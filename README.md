@@ -103,7 +103,8 @@ plugin core;
 plugin eqsat;
 
 // Here you can specify whether the plugin should use its `egg` or `slotted-egraphs` backend.
-// The default implementation when nothing gets specified is `egg`.
+// The default implementation when nothing gets specified is `slotted`.
+// Note that the `egg` implementation is still incomplete and experimental.
 fun extern _impl(): %eqsat.Impl =
     return %eqsat.slotted;
 
@@ -121,7 +122,7 @@ fun extern _rulesets(): %eqsat.Ruleset =
 
 // You can also define your own syntactic rewrite-rules in `MimIR`.
 // To differentiate between slots: "(var $x)" and patterns: "?x" you should
-// prefix variables with "slot_" or "pat_" when using the slotted implementation.
+// prefix variables with "slot_" or "pat_" when using the `slotted` implementation.
 rule foo (slot_x: Nat) = %core.nat.add (slot_x, 0) => slot_x;
 
 // And then tell the eqsat plugin to use them for term rewriting.
