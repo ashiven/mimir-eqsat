@@ -507,7 +507,7 @@ fn make_extract_type(
             .children
             .get(1)
             .expect("Expected array body")
-            .clone()
+            .clone();
     // Extract from tuple with literal index
     } else if let TypeExpr {
         node: MimSlotted::Sigma(..),

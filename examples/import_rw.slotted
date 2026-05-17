@@ -1,82 +1,82 @@
-(root intern atoi (lam $f250 (scope nil nil)))
+(root intern atoi (lam $f234 (scope nil nil)))
 
 (root
   extern
   main
   (lam
-    $f271
+    $f256
     (scope
       (lit ff Bool)
       (let
-        $f270
+        $f255
         (scope
           (lam
-            $f269
+            $f254
             (scope
               (lit ff Bool)
               (let
-                $f268
+                $f253
                 (scope
                   (lam
-                    $f256
+                    $f241
                     (scope
                       (lit ff Bool)
                       (let
-                        $f255
+                        $f240
                         (scope
-                          (extract (var $f271) (lit 3 (idx (lit 4 Nat))))
+                          (extract (var $f256) (lit 3 (idx (lit 4 Nat))))
                           (let
-                            $f253
+                            $f238
                             (scope
-                              (extract (var $f256) (lit ff Bool))
+                              (extract (var $f241) (lit ff Bool))
                               (let
-                                $f252
+                                $f237
                                 (scope
-                                  (extract (var $f256) (lit tt Bool))
+                                  (extract (var $f241) (lit tt Bool))
                                   (let
-                                    $f251
+                                    $f236
                                     (scope
-                                      (extract (var $f269) (lit tt Bool))
+                                      (extract (var $f254) (lit tt Bool))
                                       (app
-                                        (var $f255)
+                                        (var $f240)
                                         (tuple
                                           (cons
-                                            (var $f253)
+                                            (var $f238)
                                             (cons
                                               (app
                                                 (app (app %core.wrap.add (lit i32 Nat)) (lit 0 Nat))
-                                                (tuple (cons (var $f252) (cons (var $f251) nil))))
+                                                (tuple (cons (var $f237) (cons (var $f236) nil))))
                                               nil))))))))))))))
                   (let
-                    $f266
+                    $f251
                     (scope
-                      (extract (var $f269) (lit ff Bool))
+                      (extract (var $f254) (lit ff Bool))
                       (let
-                        $f264
+                        $f249
                         (scope
                           (top Nat)
                           (let
-                            $f263
+                            $f247
                             (scope
                               (pack
-                                (var $f264)
+                                (var $f249)
                                 (app
                                   %mem.Ptr
-                                  (tuple (cons (arr (scope (var $f264) I8)) (cons (lit 0 Nat) nil)))))
+                                  (tuple (cons (arr $f235 (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))
                               (let
-                                $f261
+                                $f245
                                 (scope
-                                  (extract (var $f271) (lit 2 (idx (lit 4 Nat))))
+                                  (extract (var $f256) (lit 2 (idx (lit 4 Nat))))
                                   (let
-                                    $f259
+                                    $f243
                                     (scope
                                       (app
                                         (app
                                           %mem.lea
-                                          (tuple (cons (var $f264) (cons (var $f263) (cons (lit 0 Nat) nil)))))
-                                        (tuple (cons (var $f261) (cons (lit 2 I32) nil))))
+                                          (tuple (cons (var $f249) (cons (var $f247) (cons (lit 0 Nat) nil)))))
+                                        (tuple (cons (var $f245) (cons (lit 2 I32) nil))))
                                       (let
-                                        $f257
+                                        $f242
                                         (scope
                                           (extract
                                             (app
@@ -86,12 +86,12 @@
                                                   (cons
                                                     (app
                                                       %mem.Ptr
-                                                      (tuple (cons (arr (scope (var $f264) I8)) (cons (lit 0 Nat) nil))))
+                                                      (tuple (cons (arr $f235 (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                                     (cons (lit 0 Nat) nil))))
-                                              (tuple (cons (var $f266) (cons (var $f259) nil))))
+                                              (tuple (cons (var $f251) (cons (var $f243) nil))))
                                             (lit ff Bool))
                                           (let
-                                            $f254
+                                            $f239
                                             (scope
                                               (extract
                                                 (app
@@ -101,41 +101,41 @@
                                                       (cons
                                                         (app
                                                           %mem.Ptr
-                                                          (tuple (cons (arr (scope (var $f264) I8)) (cons (lit 0 Nat) nil))))
+                                                          (tuple (cons (arr $f235 (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                                         (cons (lit 0 Nat) nil))))
-                                                  (tuple (cons (var $f266) (cons (var $f259) nil))))
+                                                  (tuple (cons (var $f251) (cons (var $f243) nil))))
                                                 (lit tt Bool))
-                                              (app atoi (tuple (cons (var $f257) (cons (var $f254) (cons (var $f268) nil)))))))))))))))))))))))
+                                              (app atoi (tuple (cons (var $f242) (cons (var $f239) (cons (var $f253) nil)))))))))))))))))))))))
           (let
-            $f267
+            $f252
             (scope
-              (top Nat)
+              (extract (var $f256) (lit 0 (idx (lit 4 Nat))))
               (let
-                $f265
+                $f250
                 (scope
-                  (extract (var $f271) (lit 0 (idx (lit 4 Nat))))
+                  (top Nat)
                   (let
-                    $f262
+                    $f248
                     (scope
                       (pack
-                        (var $f267)
+                        (var $f250)
                         (app
                           %mem.Ptr
-                          (tuple (cons (arr (scope (var $f267) I8)) (cons (lit 0 Nat) nil)))))
+                          (tuple (cons (arr $f235 (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))
                       (let
-                        $f260
+                        $f246
                         (scope
-                          (extract (var $f271) (lit 2 (idx (lit 4 Nat))))
+                          (extract (var $f256) (lit 2 (idx (lit 4 Nat))))
                           (let
-                            $f258
+                            $f244
                             (scope
                               (app
                                 (app
                                   %mem.lea
-                                  (tuple (cons (var $f267) (cons (var $f262) (cons (lit 0 Nat) nil)))))
-                                (tuple (cons (var $f260) (cons (lit 1 I32) nil))))
+                                  (tuple (cons (var $f250) (cons (var $f248) (cons (lit 0 Nat) nil)))))
+                                (tuple (cons (var $f246) (cons (lit 1 I32) nil))))
                               (let
-                                $f257
+                                $f242
                                 (scope
                                   (extract
                                     (app
@@ -145,12 +145,12 @@
                                           (cons
                                             (app
                                               %mem.Ptr
-                                              (tuple (cons (arr (scope (var $f267) I8)) (cons (lit 0 Nat) nil))))
+                                              (tuple (cons (arr $f235 (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                             (cons (lit 0 Nat) nil))))
-                                      (tuple (cons (var $f265) (cons (var $f258) nil))))
+                                      (tuple (cons (var $f252) (cons (var $f244) nil))))
                                     (lit ff Bool))
                                   (let
-                                    $f254
+                                    $f239
                                     (scope
                                       (extract
                                         (app
@@ -160,8 +160,8 @@
                                               (cons
                                                 (app
                                                   %mem.Ptr
-                                                  (tuple (cons (arr (scope (var $f267) I8)) (cons (lit 0 Nat) nil))))
+                                                  (tuple (cons (arr $f235 (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                                 (cons (lit 0 Nat) nil))))
-                                          (tuple (cons (var $f265) (cons (var $f258) nil))))
+                                          (tuple (cons (var $f252) (cons (var $f244) nil))))
                                         (lit tt Bool))
-                                      (app atoi (tuple (cons (var $f257) (cons (var $f254) (cons (var $f270) nil))))))))))))))))))))))))
+                                      (app atoi (tuple (cons (var $f242) (cons (var $f239) (cons (var $f255) nil))))))))))))))))))))))))

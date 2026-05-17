@@ -3,6 +3,9 @@ plugin core;
 plugin eqsat;
 import pipeline;
 
+fun extern _impl(): %eqsat.Impl =
+    return %eqsat.egg;
+
 fun extern _rulesets(): %eqsat.Ruleset =
     return (%eqsat.rulesets (
         %eqsat.math,

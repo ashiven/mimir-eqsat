@@ -14,8 +14,8 @@
 namespace mim::plug::eqsat {
 
 /****************** DEBUG *********************/
-const bool DEBUG        = true;
-const bool DEBUG_SCOPES = true;
+const bool DEBUG        = false;
+const bool DEBUG_SCOPES = false;
 
 /***************** TYPES **********************/
 typedef struct Loc {
@@ -188,7 +188,10 @@ private:
             std::cout << id << ": " << def << "\n";
     }
 
-    const Def* cache_get(uint32_t id) { return (*cache())[id]; }
+    const Def* cache_get(uint32_t id) {
+        auto it = cache()->find(id);
+        return it != cache()->end() ? it->second : nullptr;
+    }
     const Def* cache_set(uint32_t id, const Def* def) { return (*cache())[id] = def; }
     uint32_t get_id(const Def* def) {
         auto it = std::find_if(cache()->begin(), cache()->end(), [&](const auto& pair) { return pair.second == def; });
@@ -416,7 +419,7 @@ private:
     void set_scope_tree(size_t rec_expr_id) { set_scope_tree(scope_tree(rec_expr_id)); }
 
     /************** Root Scope ************/
-    RootScope root_scope() const { return root_scope_; }
+    const RootScope& root_scope() const { return root_scope_; }
 
     void root_scope_add(std::string name, const Def* def) { root_scope_.insert({name, def}); }
 

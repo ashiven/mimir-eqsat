@@ -151,7 +151,7 @@ fn convert_custom_rule() {
 fn extract_type_info() {
     let annotated = "
     (root extern add_lit
-        (@ (cn (cn I8))
+        (@ (cn $dummy (scope (cn $dummy (scope I8 nil)) nil))
         (lam
             $return_22296
             (scope
@@ -159,7 +159,7 @@ fn extract_type_info() {
                 (lit ff Bool))
                 (@ (bot (type (lit 0 Univ)))
                 (app
-                    (@ (cn I8)
+                    (@ (cn $dummy (scope I8 nil))
                     (var $return_22296))
                     (@ I8
                     (lit 6 I8))))))))";
@@ -180,7 +180,10 @@ fn extract_type_info() {
         .type_
         .clone();
 
-    assert_eq!(lam_type, RecExpr::parse("(cn (cn I8))").unwrap());
+    assert_eq!(
+        lam_type,
+        RecExpr::parse("(cn $dummy (scope (cn $dummy (scope I8 nil)) nil))").unwrap()
+    );
 }
 
 #[test]
@@ -192,12 +195,12 @@ fn make_eta_expansion_hole() {
 
     let mut eg = EGraph::<MimSlotted, MimSlottedAnalysis>::default();
 
-    let fun_annotated = "(@ (pi $var (scope Nat Bool)) fun)";
+    let fun_annotated = "(@ (pi $var (scope Nat Bool)) func)";
     let fun_annotated: RecExpr<MimSlotted> = RecExpr::parse(fun_annotated).unwrap();
     let fun_typed = extract_type_annotations(&fun_annotated);
     let fun_typed_id = add_expr_typed(&mut eg, fun_typed);
 
-    let eta_exp = "(lam $x (scope (lit ff Bool) (app fun (var $x))))";
+    let eta_exp = "(lam $x (scope (lit ff Bool) (app func (var $x))))";
     let eta_exp: RecExpr<MimSlotted> = RecExpr::parse(eta_exp).unwrap();
     let eta_exp_id = eg.add_expr(eta_exp);
 
