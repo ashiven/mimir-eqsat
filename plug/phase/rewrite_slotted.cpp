@@ -583,16 +583,6 @@ const Def* RewriteSlotted::convert_sigma(uint32_t id, NodeFFI node) {
 
     auto sigma = get_def(id)->as_mut<Sigma>();
 
-    // DefVec types;
-    // auto type_ids = get_cons_flat(var_scope.children[0]);
-    // for (auto type_id : type_ids) {
-    //     auto type = get_def(type_id);
-    //     types.push_back(type);
-    // }
-
-    // sigma->unset();
-    // sigma->set(types);
-
     exit_scope(var_scope);
     return sigma;
 }
