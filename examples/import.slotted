@@ -1,256 +1,372 @@
 (root intern atoi
-    (con
-        (sigma (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil))))
-        $_23295
-        (scope nil nil)))
+    (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil))) nil)) (bot (type (lit 0 Univ)))))
+    (lam
+        $_23109
+        (scope nil nil))))
 
 (root extern main
-    (con
-        (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (arr (top Nat) (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))) (cons (lit 0 Nat) nil)))) (cons (cn (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))) nil)))))
-        $_23232
+    (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)))) nil)) (bot (type (lit 0 Univ)))))
+    (lam
+        $_23046
         (scope
-            (lit ff Bool)
+            (@ Bool
+            (lit ff Bool))
             (let
-                $atoi_cont_a_23262
+                $atoi_cont_a_23076
                 (scope
-                    (con
-                        (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
-                        $_23263
+                    (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
+                    (lam
+                        $_23077
                         (scope
-                            (lit ff Bool)
+                            (@ Bool
+                            (lit ff Bool))
                             (let
-                                $atoi_cont_b_23272
+                                $atoi_cont_b_23086
                                 (scope
-                                    (con
-                                        (sigma (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)))
-                                        $_23273
+                                    (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
+                                    (lam
+                                        $_23087
                                         (scope
-                                            (lit ff Bool)
+                                            (@ Bool
+                                            (lit ff Bool))
                                             (let
-                                                $return_23286
+                                                $return_23100
                                                 (scope
+                                                    (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
                                                     (extract
-                                                        (var $_23232)
-                                                        (lit 3 (idx (lit 4 Nat))))
+                                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)))) nil))
+                                                        (var $_23046))
+                                                        (@ (idx (lit 4 Nat))
+                                                        (lit 3 (idx (lit 4 Nat))))))
                                             (let
-                                                $mem_23274
+                                                $mem_23088
                                                 (scope
+                                                    (@ (app %mem.M (lit 0 Nat))
                                                     (extract
-                                                        (var $_23273)
-                                                        (lit ff Bool))
+                                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil))
+                                                        (var $_23087))
+                                                        (@ Bool
+                                                        (lit ff Bool))))
                                             (let
-                                                $b_23275
+                                                $b_23089
                                                 (scope
+                                                    (@ I32
                                                     (extract
-                                                        (var $_23273)
-                                                        (lit tt Bool))
+                                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil))
+                                                        (var $_23087))
+                                                        (@ Bool
+                                                        (lit tt Bool))))
                                             (let
-                                                $a_23276
+                                                $a_23090
                                                 (scope
+                                                    (@ I32
                                                     (extract
-                                                        (var $_23263)
-                                                        (lit tt Bool))
+                                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil))
+                                                        (var $_23077))
+                                                        (@ Bool
+                                                        (lit tt Bool))))
+                                            (@ (bot (type (lit 0 Univ)))
                                             (app
-                                                (var $return_23286)
+                                                (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
+                                                (var $return_23100))
+                                                (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil))
                                                 (tuple
                                                     (cons
-                                                        (var $mem_23274)
+                                                        (@ (app %mem.M (lit 0 Nat))
+                                                        (var $mem_23088))
                                                     (cons
+                                                        (@ I32
                                                         (app
+                                                            (@ (pi $dummy (scope (arr $dummy (scope (lit 2 Nat) I32)) I32))
                                                             (app
+                                                                (@ (pi $dummy (scope Nat (pi $dummy (scope (arr $dummy (scope (lit 2 Nat) I32)) I32))))
                                                                 (app
-                                                                    %core.wrap.add
-                                                                    (lit i32 Nat))
-                                                                (lit 0 Nat))
+                                                                    (@ (pi $s_22428 (scope Nat (pi $dummy (scope Nat (pi $dummy (scope (arr $dummy (scope (lit 2 Nat) (idx (var $s_22428)))) (idx (var $s_22428))))))))
+                                                                    %core.wrap.add)
+                                                                    (@ Nat
+                                                                    (lit i32 Nat))))
+                                                                (@ Nat
+                                                                (lit 0 Nat))))
+                                                            (@ (arr $dummy (scope (lit 2 Nat) I32))
                                                             (tuple
                                                                 (cons
-                                                                    (var $b_23275)
+                                                                    (@ I32
+                                                                    (var $b_23089))
                                                                 (cons
-                                                                    (var $a_23276)
-                                                                nil))))
-                                                    nil))))))))))))))
+                                                                    (@ I32
+                                                                    (var $a_23090))
+                                                                nil))))))
+                                                    nil)))))))))))))))))
                             (let
-                                $mem_23264
+                                $mem_23078
                                 (scope
+                                    (@ (app %mem.M (lit 0 Nat))
                                     (extract
-                                        (var $_23263)
-                                        (lit ff Bool))
+                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil))
+                                        (var $_23077))
+                                        (@ Bool
+                                        (lit ff Bool))))
                             (let
-                                $n_22403
+                                $n_22251
                                 (scope
                                     (top Nat)
                             (let
-                                $Ts_23240
+                                $Ts_23054
                                 (scope
+                                    (@ (arr $dummy (scope (top Nat) (type (lit 0 Univ))))
                                     (pack
-                                        (var $n_22403)
-                                        (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))))
+                                        (@ Nat
+                                        (var $n_22251))
+                                        (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))))
                             (let
-                                $argv_23235
+                                $argv_23049
                                 (scope
+                                    (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil))))
                                     (extract
-                                        (var $_23232)
-                                        (lit 2 (idx (lit 4 Nat))))
+                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)))) nil))
+                                        (var $_23046))
+                                        (@ (idx (lit 4 Nat))
+                                        (lit 2 (idx (lit 4 Nat))))))
                             (let
-                                $argv_ptr_b_23267
+                                $argv_ptr_b_23081
                                 (scope
+                                    (@ (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))
                                     (app
+                                        (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons I64 nil)) nil)) (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))))
                                         (app
-                                            %mem.lea
+                                            (@ (pi $_23002 (scope (sigma $_22998 (scope (cons Nat (cons (arr $dummy (scope (extract (var $_22998) (lit 0 (idx (lit 3 Nat)))) (type (lit 0 Univ)))) (cons Nat nil))) nil)) (pi $_23014 (scope (sigma $dummy (scope (cons (app %mem.Ptr (tuple (cons (arr $j_23006 (scope (extract (var $_23002) (lit 0 (idx (lit 3 Nat)))) (extract (extract (var $_23002) (lit 1 (idx (lit 3 Nat)))) (var $j_23006)))) (cons (extract (var $_23002) (lit 2 (idx (lit 3 Nat)))) nil)))) (cons (idx (extract (var $_23002) (lit 0 (idx (lit 3 Nat))))) nil)) nil)) (app %mem.Ptr (tuple (cons (extract (extract (var $_23002) (lit 1 (idx (lit 3 Nat)))) (extract (var $_23014) (lit tt Bool))) (cons (extract (var $_23002) (lit 2 (idx (lit 3 Nat)))) nil))))))))
+                                            %mem.lea)
+                                            (@ (sigma $dummy (scope (cons Nat (cons (arr $dummy (scope (top Nat) (type (lit 0 Univ)))) (cons Nat nil))) nil))
                                             (tuple
                                                 (cons
-                                                    (var $n_22403)
+                                                    (@ Nat
+                                                    (var $n_22251))
                                                 (cons
-                                                    (var $Ts_23240)
+                                                    (@ (arr $dummy (scope (top Nat) (type (lit 0 Univ))))
+                                                    (var $Ts_23054))
                                                 (cons
-                                                    (lit 0 Nat)
-                                                nil)))))
+                                                    (@ Nat
+                                                    (lit 0 Nat))
+                                                nil)))))))
+                                        (@ (sigma $dummy (scope (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons I32 nil)) nil))
                                         (tuple
                                             (cons
-                                                (var $argv_23235)
+                                                (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil))))
+                                                (var $argv_23049))
                                             (cons
-                                                (lit 2 I32)
-                                            nil))))
+                                                (@ I32
+                                                (lit 2 I32))
+                                            nil))))))
                             (let
-                                $mem_23270
+                                $mem_23084
                                 (scope
+                                    (@ (app %mem.M (lit 0 Nat))
                                     (extract
+                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))
                                         (app
+                                            (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))))
                                             (app
-                                                %mem.load
+                                                (@ (pi $Ta_22930 (scope (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil)) (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (app %mem.Ptr (var $Ta_22930)) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (extract (var $Ta_22930) (lit ff Bool)) nil)) nil))))))
+                                                %mem.load)
+                                                (@ (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil))
                                                 (tuple
                                                     (cons
-                                                        (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                                        (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                                     (cons
-                                                        (lit 0 Nat)
-                                                    nil))))
+                                                        (@ Nat
+                                                        (lit 0 Nat))
+                                                    nil))))))
+                                            (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil))
                                             (tuple
                                                 (cons
-                                                    (var $mem_23264)
+                                                    (@ (app %mem.M (lit 0 Nat))
+                                                    (var $mem_23078))
                                                 (cons
-                                                    (var $argv_ptr_b_23267)
-                                                nil))))
-                                        (lit ff Bool))
+                                                    (@ (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))
+                                                    (var $argv_ptr_b_23081))
+                                                nil))))))
+                                        (@ Bool
+                                        (lit ff Bool))))
                             (let
-                                $val_23271
+                                $val_23085
                                 (scope
+                                    (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                     (extract
+                                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))
                                         (app
+                                            (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))))
                                             (app
-                                                %mem.load
+                                                (@ (pi $Ta_22930 (scope (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil)) (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (app %mem.Ptr (var $Ta_22930)) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (extract (var $Ta_22930) (lit ff Bool)) nil)) nil))))))
+                                                %mem.load)
+                                                (@ (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil))
                                                 (tuple
                                                     (cons
-                                                        (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                                        (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                                     (cons
-                                                        (lit 0 Nat)
-                                                    nil))))
+                                                        (@ Nat
+                                                        (lit 0 Nat))
+                                                    nil))))))
+                                            (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil))
                                             (tuple
                                                 (cons
-                                                    (var $mem_23264)
+                                                    (@ (app %mem.M (lit 0 Nat))
+                                                    (var $mem_23078))
                                                 (cons
-                                                    (var $argv_ptr_b_23267)
-                                                nil))))
-                                        (lit tt Bool))
+                                                    (@ (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))
+                                                    (var $argv_ptr_b_23081))
+                                                nil))))))
+                                        (@ Bool
+                                        (lit tt Bool))))
+                            (@ (bot (type (lit 0 Univ)))
                             (app
-                                atoi
+                                (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil))) nil)) (bot (type (lit 0 Univ)))))
+                                atoi)
+                                (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil))) nil))
                                 (tuple
                                     (cons
-                                        (var $mem_23270)
+                                        (@ (app %mem.M (lit 0 Nat))
+                                        (var $mem_23084))
                                     (cons
-                                        (var $val_23271)
+                                        (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
+                                        (var $val_23085))
                                     (cons
-                                        (var $atoi_cont_b_23272)
-                                    nil)))))))))))))))))))))))
+                                        (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
+                                        (var $atoi_cont_b_23086))
+                                    nil))))))))))))))))))))))))))
             (let
-                $mem_23233
+                $mem_23047
                 (scope
+                    (@ (app %mem.M (lit 0 Nat))
                     (extract
-                        (var $_23232)
-                        (lit 0 (idx (lit 4 Nat))))
+                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)))) nil))
+                        (var $_23046))
+                        (@ (idx (lit 4 Nat))
+                        (lit 0 (idx (lit 4 Nat))))))
             (let
-                $n_22403
+                $n_22251
                 (scope
                     (top Nat)
             (let
-                $Ts_23240
+                $Ts_23054
                 (scope
+                    (@ (arr $dummy (scope (top Nat) (type (lit 0 Univ))))
                     (pack
-                        (var $n_22403)
-                        (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil)))))
+                        (@ Nat
+                        (var $n_22251))
+                        (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))))
             (let
-                $argv_23235
+                $argv_23049
                 (scope
+                    (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil))))
                     (extract
-                        (var $_23232)
-                        (lit 2 (idx (lit 4 Nat))))
+                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil)))) nil))
+                        (var $_23046))
+                        (@ (idx (lit 4 Nat))
+                        (lit 2 (idx (lit 4 Nat))))))
             (let
-                $argv_ptr_a_23253
+                $argv_ptr_a_23067
                 (scope
+                    (@ (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))
                     (app
+                        (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons I64 nil)) nil)) (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))))
                         (app
-                            %mem.lea
+                            (@ (pi $_23002 (scope (sigma $_22998 (scope (cons Nat (cons (arr $dummy (scope (extract (var $_22998) (lit 0 (idx (lit 3 Nat)))) (type (lit 0 Univ)))) (cons Nat nil))) nil)) (pi $_23014 (scope (sigma $dummy (scope (cons (app %mem.Ptr (tuple (cons (arr $j_23006 (scope (extract (var $_23002) (lit 0 (idx (lit 3 Nat)))) (extract (extract (var $_23002) (lit 1 (idx (lit 3 Nat)))) (var $j_23006)))) (cons (extract (var $_23002) (lit 2 (idx (lit 3 Nat)))) nil)))) (cons (idx (extract (var $_23002) (lit 0 (idx (lit 3 Nat))))) nil)) nil)) (app %mem.Ptr (tuple (cons (extract (extract (var $_23002) (lit 1 (idx (lit 3 Nat)))) (extract (var $_23014) (lit tt Bool))) (cons (extract (var $_23002) (lit 2 (idx (lit 3 Nat)))) nil))))))))
+                            %mem.lea)
+                            (@ (sigma $dummy (scope (cons Nat (cons (arr $dummy (scope (top Nat) (type (lit 0 Univ)))) (cons Nat nil))) nil))
                             (tuple
                                 (cons
-                                    (var $n_22403)
+                                    (@ Nat
+                                    (var $n_22251))
                                 (cons
-                                    (var $Ts_23240)
+                                    (@ (arr $dummy (scope (top Nat) (type (lit 0 Univ))))
+                                    (var $Ts_23054))
                                 (cons
-                                    (lit 0 Nat)
-                                nil)))))
+                                    (@ Nat
+                                    (lit 0 Nat))
+                                nil)))))))
+                        (@ (sigma $dummy (scope (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil)))) (cons I32 nil)) nil))
                         (tuple
                             (cons
-                                (var $argv_23235)
+                                (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))))) (cons (lit 0 Nat) nil))))
+                                (var $argv_23049))
                             (cons
-                                (lit 1 I32)
-                            nil))))
+                                (@ I32
+                                (lit 1 I32))
+                            nil))))))
             (let
-                $mem_23260
+                $mem_23074
                 (scope
+                    (@ (app %mem.M (lit 0 Nat))
                     (extract
+                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))
                         (app
+                            (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))))
                             (app
-                                %mem.load
+                                (@ (pi $Ta_22930 (scope (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil)) (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (app %mem.Ptr (var $Ta_22930)) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (extract (var $Ta_22930) (lit ff Bool)) nil)) nil))))))
+                                %mem.load)
+                                (@ (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil))
                                 (tuple
                                     (cons
-                                        (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                        (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                     (cons
-                                        (lit 0 Nat)
-                                    nil))))
+                                        (@ Nat
+                                        (lit 0 Nat))
+                                    nil))))))
+                            (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil))
                             (tuple
                                 (cons
-                                    (var $mem_23233)
+                                    (@ (app %mem.M (lit 0 Nat))
+                                    (var $mem_23047))
                                 (cons
-                                    (var $argv_ptr_a_23253)
-                                nil))))
-                        (lit ff Bool))
+                                    (@ (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))
+                                    (var $argv_ptr_a_23067))
+                                nil))))))
+                        (@ Bool
+                        (lit ff Bool))))
             (let
-                $val_23261
+                $val_23075
                 (scope
+                    (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                     (extract
+                        (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))
                         (app
+                            (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) nil)) nil))))
                             (app
-                                %mem.load
+                                (@ (pi $Ta_22930 (scope (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil)) (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (app %mem.Ptr (var $Ta_22930)) nil)) nil)) (sigma $dummy (scope (cons (app %mem.M (extract (var $Ta_22930) (lit tt Bool))) (cons (extract (var $Ta_22930) (lit ff Bool)) nil)) nil))))))
+                                %mem.load)
+                                (@ (sigma $dummy (scope (cons (type (lit 0 Univ)) (cons Nat nil)) nil))
                                 (tuple
                                     (cons
-                                        (app %mem.Ptr (tuple (cons (arr (top Nat) I8) (cons (lit 0 Nat) nil))))
+                                        (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
                                     (cons
-                                        (lit 0 Nat)
-                                    nil))))
+                                        (@ Nat
+                                        (lit 0 Nat))
+                                    nil))))))
+                            (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil)))) nil)) nil))
                             (tuple
                                 (cons
-                                    (var $mem_23233)
+                                    (@ (app %mem.M (lit 0 Nat))
+                                    (var $mem_23047))
                                 (cons
-                                    (var $argv_ptr_a_23253)
-                                nil))))
-                        (lit tt Bool))
+                                    (@ (app %mem.Ptr (tuple (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (lit 0 Nat) nil))))
+                                    (var $argv_ptr_a_23067))
+                                nil))))))
+                        (@ Bool
+                        (lit tt Bool))))
+            (@ (bot (type (lit 0 Univ)))
             (app
-                atoi
+                (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil))) nil)) (bot (type (lit 0 Univ)))))
+                atoi)
+                (@ (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil)))) (cons (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ))))) nil))) nil))
                 (tuple
                     (cons
-                        (var $mem_23260)
+                        (@ (app %mem.M (lit 0 Nat))
+                        (var $mem_23074))
                     (cons
-                        (var $val_23261)
+                        (@ (app %mem.Ptr (tuple (cons (arr $dummy (scope (top Nat) I8)) (cons (lit 0 Nat) nil))))
+                        (var $val_23075))
                     (cons
-                        (var $atoi_cont_a_23262)
-                    nil))))))))))))))))))))))))
+                        (@ (pi $dummy (scope (sigma $dummy (scope (cons (app %mem.M (lit 0 Nat)) (cons I32 nil)) nil)) (bot (type (lit 0 Univ)))))
+                        (var $atoi_cont_a_23076))
+                    nil)))))))))))))))))))))))))))
 

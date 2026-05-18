@@ -6,7 +6,7 @@
 namespace mim::plug::eqsat {
 
 void EqsatPhase::start() {
-    bool slotted = false;
+    bool slotted = true;
 
     // Infers whether to use 'egg' or 'slotted-egraphs' based on a
     // config function with the signature '[] -> %eqsat.Impl'

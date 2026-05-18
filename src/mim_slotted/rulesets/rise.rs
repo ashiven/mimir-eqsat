@@ -32,7 +32,7 @@ fn beta() -> RW {
 }
 
 fn eta() -> RW {
-    let pat = "(con ?dom-type $dom (scope ?filter (app ?fn (var $dom))))";
+    let pat = "(lam $x (scope ?filter (app ?fn (var $x))))";
     let outpat = "?fn";
 
     // On condition that $x is not bound in ?fn because this makes
@@ -45,9 +45,7 @@ fn eta() -> RW {
 
 fn eta_expansion() -> RW {
     let pat = "?fn";
-    // TODO: How do we infer the dom-type of the con?
-    // - an analysis that stores types on eclasses and finds the type of ?fn ?
-    let outpat = "(con DOM-TYPE $dom (scope (lit ff Bool) (app ?fn (var $dom))))";
+    let outpat = "(lam $x (scope (lit ff Bool) (app ?fn (var $x))))";
     Rewrite::new("eta-expansion", pat, outpat)
 }
 
@@ -87,16 +85,16 @@ fn let_app_unopt() -> RW {
 }
 
 fn let_lam_diff() -> RW {
-    let pat = "(let $name (scope ?def (con ?dom-type $dom (scope ?filter ?body))))";
-    let outpat = "(con ?dom-type $dom (scope ?filter (let $name (scope ?def ?body))))";
+    let pat = "(let $name (scope ?def (lam $x (scope ?filter ?body))))";
+    let outpat = "(lam $x (scope ?filter (let $name (scope ?def ?body))))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst, _| {
         subst["body"].slots().contains(&Slot::named("name"))
     })
 }
 
 fn let_lam_diff_unopt() -> RW {
-    let pat = "(let $name (scope ?def (con ?dom-type $dom (scope ?filter ?body))))";
-    let outpat = "(con ?dom-type $dom (scope ?filter (let $name (scope ?def ?body))))";
+    let pat = "(let $name (scope ?def (lam $x (scope ?filter ?body))))";
+    let outpat = "(lam $x (scope ?filter (let $name (scope ?def ?body))))";
     Rewrite::new("let-lam-diff", pat, outpat)
 }
 
@@ -106,8 +104,7 @@ fn let_lam_diff_unopt() -> RW {
 // ((map f) ((map g) arg)) => ((map λx.(f (g x))) arg)
 fn map_fusion() -> RW {
     let pat = "(app (app %rise.map ?f) (app (app %rise.map ?g) ?arg))";
-    let outpat =
-        "(app (app %rise.map (con ?x-type $x (scope ?filter (app ?f (app ?g (var $x)))))) ?arg)";
+    let outpat = "(app (app %rise.map (lam $x (scope ?filter (app ?f (app ?g (var $x)))))) ?arg)";
     Rewrite::new("map-fusion", pat, outpat)
 }
 

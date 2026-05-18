@@ -15,10 +15,19 @@
 
 </div>
 
-## About
-
 **Equality Saturation** is a compiler optimization technique that utilizes [E-Graphs](https://en.wikipedia.org/wiki/E-graph#Equality_saturation) to represent every possible way of equivalently rewriting a program and find the most optimal version of it, thereby solving the [Phase-Ordering Problem](https://www2.imm.dtu.dk/pubdb/edoc/imm5406.pdf).
 This repository contains **Equality Saturation** implementations in [egg](https://github.com/egraphs-good/egg) and [slotted-egraphs](https://github.com/memoryleak47/slotted-egraphs) as a plugin for the [DSL](https://en.wikipedia.org/wiki/Domain-specific_language) compiler intermediate representation [MimIR](https://github.com/mimir/mimir).
+
+## Table of Contents
+
+- [Usage](#usage)
+  - [C++ API](#option-1-c-api)
+  - [Mim](#option-2-mim)
+- [Installation](#installation)
+- [Rulesets](#rulesets)
+- [Provided Methods](#provided-methods)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Usage
 
@@ -47,12 +56,12 @@ int main(int, char**) {
 
         // rule foo (x: Nat) = %core.nat.add (x, 0) => x;
         auto foo = w.mut_rule(w.type_nat())->set("foo");
-        foo->var()->set("x");
-        auto lhs = w.call(core::nat::add, w.tuple(foo->var(), lit_nat(0)))
-        auto rhs = foo->var();
-        foo.set_lhs(lhs);
-        foo.set_rhs(rhs);
-        foo.set_guard(w.lit_tt());
+        auto x = foo->var()->set("x");
+        auto lhs = w.call(core::nat::add, w.tuple(x, lit_nat(0)))
+        auto rhs = x;
+        foo->set_lhs(lhs);
+        foo->set_rhs(rhs);
+        foo->set_guard(w.lit_tt());
 
         // Use the provided methods to quickly define config functions
         eqsat_impl(w, eqsat::slotted);
@@ -94,37 +103,31 @@ plugin core;
 plugin eqsat;
 
 // Here you can specify whether the plugin should use its `egg` or `slotted-egraphs` backend.
-// The default implementation when nothing gets specified is `egg`.
+// The default implementation when nothing gets specified is `slotted`.
+// Note that the `egg` implementation is still incomplete and experimental.
 fun extern _impl(): %eqsat.Impl =
     return %eqsat.slotted;
 
 // To define the cost function that should be used for term extraction,
 // simply provide the following config function.
-//
-// Config values:
-// Egg:       AstSize (default), AstDepth
-// Slotted:   AstSize (default)
 fun extern _cost_fun(): %eqsat.CostFun =
     return %eqsat.AstSize;
 
 // To use a set of rules directly implemented in `egg` or `slotted-egraphs`, define
 // the following config function.
-//
 // To see the existing rulesets, have a look at `src\mim_[egg|slotted]\rulesets`.
-// To implement and use your own ruleset, follow the instructions under **Adding rulesets**.
+// To implement and use your own ruleset, follow the instructions under **Rulesets**.
 fun extern _rulesets(): %eqsat.Ruleset =
     return %eqsat.rulesets ( %eqsat.standard );
 
 // You can also define your own syntactic rewrite-rules in `MimIR`.
-//
 // To differentiate between slots: "(var $x)" and patterns: "?x" you should
-// prefix variables with "slot_" or "pat_" when using the slotted implementation.
-rule foo (slot_x: Nat) = %core.nat.add (slot_x, 0) => slotx;
+// prefix variables with "slot_" or "pat_" when using the `slotted` implementation.
+rule foo (slot_x: Nat) = %core.nat.add (slot_x, 0) => slot_x;
 
 // And then tell the eqsat plugin to use them for term rewriting.
 fun extern _rules(): %eqsat.Rules =
     return %eqsat.rules ( foo );
-
 
 // Using your rewrite-rule 'foo', this will be rewritten to:
 //
@@ -342,3 +345,22 @@ rust::String pretty_slotted(std::string sexpr, size_t line_len);
  */
 rust::String pretty_ffi(rust::Vec<RecExprFFI> sexprs, size_t line_len);
 ```
+
+## Contributing
+
+Please feel free to submit a [pull request](https://github.com/ashiven/cs2tracker/pulls) or open an [issue](https://github.com/ashiven/cs2tracker/issues).
+
+1. Fork the repository
+2. Create a new branch: `git checkout -b feature-name`.
+3. Make your changes
+4. Push your branch: `git push origin feature-name`.
+5. Submit a PR
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).
+
+---
+
+> GitHub [@ashiven](https://github.com/Ashiven) &nbsp;&middot;&nbsp;
+> Twitter [ashiven\_](https://twitter.com/ashiven_)
