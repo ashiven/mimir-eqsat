@@ -1,0 +1,25 @@
+axm %rise.add: *;
+
+axm %rise.mul: *;
+
+axm %rise.map: *;
+
+axm %rise.transpose: *;
+
+axm %rise.slide: *;
+
+axm %rise.reduce: *;
+
+axm %rise.zip: *;
+
+axm %rise.join: *;
+
+axm %rise.fst: *;
+
+axm %rise.snd: *;
+
+axm %rise.weights2d: *;
+
+axm %rise.weightsH: *;
+
+axm %rise.weightsV: *;

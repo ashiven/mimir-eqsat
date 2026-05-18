@@ -3,6 +3,9 @@ use slotted_egraphs::{AbstractVecSet, Rewrite, Slot};
 
 type RW = Rewrite<MimSlotted, MimSlottedAnalysis>;
 
+// Ruleset based on: 
+// https://github.com/memoryleak47/slotted-egraphs/blob/main/tests/rise/rewrite.rs
+
 pub fn rules() -> Vec<RW> {
     let rules = vec![
         // EVAL
@@ -13,13 +16,16 @@ pub fn rules() -> Vec<RW> {
         let_var_same(),
         let_var_diff(),
         let_app(),
-        let_app_unopt(),
         let_lam_diff(),
-        let_lam_diff_unopt(),
         // RISE
         map_fusion(),
         map_fission(),
         double_transpose(),
+        slide_before_map(),
+        map_slide_before_transpose(),
+        slide_before_map_map_f(),
+        separate_dot_vh_simplified(),
+        separate_dot_hv_simplified(),
     ];
 
     rules
@@ -78,24 +84,12 @@ fn let_app() -> RW {
     })
 }
 
-fn let_app_unopt() -> RW {
-    let pat = "(let $name (scope ?def (app ?a ?b))";
-    let outpat = "(app (let $name (scope ?def ?a)) (let $name (scope ?def ?b)))";
-    Rewrite::new("let-app", pat, outpat)
-}
-
 fn let_lam_diff() -> RW {
     let pat = "(let $name (scope ?def (lam $x (scope ?filter ?body))))";
     let outpat = "(lam $x (scope ?filter (let $name (scope ?def ?body))))";
     Rewrite::new_if("let-lam-diff", pat, outpat, |subst, _| {
         subst["body"].slots().contains(&Slot::named("name"))
     })
-}
-
-fn let_lam_diff_unopt() -> RW {
-    let pat = "(let $name (scope ?def (lam $x (scope ?filter ?body))))";
-    let outpat = "(lam $x (scope ?filter (let $name (scope ?def ?body))))";
-    Rewrite::new("let-lam-diff", pat, outpat)
 }
 
 // TODO:
@@ -112,14 +106,13 @@ fn map_fusion() -> RW {
 fn map_fission() -> RW {
     let pat = "(app %rise.map (lam $x (scope ?filter (app ?f ?gx))))";
     let outpat = "
-    (lam $y 
-        (scope
-            (lit ff Bool)
+    (lam $y (scope
+        (lit ff Bool)
+        (app
+            (app %rise.map ?f)
             (app
-                (app %rise.map ?f)
-                (app
-                    (app %rise.map (lam $x (scope ?filter ?gx)))
-                    (var $y)))))";
+                (app %rise.map (lam $x (scope ?filter ?gx)))
+                (var $y)))))";
     Rewrite::new_if("map-fission", pat, outpat, |subst, _| {
         !subst["f"].slots().contains(&Slot::named("x"))
     })
@@ -129,4 +122,45 @@ fn double_transpose() -> RW {
     let pat = "(app %rise.transpose (app %rise.transpose ?arg))";
     let outpat = "?arg";
     Rewrite::new("double-transpose", pat, outpat)
+}
+
+fn slide_before_map() -> RW {
+    let pat = "(app (app (app %rise.slide ?sz) ?sp) (app (app %rise.map ?f) ?y))";
+    let outpat =
+        "(app (app %rise.map (app %rise.map ?f)) (app (app (app %rise.slide ?sz) ?sp) ?y))";
+    Rewrite::new("slide-before-map", pat, outpat)
+}
+
+fn map_slide_before_transpose() -> RW {
+    let pat = "(app %rise.transpose (app (app %rise.map (app (app %rise.slide ?sz) ?sp)) ?y))";
+    let outpat = "(app (app %rise.map %rise.transpose) (app (app (app %rise.slide ?sz) ?sp) (app %rise.transpose ?y)))";
+    Rewrite::new("map-slide-before-transpose", pat, outpat)
+}
+
+fn slide_before_map_map_f() -> RW {
+    let pat = "(app (app %rise.map (app %rise.map ?f)) (app (app (app %rise.slide ?sz) ?sp) ?y))";
+    let outpat = "(app (app (app %rise.slide ?sz) ?sp) (app (app %rise.map ?f) ?y))";
+    Rewrite::new("slide-before-map-map-f", pat, outpat)
+}
+
+fn separate_dot_vh_simplified() -> RW {
+    let pat = 
+        "(app (app (app %rise.reduce %rise.add) (lit 0 Nat)) (app (app %rise.map (lam $x (app (app %rise.mul (app %rise.fst (var $x))) (app %rise.snd (var $x)))))
+         (app (app %rise.zip (app %rise.join %rise.weights2d)) (app %rise.join ?nbh))))";
+    let outpat = 
+        "(app (app (app %rise.reduce %rise.add) (lit 0 Nat)) (app (app %rise.map (lam $x (app (app %rise.mul (app %rise.fst (var $x))) (app %rise.snd (var $x)))))
+         (app (app %rise.zip %rise.weightsH) (app (app %rise.map (lam $sdvh (app (app (app %rise.reduce %rise.add) (lit 0 Nat)) (app (app %rise.map (lam $x (app (app %rise.mul (app %rise.fst (var $x))) (app %rise.snd (var $x)))))
+         (app (app %rise.zip %rise.weightsV) (var $sdvh)))))) (app %rise.transpose ?nbh)))))";
+    Rewrite::new("separate-dot-vh-simplified", pat, outpat)
+}
+
+fn separate_dot_hv_simplified() -> RW {
+    let pat = 
+        "(app (app (app %rise.reduce %rise.add) (lit 0 Nat)) (app (app %rise.map (lam $x (app (app %rise.mul (app %rise.fst (var $x))) (app %rise.snd (var $x)))))
+         (app (app %rise.zip (app %rise.join %rise.weights2d)) (app %rise.join ?nbh))))";
+    let outpat = 
+        "(app (app (app %rise.reduce %rise.add) (lit 0 Nat)) (app (app %rise.map (lam $x (app (app %rise.mul (app %rise.fst (var $x))) (app %rise.snd (var $x)))))
+         (app (app %rise.zip %rise.weightsV) (app (app %rise.map (lam $sdhv (app (app (app %rise.reduce %rise.add) (lit 0 Nat)) (app (app %rise.map (lam $x (app (app %rise.mul (app %rise.fst (var $x))) (app %rise.snd (var $x)))))
+         (app (app %rise.zip %rise.weightsH) (var $sdhv)))))) (app %rise.transpose ?nbh)))))";
+    Rewrite::new("separate-dot-hv-simplified", pat, outpat)
 }
