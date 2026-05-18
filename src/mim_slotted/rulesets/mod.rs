@@ -1,7 +1,7 @@
 use crate::ffi::bridge::RuleSet;
 use crate::mim_slotted::MimSlotted;
 use crate::mim_slotted::analysis::MimSlottedAnalysis;
-use slotted_egraphs::Rewrite;
+use slotted_egraphs::*;
 
 pub mod rise;
 pub mod standard;
@@ -29,8 +29,6 @@ enum ReachError {
     Reached,
     Failed,
 }
-
-use slotted_egraphs::*;
 
 #[allow(dead_code)]
 #[allow(clippy::type_complexity)]
