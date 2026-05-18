@@ -26,8 +26,8 @@ pub fn rules() -> Vec<RW> {
 }
 
 fn beta() -> RW {
-    let pat = "(app (con ?dom-type $dom (scope ?filter ?body)) ?e)";
-    let outpat = "(let var$ (scope ?e ?body))";
+    let pat = "(app (lam $x (scope ?filter ?body)) ?e)";
+    let outpat = "(let $x (scope ?e ?body))";
     Rewrite::new("beta", pat, outpat)
 }
 
@@ -35,11 +35,11 @@ fn eta() -> RW {
     let pat = "(con ?dom-type $dom (scope ?filter (app ?fn (var $dom))))";
     let outpat = "?fn";
 
-    // On condition that $dom is not bound in ?fn because this makes
+    // On condition that $x is not bound in ?fn because this makes
     // the definiton of the function ?fn dependent on the var of the con
     // we are trying to eta-reduce away.
     Rewrite::new_if("eta", pat, outpat, |subst, _| {
-        !subst["fn"].slots().contains(&Slot::named("var"))
+        !subst["fn"].slots().contains(&Slot::named("x"))
     })
 }
 
@@ -113,17 +113,16 @@ fn map_fusion() -> RW {
 
 // (map λx.(f (g x))) => λy.((map f) ((map λx.(g x)) y))
 fn map_fission() -> RW {
-    let pat = "(app %rise.map (con ?x-type $x (scope ?filter (app ?f ?gx))))";
-    // TODO: What do we write for y-type?
+    let pat = "(app %rise.map (lam $x (scope ?filter (app ?f ?gx))))";
     let outpat = "
-(con y-type $y 
-    (scope
-        (lit ff Bool)
-        (app
-            (app %rise.map ?f)
+    (lam $y 
+        (scope
+            (lit ff Bool)
             (app
-                (app %rise.map (con ?x-type $x (scope ?filter ?gx)))
-                (var $y)))))";
+                (app %rise.map ?f)
+                (app
+                    (app %rise.map (lam $x (scope ?filter ?gx)))
+                    (var $y)))))";
     Rewrite::new_if("map-fission", pat, outpat, |subst, _| {
         !subst["f"].slots().contains(&Slot::named("x"))
     })
