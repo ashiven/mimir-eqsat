@@ -205,7 +205,8 @@ const Def* RewriteEgg::convert(uint32_t id, bool recurse) {
         case MimKind::Top: res = convert_top(id, node); break;
         case MimKind::Arr: res = convert_arr(id, node); break;
         case MimKind::Sigma: res = convert_sigma(id, node); break;
-        case MimKind::Cn: res = convert_cn(id, node); break;
+        case MimKind::Fn:
+        case MimKind::Cn:
         case MimKind::Pi: res = convert_pi(id, node); break;
         case MimKind::Idx: res = convert_idx(id, node); break;
         case MimKind::Hole: res = convert_hole(id, node); break;
@@ -396,18 +397,18 @@ const Def* RewriteEgg::convert_top(uint32_t id, NodeFFI node) {
     return new_top;
 }
 
-// (arr <arity> <body>)
+// (arr <var> <arity> <body>)
 const Def* RewriteEgg::convert_arr(uint32_t id, NodeFFI node) {
-    auto arity   = get_def(node.children[0]);
-    auto body    = get_def(node.children[1]);
+    auto arity   = get_def(node.children[1]);
+    auto body    = get_def(node.children[2]);
     auto new_arr = new_world().arr(arity, body);
     return new_arr;
 }
 
-// (sigma <type1> <type2> ...)
+// (sigma <var> <type1> <type2> ...)
 const Def* RewriteEgg::convert_sigma(uint32_t id, NodeFFI node) {
     DefVec types;
-    for (auto child : node.children) {
+    for (auto child : node.children | std::views::drop(1)) {
         auto type = get_def(child);
         types.push_back(type);
     }
@@ -423,10 +424,10 @@ const Def* RewriteEgg::convert_cn(uint32_t id, NodeFFI node) {
     return new_cn;
 }
 
-// (pi <domain> <codomain>)
+// (pi <var> <domain> <codomain>)
 const Def* RewriteEgg::convert_pi(uint32_t id, NodeFFI node) {
-    auto domain   = get_def(node.children[0]);
-    auto codomain = get_def(node.children[1]);
+    auto domain   = get_def(node.children[1]);
+    auto codomain = get_def(node.children[2]);
     auto new_pi   = new_world().pi(domain, codomain);
     return new_pi;
 }

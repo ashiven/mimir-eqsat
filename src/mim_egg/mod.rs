@@ -20,6 +20,8 @@ define_language! {
         "lam" = Lam(Box<[Id]>),
         // (con <extern> <name> <domain> [<filter>] [<body>])
         "con" = Con(Box<[Id]>),
+        // (fun <extern> <name> <domain> <codomain> [<filter>] [<body>])
+        "fun" = Fun(Box<[Id]>),
         // (app <callee> <arg>)
         "app" = App([Id; 2]),
         // (var <name> [<proj1> <proj2> ...] <type>)
@@ -58,14 +60,16 @@ define_language! {
         "bot" = Bot(Id),
         // (top <type>)
         "top" = Top(Id),
-        // (arr <arity> <body>)
-        "arr" = Arr([Id; 2]),
-        // (sigma <type1> <type2> ...)
+        // (arr <var> <arity> <body>)
+        "arr" = Arr([Id; 3]),
+        // (sigma <var> <type1> <type2> ...)
         "sigma" = Sigma(Box<[Id]>),
-        // (cn <domain>)
-        "cn" = Cn(Id),
-        // (pi <domain> <codomain>)
-        "pi" = Pi([Id; 2]),
+        // (fn <var> <domain> <codomain>)
+        "fn" = Fn_([Id; 3]),
+        // (cn <var> <domain> <codomain>)
+        "cn" = Cn([Id; 3]),
+        // (pi <var> <domain> <codomain>)
+        "pi" = Pi([Id; 3]),
         // (idx <size>)
         "idx" = Idx(Id),
         // (hole <type>) - does it even make sense to have this?
