@@ -448,9 +448,6 @@ private:
     std::unordered_map<std::string, const Def*> vars_;
     std::unordered_map<std::string, const Def*> axms_;
     std::unordered_map<std::string, const Def*> aliases_;
-
-    // TODO: Per rec expr if it works
-    std::vector<std::tuple<Hole*, const Def*, const Def*>> deferred_extracts_;
 };
 
 }; // namespace mim::plug::eqsat
