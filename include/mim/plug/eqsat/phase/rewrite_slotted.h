@@ -14,7 +14,7 @@
 namespace mim::plug::eqsat {
 
 /****************** DEBUG *********************/
-const bool DEBUG        = false;
+const bool DEBUG        = true;
 const bool DEBUG_SCOPES = false;
 
 /***************** TYPES **********************/
@@ -137,6 +137,7 @@ private:
     const Def* init_pi(uint32_t id, NodeFFI node);
     const Def* init_sigma(uint32_t id, NodeFFI node);
     const Def* init_arr(uint32_t id, NodeFFI node);
+    const Def* init_pack(uint32_t id, NodeFFI node);
 
     // Performs a bottom-up traverse of each RecExprFFI and
     // creates a Def in the new_world() for every node.
@@ -447,6 +448,9 @@ private:
     std::unordered_map<std::string, const Def*> vars_;
     std::unordered_map<std::string, const Def*> axms_;
     std::unordered_map<std::string, const Def*> aliases_;
+
+    // TODO: Per rec expr if it works
+    std::vector<std::tuple<Hole*, const Def*, const Def*>> deferred_extracts_;
 };
 
 }; // namespace mim::plug::eqsat

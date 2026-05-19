@@ -36,8 +36,8 @@ define_language! {
         Var(Slot) = "var",
         // (lit <value> <type>)
         Lit(AppliedId, AppliedId) = "lit",
-        // (pack <arity> <body>)
-        Pack(AppliedId, AppliedId) = "pack",
+        // (pack $var (scope <arity> <body>))
+        Pack(Bind<AppliedId>) = "pack",
         // (tuple <elem-cons>)
         Tuple(AppliedId) = "tuple",
         // (extract <tuple> <index>)

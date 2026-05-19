@@ -376,15 +376,21 @@ fn make_lit_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted
 }
 
 fn make_pack_type(eg: &EGraph<MimSlotted, MimSlottedAnalysis>, enode: &MimSlotted) -> AnalysisData {
-    let (arity, body) = if let MimSlotted::Pack(arity, body) = enode {
-        (arity, body)
+    let var_scope = if let MimSlotted::Pack(bind) = enode {
+        &bind.elem
     } else {
         panic!("Expected a pack node")
     };
 
-    let arity_id = eg.find_applied_id(arity);
-    let arity = eg.get_syn_expr(&arity_id);
-    let body_type = eg.analysis_data(body.id).type_.clone();
+    let var_scope_id = eg.find_applied_id(var_scope);
+    let enodes = eg.enodes_applied(&var_scope_id);
+    let var_scope = enodes.first().expect("Expected pack var scope");
+    let var_scope_childs = var_scope.applied_id_occurrences();
+
+    let arity_id = var_scope_childs.first().expect("Expected pack arity");
+    let body_id = var_scope_childs.get(1).expect("Expected pack body");
+    let arity = eg.get_syn_expr(arity_id);
+    let body_type = eg.analysis_data(body_id.id).type_.clone();
 
     AnalysisData {
         type_: TypeExpr::arr(arity, body_type),
@@ -735,7 +741,7 @@ mod test {
             type_("(sigma $dummy (scope nil nil))")
         );
 
-        let pack = "(pack (top Nat) (lit 3 Nat))";
+        let pack = "(pack $dummy (scope (top Nat) (lit 3 Nat)))";
         let pack: RecExpr<MimSlotted> = RecExpr::parse(pack).unwrap();
         let pack_id = eg.add_expr(pack);
 
@@ -763,7 +769,8 @@ mod test {
             type_("(sigma $dummy (scope (cons Nat (cons Bool nil)) nil))")
         );
 
-        let insert_pack = "(insert (pack (top Nat) (lit ff Bool)) (lit tt Bool) (lit ff Bool))";
+        let insert_pack =
+            "(insert (pack $dummy (scope (top Nat) (lit ff Bool))) (lit tt Bool) (lit ff Bool))";
         let insert_pack: RecExpr<MimSlotted> = RecExpr::parse(insert_pack).unwrap();
         let insert_pack_id = eg.add_expr(insert_pack);
 
@@ -779,7 +786,8 @@ mod test {
 
         assert_eq!(type_of(&eg, extract_tuple_id), type_("(idx i32)"));
 
-        let extract_pack = "(extract (pack (top Nat) (lit ff Bool)) (lit 0 (idx 1)))";
+        let extract_pack =
+            "(extract (pack $dummy (scope (top Nat) (lit ff Bool))) (lit 0 (idx 1)))";
         let extract_pack: RecExpr<MimSlotted> = RecExpr::parse(extract_pack).unwrap();
         let extract_pack_id = eg.add_expr(extract_pack);
 

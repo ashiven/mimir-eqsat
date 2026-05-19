@@ -362,7 +362,14 @@ impl FFIInner for MimSlotted {
                 type_,
             ),
             MimSlotted::Lit(..) => new_node_ffi(MimKind::Lit, children, None, None, None, type_),
-            MimSlotted::Pack(..) => new_node_ffi(MimKind::Pack, children, None, None, None, type_),
+            MimSlotted::Pack(bind) => new_node_ffi(
+                MimKind::Pack,
+                children,
+                None,
+                None,
+                Some(format!("{}", bind.slot)),
+                type_,
+            ),
             MimSlotted::Tuple(..) => {
                 new_node_ffi(MimKind::Tuple, children, None, None, None, type_)
             }
@@ -568,6 +575,11 @@ impl RecExprFFI {
                 MimKind::Fun => {
                     if !node.slot.is_empty() {
                         vec.insert(vec.len() - 1, Sexpr::String(node.slot.clone()))
+                    }
+                }
+                MimKind::Pack => {
+                    if !node.slot.is_empty() {
+                        vec.insert(1, Sexpr::String(node.slot.clone()))
                     }
                 }
                 MimKind::Var => {

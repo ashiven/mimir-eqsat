@@ -28,8 +28,8 @@ define_language! {
         "var" = Var(Box<[Id]>),
         // (lit <value> <type>)
         "lit" = Lit([Id; 2]),
-        // (pack <arity> <body>)
-        "pack" = Pack([Id; 2]),
+        // (pack <var> <arity> <body>)
+        "pack" = Pack([Id; 3]),
         // (tuple <value1> <value2> ...)
         "tuple" = Tuple(Box<[Id]>),
         // (extract <tuple> <index>)

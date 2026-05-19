@@ -273,10 +273,10 @@ const Def* RewriteEgg::convert_lit(uint32_t id, NodeFFI node) {
     return new_lit;
 }
 
-// (pack <arity> <body>)
+// (pack <var> <arity> <body>)
 const Def* RewriteEgg::convert_pack(uint32_t id, NodeFFI node) {
-    auto arity    = get_def(node.children[0]);
-    auto body     = get_def(node.children[1]);
+    auto arity    = get_def(node.children[1]);
+    auto body     = get_def(node.children[2]);
     auto new_pack = new_world().pack(arity, body);
     return new_pack;
 }
