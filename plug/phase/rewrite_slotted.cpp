@@ -220,16 +220,16 @@ const Def* RewriteSlotted::init_lam(uint32_t id, NodeFFI node) {
     enter_scope(var_scope);
 
     auto pi_type = create_type(node.type_)->as<Pi>();
-    auto new_lam = new_world().mut_lam(pi_type);
+    auto mut_lam = new_world().mut_lam(pi_type);
 
     auto var_name = get_slot(id);
-    auto var      = new_lam->var();
+    auto var      = mut_lam->var();
     var->set(var_name);
     register_var(var_name, var);
 
-    if (DEBUG) std::cout << new_lam << "\n";
+    if (DEBUG) std::cout << mut_lam << "\n";
     exit_scope(var_scope);
-    return new_lam;
+    return mut_lam;
 }
 
 // (pi $var (scope <dom> <codom>))
@@ -238,22 +238,22 @@ const Def* RewriteSlotted::init_pi(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto new_pi = new_world().mut_pi(new_world().type_infer_univ());
+    auto mut_pi = new_world().mut_pi(new_world().type_infer_univ());
 
     auto var_name = get_slot(id);
-    auto var      = new_pi->var();
+    auto var      = mut_pi->var();
     var->set(var_name);
     register_var(var_name, var);
 
     auto dom   = init_lookahead(var_scope.children[0]);
     auto codom = init_lookahead(var_scope.children[1]);
-    new_pi->set(dom, codom);
+    mut_pi->set(dom, codom);
 
-    if (DEBUG) std::cout << new_pi << "\n";
+    if (DEBUG) std::cout << mut_pi << "\n";
     exit_scope(var_scope);
 
-    if (auto imm = new_pi->immutabilize()) return imm;
-    return new_pi;
+    if (auto imm_pi = mut_pi->immutabilize()) return imm_pi;
+    return mut_pi;
 }
 
 // (sigma $var (scope <type-cons> nil))
@@ -265,26 +265,26 @@ const Def* RewriteSlotted::init_sigma(uint32_t id, NodeFFI node) {
     auto type_ids = get_cons_flat(var_scope.children[0]);
     auto size     = type_ids.size();
 
-    auto new_sigma = new_world().mut_sigma(new_world().type_infer_univ(), size);
+    auto mut_sigma = new_world().mut_sigma(new_world().type_infer_univ(), size);
 
     auto var_name = get_slot(id);
-    auto var      = new_sigma->var();
+    auto var      = mut_sigma->var();
     var->set(var_name);
     register_var(var_name, var);
 
     auto saved_state = save_state();
-    for (size_t i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; i++) {
         auto type = init_lookahead(type_ids[i]);
-        new_sigma->set(i, type);
+        mut_sigma->set(i, type);
         inc_visit_count(loc().depth + 1);
     }
     restore_state(saved_state);
 
-    if (DEBUG) std::cout << new_sigma << "\n";
+    if (DEBUG) std::cout << mut_sigma << "\n";
     exit_scope(var_scope);
 
-    if (auto imm = new_sigma->immutabilize()) return imm;
-    return new_sigma;
+    if (auto imm_sigma = mut_sigma->immutabilize()) return imm_sigma;
+    return mut_sigma;
 }
 
 // (arr $var (scope <arity> <body>))
@@ -293,23 +293,23 @@ const Def* RewriteSlotted::init_arr(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto new_arr = new_world().mut_arr(new_world().type_infer_univ());
+    auto mut_arr = new_world().mut_arr(new_world().type_infer_univ());
     auto arity   = init_lookahead(var_scope.children[0]);
-    new_arr->set_arity(arity);
+    mut_arr->set_arity(arity);
 
     auto var_name = get_slot(id);
-    auto var      = new_arr->var();
+    auto var      = mut_arr->var();
     var->set(var_name);
     register_var(var_name, var);
 
     auto body = init_lookahead(var_scope.children[1]);
-    new_arr->set_body(body);
+    mut_arr->set_body(body);
 
-    if (DEBUG) std::cout << new_arr << "\n";
+    if (DEBUG) std::cout << mut_arr << "\n";
     exit_scope(var_scope);
 
-    if (auto imm = new_arr->immutabilize()) return imm;
-    return new_arr;
+    if (auto imm_arr = mut_arr->immutabilize()) return imm_arr;
+    return mut_arr;
 }
 
 // (pack $var (scope <arity> <body>))
@@ -318,26 +318,26 @@ const Def* RewriteSlotted::init_pack(uint32_t id, NodeFFI node) {
     auto var_scope = get_node(MimKind::Scope, node.children[0]);
     enter_scope(var_scope);
 
-    auto new_arr  = new_world().mut_arr(new_world().type_infer_univ());
-    auto new_pack = new_world().mut_pack(new_arr);
+    auto mut_arr  = new_world().mut_arr(new_world().type_infer_univ());
+    auto mut_pack = new_world().mut_pack(mut_arr);
 
     auto arity = init_lookahead(var_scope.children[0]);
-    new_arr->set_arity(arity);
+    mut_arr->set_arity(arity);
 
     auto var_name = get_slot(id);
-    auto var      = new_pack->var();
+    auto var      = mut_pack->var();
     var->set(var_name);
     register_var(var_name, var);
 
     auto body = init_lookahead(var_scope.children[1]);
-    new_arr->set_body(body->type());
-    new_pack->set(body);
+    mut_arr->set_body(body->type());
+    mut_pack->set(body);
 
-    if (DEBUG) std::cout << new_pack << "\n";
+    if (DEBUG) std::cout << mut_pack << "\n";
     exit_scope(var_scope);
 
-    if (auto imm = new_pack->immutabilize()) return imm;
-    return new_pack;
+    if (auto imm_pack = mut_pack->immutabilize()) return imm_pack;
+    return mut_pack;
 }
 
 void RewriteSlotted::convert(rust::Vec<RecExprFFI> rec_exprs) {
