@@ -164,3 +164,39 @@ fn separate_dot_hv_simplified() -> RW {
          (app (app %rise.zip %rise.weightsH) (var $sdhv)))))) (app %rise.transpose ?nbh)))))";
     Rewrite::new("separate-dot-hv-simplified", pat, outpat)
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::mim_slotted::rulesets::assert_reaches;
+
+    #[test]
+    fn reduction() {
+        let a = "
+        (app 
+            (lam $0 (scope (lit ff Bool)
+                (app 
+                    (lam $1 (scope (lit ff Bool)
+                        (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (app (app (var $0) (var $1)) (var $1))))))))) 
+                    (lam $2 (scope (lit ff Bool)
+                        (app (app %rise.add (var $2)) 1)))))) 
+            (lam $3 (scope (lit ff Bool)
+                (lam $4 (scope (lit ff Bool)
+                    (lam $5 (scope (lit ff Bool)
+                        (app (var $3) (app (var $4) (var $5))))))))))";
+
+        let b = "
+        (lam $0 (scope (lit ff Bool)
+            (app (app %rise.add (app (app %rise.add (app (app %rise.add (app (app %rise.add (app (app %rise.add (app (app %rise.add (app (app %rise.add (var $0)) 1)) 1)) 1)) 1)) 1)) 1)) 1)))";
+
+        assert_reaches(a, b, &rules(), 40);
+    }
+
+    #[test]
+    fn fission() {
+        let a = "(app %rise.map (lam $42 (scope (lit ff Bool) (app f5 (app f4 (app f3 (app f2 (app f1 (var $42)))))))))";
+        let b = "(lam $1 (scope (lit ff Bool) (app (app %rise.map (lam $42 (scope (lit ff Bool) (app f5 (app f4 (app f3 (var $42))))))) (app (app %rise.map (lam $42 (scope (lit ff Bool) (app f2 (app f1 (var $42)))))) (var $1)))))";
+
+        assert_reaches(a, b, &rules(), 40);
+    }
+}
